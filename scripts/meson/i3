@@ -1,0 +1,13 @@
+#!/bin/bash
+
+PkgHome="https://github.com/i3/i3"
+
+ConfigureOpts+=(
+    -Dmans=true
+)
+
+pkg_post_install() {
+    # Install an xinitrc script
+    local d=$Etc2/X11/xinit
+    pkg_install_mfd 755 "$SupportDir"/xinitrc.i3 "$d"
+}
