@@ -1,0 +1,32 @@
+#!/bin/bash
+
+ConfigureOpts=(
+    --prefix="$Prefix"
+    --libdir="$LibDir"
+    --mandir="$ManDir"
+    --infodir="$InfoDir"
+    --sysconfdir="$Etc"
+    --buildtype=release
+    --backend=ninja
+)
+
+pkg_configure() {
+    local d=$SrcDir/_tmp
+    mkdir -pm 700 "$d"
+    export TMPDIR=$d
+    meson setup "${ConfigureOpts[@]}" _build || return 1
+}
+
+pkg_make() {
+    ninja -C _build
+}
+
+pkg_install() {
+    DESTDIR="$DestDir" ninja -C _build install
+}
+
+pkg_distclean() {
+    if [[ -d _build ]]; then
+        rm -rf _build
+    fi
+}
