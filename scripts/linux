@@ -1,0 +1,80 @@
+#!/bin/bash
+
+PkgHome="https://kernel.org/"
+
+unset pkg_configure pkg_check DOC pkg_strip
+
+CleanOpts=(clean)
+
+# clang, CONFIG_CFI_CLANG=y
+check_llvm=1
+
+check_env() {
+    [[ ! -f .config ]] &&
+        {
+            echo "file not found: .config"
+            echo "configure kernel: make nconfig"
+            return 1
+        }
+
+    MakeEnv=()
+    local clang=$(command -v clang) opt
+    if [[ $check_llvm && $clang ]]; then
+        opt="LLVM=${clang%/*}" # LLVM=/usr/bin
+        MakeEnv=("$opt")
+        grep -q -m 1 -e '^CONFIG_CFI_CLANG=y' .config ||
+            {
+                echo "bad .config: CONFIG_CFI_CLANG != y"
+                echo "configure kernel: $opt make nconfig"
+                return 1
+            }
+    else
+        grep -q -m 1 -e '^CONFIG_CFI_CLANG=y' .config &&
+            {
+                echo "bad .config: CONFIG_CFI_CLANG = y"
+                echo "configure kernel: make nconfig"
+                return 1
+            }
+    fi
+}
+
+pkg_make() {
+    check_env || return 1
+
+    local f=tools/objtool/sync-check.sh
+    if [[ -f $f ]]; then
+        chmod 755 "$f"
+    fi
+
+    "${Make[@]}" "${MakeEnv[@]}" bzImage || return 1
+    "${Make[@]}" "${MakeEnv[@]}" modules || return 1
+    if [[ -d tools/bootconfig ]]; then
+        "${Make[@]}" "${MakeEnv[@]}" -C tools/bootconfig || return 1
+    fi
+}
+
+pkg_install() {
+    check_env || return 1
+
+    local i
+    local bdir=$DestDir/boot
+    local opts=(
+        "INSTALL_MOD_PATH=$DestDir"
+        "INSTALL_HDR_PATH=$Prefix2"
+        modules_install
+        headers_install
+    )
+    "${Make[@]}" "${MakeEnv[@]}" "${opts[@]}" || return 1
+    find "$Prefix2/include" \( -name .install -o -name ..install.cmd \) -delete
+
+    i=tools/bootconfig/bootconfig
+    if [[ -x $i ]]; then
+        strip "-g" "--strip-unneeded" "$i" || return 1
+        pkg_install_mfd 500 "$i" "$DestDir/sbin" || return 1
+    fi
+
+    local image=$(find -type f -name 'bzImage' -print -quit)
+    pkg_install_mff 644 "$image" "$bdir/vmlinuz-$Version" || return 1
+    pkg_install_mff 644 System.map "$bdir/System.map-$Version" || return 1
+    pkg_install_mff 644 .config "$bdir/config-$Version" || return 1
+}
