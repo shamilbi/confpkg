@@ -1,0 +1,1040 @@
+#!/bin/bash
+
+Home=$(dirname "$(realpath "$0")")
+. "$Home/env.sh" || exit 1
+
+usage() {
+    echo "\
+Usage: confpkg <command> <name>
+Commands:
+    all <name>
+        configure, make, check, install, create package
+    all-clean <name>
+        clean, configure, make, ...
+    script-path <name>
+        print the full path to the script for <name>
+    show-installed <name>
+        list installed packages <name>-*
+    removepkg-warn <package>
+        like removepkg -warn <package>
+    removepkg-old <name>
+        choose what to remove from previously installed packages <name>-*
+    delete-script <name>
+        delete script (if exists) for <name>
+    edit <name>
+        edit script (if exists) for <name>
+    edit2 <name>
+        edit all intermidiate scripts for <name>
+    install <name>
+        install, create package
+    installpkg
+        like installpkg <package>
+"
+    exit 1
+}
+
+pkg_configure_() {
+    echo "configure $FullName ..."
+    {
+        echo "----------- patches ---------------"
+        pkg_apply_patches || return 1
+
+        if [[ ! $pkg_configure ]]; then
+            return 0
+        fi
+
+        echo "----------- pre configure ---------------"
+        pkg_pre_configure || return 1
+
+        echo "----------- configure ---------------"
+        pkg_configure || return 1
+    } &>>"$Log"
+}
+
+pkg_make_() {
+    if [[ ! $pkg_make ]]; then
+        return 0
+    fi
+
+    (
+        pkg_cd_makedir || exit 1
+        echo "make $FullName ..."
+        {
+            echo "----------- pre make ---------------"
+            pkg_pre_make || exit 1
+            echo "----------- make ${MakeOpts[*]} ---------------"
+            pkg_make || exit 1
+            echo "----------- post make ---------------"
+            pkg_post_make || exit 1
+        } &>>"$Log"
+    )
+}
+
+pkg_check_() {
+    if [[ ! $pkg_check ]]; then
+        return 0
+    fi
+
+    echo "check $FullName ..."
+    pkg_check &>>"$Log"
+}
+
+pkg_install_() {
+    if [[ ! $pkg_install ]]; then
+        echo "not install"
+        return 0
+    fi
+
+    echo "install $FullName ..."
+    (
+        pkg_cd_makedir || exit 1
+        {
+            echo "----------- pre install ---------------"
+            pkg_pre_install || exit 1
+
+            echo "----------- install ---------------"
+            pkg_install || exit 1
+
+            pkg_install_doc
+
+            echo "----------- post_install ---------------"
+            pkg_post_install_ || exit 1
+        } &>>"$Log"
+    ) || return 1
+
+    (
+        cd "$DestDir" || exit 1
+        echo "OK. Install size: $(du -sh . | awk '{print $1}')"
+        while IFS= read -r x; do
+            if [[ $x ]]; then
+                old=
+                new=$(stat -c '%a' "$x")
+                [[ -e /$x ]] && old=$(stat -c '%a' "/$x")
+                if [[ $old && $old != $new ]]; then
+                    echo "$(stat -c '%A' "$x") $new $x (old=${old})"
+                else
+                    echo "$(stat -c '%A' "$x") $new $x"
+                fi
+            fi
+        done < <(find . -perm /7000)
+        exit 0
+    )
+}
+
+pkg_install_all_() {
+    if [[ -d $DestDir ]]; then
+        rm -rf "$DestDir"
+    fi
+    if [[ ! $pkg_install ]]; then
+        echo "not install"
+        return 0
+    fi
+    if ((${#BuildSteps[*]})); then
+        pkg_all_ || pkg_exit1_
+    else
+        pkg_install_ || pkg_exit1_
+        pkg_create_tgz_
+    fi
+}
+
+pkg_ldd_file_() {
+    #ldd "$1"| grep -v fakeroot | grep -v ': version .* not found' |
+    #    grep -v -e 'not a dynamic executable' -e 'statically linked' |
+    #    sed -r -e 's,/([a-z0-9]+)/\.\./\1/,/\1/,'\
+    objdump -p "$1" | grep '\<NEEDED\>' | sed 's,^ *NEEDED *,,'
+    # /lib64/../lib64/ --> /lib64/
+}
+
+pkg_strip_file_() {
+    [[ ! $pkg_strip ]] && return 0
+
+    # $1 - file
+    # $2 ... - strip options
+    local f=$1
+    shift
+    if [[ $f && -e $f ]]; then
+        local perm
+        perm=$(stat -c '%a' "$f")
+        chmod u+w "$f" # strip requires u+w
+        strip "$@" "$f"
+        [[ $perm ]] && chmod "$perm" "$f"
+    fi
+    return 0
+}
+
+pkg_del_la() {
+    local dir=$DestDir file
+    while IFS= read -r file; do
+        [[ "$(pkg_filetype "$file")" = "la" ]] && rm -f "$file"
+    done < <(find "$dir" -type f -name '*.la')
+}
+
+pkg_ldd_destdir_() {
+    # uses $PkgsLddDir2
+    local dir=$DestDir
+    if [[ ! $dir || ! -d $dir ]]; then
+        pkg_log "dir not exist: $dir"
+        return 1
+    fi
+    local file type_
+    local ldd_dir=$PkgsLddDir2
+    local ldd_file=$ldd_dir/$FullName
+    while IFS= read -r file; do
+        type_=$(pkg_filetype "$file") || return 1
+        case $type_ in
+            "exec")
+                pkg_strip_file_ "$file" "--strip-unneeded" || return 1
+                # pipewire
+                [[ ! -d $ldd_dir ]] && mkdir -p "$ldd_dir"
+                pkg_ldd_file_ "$file" >>"$ldd_file"
+                ;;
+            "so")
+                pkg_strip_file_ "$file" "--strip-unneeded" || return 1
+                # openssl-3
+
+                [[ ! -L $file && ! -x $file ]] && chmod 755 "$file"
+                # nettle: 644
+
+                [[ ! -d $ldd_dir ]] && mkdir -p "$ldd_dir"
+                pkg_ldd_file_ "$file" >>"$ldd_file"
+                ;;
+            "a")
+                pkg_strip_file_ "$file" "-g" || return 1
+                chmod -x "$file"
+                ;;
+        esac
+    done < <(find "$dir" -type f)
+
+    # -bad links
+    # cryptsetup-2.6.1, /usr/lib64/libcryptsetup.la
+    find "$dir" -xtype l -name '*.la' -delete
+
+    # ldd log finish
+    if [[ -f $ldd_file ]]; then
+        sed -i -r \
+            -e 's,^[ \t]+,,' \
+            -e 's, *\(0x[0-9a-f]+\),,' "$ldd_file"
+        sort <"$ldd_file" | uniq >"$ldd_file.tmp"
+        mv "$ldd_file.tmp" "$ldd_file"
+    fi
+
+    return 0
+}
+
+pkg_gzip_man_() {
+    local root_dir=$DestDir
+    [[ ! $root_dir || ! -d $root_dir ]] && return 1
+
+    local dir dir2 dir3 file file2
+    # **/man/
+    while IFS= read -r dir; do
+        # **/man/**/cat[0-9]/
+        while IFS= read -r dir2; do
+            dir3=$(basename "$dir2") # cat[0-9]
+            dir3=${dir3:3}           # cat[0-9] -> [0-9]
+            dir3=$dir/man$dir3       # **/man[0-9]
+            if [[ ! -d $dir3 ]]; then
+                mkdir -p "$dir3"
+            fi
+            # **/man/**/cat[0-9]/* -> **/man[0-9]
+            mv "$dir2"/* "$dir3"
+            rm -r "$dir2"
+        done < <(find "$dir" -type d -name 'cat[0-9]')
+        # **/man[0-9]/
+        while IFS= read -r dir2; do
+            # chmod 644 **/manX/*
+            find "$dir2" -type f -exec chmod 644 "{}" \;
+            # gzip **/manX/*
+            find "$dir2" -type f ! -name '*.gz' -exec gzip -9 -f "{}" \;
+            # **/manX/link --> link.gz
+            while IFS= read -r file; do
+                file2=$(readlink "$file")
+                #if [[ $file2 =~ ^/ ]]; then
+                if [[ $file2 = /* ]]; then
+                    # absolute path
+                    file2="$root_dir$file2"
+                fi
+                (
+                    cd $(dirname "$file") || exit 1
+                    ln -sfnr "$file2".gz "$(basename "$file")".gz
+                )
+                rm -f "$file"
+            done < <(find "$dir2" -type l ! -name '*.gz')
+        done < <(find "$dir" -type d -name 'man[0-9]')
+    done < <(find "$root_dir" -type d -name 'man')
+}
+
+pkg_gzip_info_() {
+    local root_dir=$DestDir
+    [[ ! $root_dir || ! -d $root_dir ]] && return 1
+
+    local d
+    # **/info/
+    while IFS= read -r d; do
+        #if ! $(find "$d" -maxdepth 1 -type f -name '*.info' &> /dev/null); then
+        if [[ ! $(find "$d" -maxdepth 1 -type f -name '*.info' -print -quit) ]]; then
+            continue
+        else
+            if [[ -f $d/dir ]]; then
+                rm "$d/dir"
+            fi
+            #find $d -maxdepth 1 -type f -name '*.info*' \
+            find "$d" -maxdepth 1 -type f ! -name 'dir' ! -name '*.gz' \
+                -exec gzip -9 -f {} \;
+        fi
+    done < <(find "$root_dir" -type d -name 'info')
+}
+
+pkg_post_install_doc_() {
+    local i
+    if [[ ! $DOC ]]; then
+        for i in "$Prefix2/doc" "$DestDir/usr/doc"; do
+            if [[ -d $i ]]; then
+                rm -rf "$i"
+            fi
+        done
+    fi
+    if [[ ! $GTK_DOC ]]; then
+        for i in gtk-doc devhelp; do
+            local dir=$ShareDir2/$i
+            if [[ -d $dir ]]; then
+                rm -rf "$dir"
+            fi
+        done
+    fi
+}
+
+pkg_declare_var_() {
+    # $(pkg_declare_var_ var_name [<value>])
+    # var_name=value
+    local name=$1 value=$2 s
+    s="$name="
+    if [[ $value ]]; then
+        s+=$(printf '%q' "$value")
+    fi
+    echo "$s"
+}
+
+pkg_declare_arr_() {
+    # $(pkg_declare_arr_ arr_name [<value> ...])
+    # arr_name=(
+    #     value
+    #     ...
+    # )
+    local name=$1 s i
+    shift 1
+    s="$name=("$'\n'
+    for i; do
+        s+="    $(printf '%q' "$i")"$'\n'
+    done
+    s+=")"
+    echo "$s"
+}
+
+pkg_install_daemon_rc_() {
+    if [[ $Daemon ]]; then
+        local file=$Etc2/rc.d/rc.$(basename "$Daemon")
+        mkdir -p "$(dirname "$file")"
+        # rc.chronyd
+        cat >"$file" <<EOF
+#!/bin/bash
+
+$(pkg_declare_var_ daemon_ "$Daemon")
+$(pkg_declare_arr_ daemonOpts "${DaemonOpts[@]}")
+$(pkg_declare_var_ daemonUser "$DaemonUser")
+$(pkg_declare_var_ pidFile "$DaemonPidfile")
+
+EOF
+        cat "$FilesDir/confpkg/rc.name.sh" >>"$file"
+    fi
+}
+
+unset -v pkg_post_installpkg
+# read -r -d '' pkg_post_installpkg <<EOF
+# ... # relative paths
+# ... # $ -> \$
+# EOF
+# :
+
+pkg_post_install_() {
+    pkg_include_script_
+    pkg_post_install || return 1
+    pkg_install_daemon_rc_
+    pkg_post_install_doc_
+
+    pkg_ldd_destdir_ || return 1
+    pkg_del_la
+    pkg_gzip_man_
+    pkg_gzip_info_
+
+    pkg_post_install2_
+}
+
+pkg_post_install2_() {
+    local i j dir fpath
+
+    # chmod -x /usr/include/* /usr/lib/pkgconfig/*
+    for i in "$Prefix2/include" "$LibDir2/pkgconfig"; do
+        if [[ -d $i ]]; then
+            find "$i" -type f -perm /111 -exec chmod -x {} \;
+        fi
+    done
+
+    # /share/doc, /usr/share/doc --> /usr
+    for i in /share/man /share/info /share/doc; do
+        for j in "$DestDir$i" "$Prefix2$i"; do
+            if [[ -d $j ]]; then
+                #cp -a "$j" "$Prefix2"
+                pkg_cp_fd "$j" "$Prefix2"
+                rm -rf "$j"
+            fi
+        done
+    done
+
+    # chmod 644 /usr/share/locale/*
+    dir=$DestDir/usr/share/locale
+    if [[ -d $dir ]]; then
+        find "$dir" -type f ! -perm 644 -exec chmod 644 {} \;
+    fi
+
+    # /usr/doc/$Name --> /usr/doc/$FullName
+    dir=$DestDir/usr/doc/$Name
+    if [[ -d $dir && ! -L $dir ]]; then
+        pkg_cp_fd "$dir"/* "$DocDir2"
+        rm -rf "$dir"
+    fi
+
+    # /usr/doc/* (files) --> /usr/doc/$FullName/
+    dir=$Prefix2/doc
+    if [[ -d $dir ]]; then
+        while IFS= read -r fpath; do
+            pkg_cp_fd "$fpath" "$DocDir2"
+            rm -f "$fpath"
+        done < <(find "$dir" -maxdepth 1 -type f)
+    fi
+
+    # /lib/pkgconfig --> /usr/lib
+    for i in lib "$LibName" usr/share; do
+        dir=$DestDir/$i/pkgconfig
+        if [[ -d $dir ]]; then
+            echo "$dir -> $DestDir/usr/$LibName/ ..."
+            pkg_cp_fd "$dir" "$DestDir/usr/$LibName"
+            rm -rf "$dir"
+        fi
+    done
+
+    # doinst.sh
+    if ((${#ProtectDirs[*]})); then
+        for i in "${ProtectDirs[@]}"; do
+            while IFS= read -r fpath; do
+                mv "$fpath" "$fpath.new"
+                pkg_doinst_add "config ${fpath:${#DestDir}+1}"
+            done < <(find "$DestDir$i" -type f 2>/dev/null)
+        done
+    fi
+    if ((${#ProtectFiles[*]})); then
+        for i in "${ProtectFiles[@]}"; do
+            fpath=$DestDir$i
+            [[ -f $fpath ]] && mv -f "$fpath" "$fpath.new"
+            pkg_doinst_add "config ${i:1}"
+        done
+    fi
+    if [[ -d $DestDir/lib/modules ]]; then
+        #dir=$(pkg_last_dir "$DestDir/lib/modules")
+        dir=$(find "$DestDir/lib/modules" -mindepth 1 -maxdepth 1 -type d -print -quit)
+        if [[ -d $dir ]]; then
+            pkg_doinst_add "depmod $(basename "$dir")"
+            if [[ $Name != "linux" ]]; then
+                # del lib/modules/$version/(files)
+                find "$dir" -mindepth 1 -maxdepth 1 -type f -delete
+            fi
+        fi
+    fi
+    if [[ $pkg_post_installpkg ]]; then
+        pkg_doinst_add "$pkg_post_installpkg"
+    fi
+
+    if [[ ! $DOC && -d $DocDir2 ]]; then
+        rm -rf "$DocDir2"
+    fi
+}
+
+pkg_doinst_add() {
+    local dir=$DestDir/install
+    local file=$dir/doinst.sh
+    if [[ ! -f $file ]]; then
+        pkg_install_mfd 644 "$FilesDir/confpkg/doinst.sh" "$dir"
+    fi
+    if (($# > 0)); then
+        echo "$1" >>"$file"
+    fi
+}
+
+unset TgzFile
+
+pkg_define_tgzfile_() {
+    if [[ $(command -v xz) ]]; then
+        TgzFile=$Pwd/$FullName.txz
+        tar=(tar cJf "$TgzFile")
+    else
+        TgzFile=$Pwd/$FullName.tgz
+        tar=(tar czf "$TgzFile")
+    fi
+}
+
+pkg_create_tgz_() {
+    if [[ ! -d $DestDir ]]; then
+        pkg_log "dir not found: $DestDir"
+        return 1
+    fi
+
+    local tar
+
+    pkg_define_tgzfile_
+    pkg_rm_files "$TgzFile"
+
+    echo "create ${TgzFile##*/} ..."
+    "${tar[@]}" -C "$DestDir" . || return 1
+}
+
+pkg_installpkg_() {
+    if [[ ! $TgzFile ]]; then
+        TgzFile=$FullName.txz
+        if [[ ! -f $TgzFile ]]; then
+            local count
+            count=$(ls "$FullName"-*.txz | wc -l)
+            if ((count == 1)); then
+                TgzFile=$(ls "$FullName"-*.txz | head -1)
+            fi
+        fi
+    fi
+    if [[ ! -f $TgzFile ]]; then
+        echo "file not exist: $TgzFile"
+        return 1
+    fi
+    local pkg_name
+    pkg_name=$(basename "${TgzFile%.*}")
+    local pkgfile=$PkgsDir/$pkg_name
+    local pkg_name_old=$pkg_name-old
+    local pkgfile_old=$pkgfile-old
+
+    if [[ -f $pkgfile ]]; then
+        if [[ -f $pkgfile_old ]]; then
+            echo "remove $pkg_name_old ..."
+            "$Home/removepkg2" "$pkg_name_old" &>/dev/null
+        fi
+        echo "rename $pkg_name --> $pkg_name_old ..."
+        mv "$pkgfile" "$pkgfile_old"
+    fi
+
+    echo "installpkg $TgzFile ..."
+    "$Home/confpkg-install" "$@" "$TgzFile" || return 1
+
+    local dir
+    dir="$(dirname "$TgzFile")/_installed"
+    if [[ -d $dir ]]; then
+        mv "$TgzFile" "$dir" 2>/dev/null
+    fi
+
+    echo "OK"
+
+    pkg_del_old_pkg_ "$pkg_name"
+
+    local answer
+    if [[ -d $OrigSrcDir && $Name != "linux" ]]; then
+        read -r -p "rm -rf $OrigSrcDir ? [y,n]" \
+            -s -n1 answer
+        echo
+        if [[ "$answer" = "y" ]]; then
+            rm -rf "$OrigSrcDir"
+            if [[ -d $DestDir ]]; then
+                rm -rf "$DestDir"
+            fi
+            if [[ -d $BuildDir ]]; then
+                rm -rf "$BuildDir"
+            fi
+        fi
+    fi
+    return 0
+}
+
+pkg_clean_() {
+    if [[ ! $pkg_make ]]; then
+        return 0
+    fi
+    echo "clean $FullName ..."
+    if [[ $UseBuildDir ]]; then
+        if [[ -d $BuildDir ]]; then
+            cd "$OrigSrcDir" || return 1
+            rm -rf "$BuildDir" || return 1
+        fi
+        return 0
+    fi
+    (
+        pkg_cd_srcdir || exit 1
+        pkg_distclean &>>"$Log"
+    )
+}
+
+pkg_exit1_() {
+    echo "FAILED"
+    exit 1
+}
+
+pkg_del_old_pkg_() {
+    local old
+    old=$(pkg_select_old_pkg_ "$1")
+    local answer
+    if [[ $old ]]; then
+        read -r -p "removepkg -warn $old ? [y,n]" \
+            -s -n1 answer
+        echo
+        if [[ $answer = "y" ]]; then
+            pkg_removepkg_warn_ "$old" || return 1
+        fi
+    fi
+}
+
+pkg_select_old_pkg_() {
+    local name=$1
+    if [[ ! $name ]]; then
+        local name=$FullName
+    fi
+    local i
+    if [[ -f $PkgsDir/$name-old ]]; then
+        echo "$name-old"
+        return
+    fi
+    local n
+    #n=$(ls -ltQ "$PkgsDir/$Name"-* 2>/dev/null | wc -l)
+    n=$(cd "$PkgsDir" || exit 1; pkg_find_sort "$Name" | wc -l)
+    if ((n < 2)); then
+        # not found
+        return
+    fi
+    # n > 2
+    local search
+    echo "Select an old package to remove (Ctrl-D to cancel):" >&2
+    search=$(
+        cd "$PkgsDir" || exit 1
+        s=()
+        while IFS= read -r name; do
+            s+=("$name ($(date -r "$name" +"%b %d %Y"))")
+            # name (Oct 27 2021)
+        #done < <(ls -t "$Name"-*)
+        done < <(pkg_find_sort "$Name")
+        select name in "${s[@]}"; do
+            # q --> empty name
+            [[ $name ]] && echo "${name:0:(-14)}"
+            break
+        done
+    )
+    echo "$search"
+}
+
+pkg_include_script_() {
+    # Script=scripts/a/b/script
+    # . scripts/__init__
+    # . scripts/a/__init__
+    # . scripts/a/b/__init__
+    # . scripts/a/b/script
+    local fp=$Script
+    ScriptArr=()
+    local i
+    if [[ $(basename "$fp") != "__init__" && -f $fp ]]; then
+        ScriptArr=("$fp" "${ScriptArr[@]}")
+    fi
+    local d
+    d=$(dirname "$fp")
+    while :; do
+        if [[ -f $d/__init__ ]]; then
+            ScriptArr=("$d/__init__" "${ScriptArr[@]}")
+        fi
+        if [[ $d = $ScriptsDir ]]; then
+            break
+        fi
+        d=$(dirname "$d")
+    done
+    for i in "${ScriptArr[@]}"; do
+        . "$i"
+    done
+}
+
+pkg_find_sort() {
+    # find + sort in current dir
+    # (seconds, name) -> sort reverse -> (name)
+    local name=$1
+    find . -mindepth 1 -maxdepth 1 -type f -iname "$name-*" |
+        while name2=$(pkg_read_exist); do
+            name2=${name2:2} # ./x -> x
+            echo "$(date -r "$name2" +"%s") $name2" # (seconds, name)
+        done | sort -nr | sed -e 's,^[0-9]* ,,'
+}
+
+pkg_show_installed_() {
+    local name=$Name
+    (
+        cd "$PkgsDir" || exit 1
+        shopt -u nullglob
+        while name2=$(pkg_read_exist); do
+            echo "$(date -r "$name2" +"%b %d %Y") $name2"
+        #done < <(ls -t "$name"-* 2>/dev/null)
+        done < <(pkg_find_sort "$name")
+    )
+}
+
+pkg_script_path_() {
+    [[ $Script ]] && echo "$Script"
+}
+
+pkg_removepkg_warn_() {
+    local name=$1
+    name=$(pkg_check_pkgname "$name") || return 1
+    (
+        echo "removepkg -warn $name ..."
+        "$Home/removepkg2" --warn "$name" |
+            grep 'would be deleted' | sort
+    ) | "$Pager"
+
+    local answer
+    read -r -p "removepkg $name ? [y,n]" -s -n1 answer
+    echo
+    if [[ "$answer" = "y" ]]; then
+        pkg_removepkg_ "$name"
+    fi
+}
+
+pkg_removepkg_() {
+    if [[ $1 ]]; then
+        (
+            echo "removepkg $1 ..."
+            "$Home/removepkg2" "$1" |
+                grep -v 'Skipping'
+        ) | $Pager
+    fi
+}
+
+pkg_all_() {
+    if [[ -d $DestDir ]]; then
+        rm -rf "$DestDir"
+    fi
+    pkg_rm_files "$Log"
+    if ((${#BuildSteps[*]})); then
+        echo "BuildSteps: ${BuildSteps[*]}"
+        for BuildStep in "${BuildSteps[@]}"; do
+            echo "---------------------"
+            echo "BuildStep: $BuildStep ..."
+            pkg_include_script_ || pkg_exit1_
+            pkg_clean_
+            pkg_all2_ || pkg_exit1_
+        done
+    else
+        pkg_all2_ || pkg_exit1_
+    fi
+    pkg_create_tgz_
+}
+
+pkg_all2_() {
+    (
+        pkg_cd_srcdir || exit 1
+        pkg_configure_ || exit 1 # set env vars
+        pkg_make_ || exit 1 # make with the same vars
+        pkg_check_ || { echo "FAILED"; }
+        pkg_install_ # install with the same vars
+    ) || return 1
+}
+
+pkg_find_script_dir_() {
+    local notFound=1
+
+    local fp=$ScriptsDir/__match__
+    [[ -f $fp ]] && . "$fp" >/dev/null && notFound=0
+
+    if ((notFound)); then
+        while IFS= read -r fp; do
+            . "$fp" >/dev/null && { notFound=0; break; }
+        done < <(find "$ScriptsDir" -mindepth 2 -type f -name __match__)
+    fi
+    ((!notFound)) && echo "${fp%/*}" # dirname
+    return $notFound
+}
+
+pkg_find_script2_() {
+    pkg_find_script_ "$FullName"
+    if [[ ! $Script && ${VersionArr[0]} ]]; then
+        pkg_find_script_ "$Name-${VersionArr[0]}"
+        if [[ ! $Script && ${VersionArr[1]} ]]; then
+            pkg_find_script_ "$Name-${VersionArr[0]}.${VersionArr[1]}"
+        fi
+    fi
+    if [[ ! $Script ]]; then
+        pkg_find_script_ "$Name"
+    fi
+    if [[ ! $Script ]]; then
+        Script=$(pkg_find_script_dir_) && Script+=/$Name
+    fi
+    if [[ ! $Script ]]; then
+        # default
+        Script=$ScriptsDir/$Name
+    fi
+}
+
+pkg_find_script_() {
+    local name=$1
+    [[ ! $name ]] && return 1
+
+    local script=$(find "$ScriptsDir" -type f -iname "$name" -print -quit)
+    if [[ $script ]]; then
+        Script=$script
+        return 0
+    fi
+    return 1
+}
+
+pkg_edit_script_() {
+    if [[ -f $Script ]]; then
+        exec "$Editor" "$Script"
+    else
+        echo "script not exist: $(basename "$Script")"
+    fi
+}
+
+pkg_edit2_script_() {
+    if [[ ! $Script ]] || ((! ${#ScriptArr[*]})); then
+        return 1
+    fi
+
+    if [[ ! -f $Script ]]; then
+        # new script?
+        ScriptArr+=("$Script")
+    fi
+
+    local i arr=() name offset=$((${#ScriptsDir} + 1))
+    # $ScriptsDir/xxx -> xxx
+    for i in "${ScriptArr[@]}"; do
+        arr=("${i:$offset}" "${arr[@]}")
+    done
+
+    while :; do
+        echo "Select a script to edit:" >&2
+        select name in "${arr[@]}"; do
+            # q --> empty name
+            [[ ! $name ]] && return 0
+            "$Editor" "$ScriptsDir/$name"
+            break
+        done
+        (($?)) && return 0 # EOF
+    done
+}
+
+pkg_set_fullname_() {
+    FullName=$1
+    [[ ! $FullName ]] && return 1
+
+    case $FullName in
+        *.txz | *.tgz | *.zip)
+            TgzFile=$FullName
+            FullName=${FullName%.*}
+            ;;
+        *.log)
+            FullName=${FullName%.*}
+            ;;
+    esac
+
+    DocDir=$DocDir0/$FullName
+
+    # Name, Version
+    if [[ $FullName =~ -([0-9].*) ]]; then
+        Version=${BASH_REMATCH[1]}
+        Name=${FullName:0:-(${#Version} + 1)}
+        if [[ $Version =~ $Name-([0-9]+[a-z]+)-.+ ]]; then
+            # ntfs-3g-1.2.3
+            Name+="-${BASH_REMATCH[1]}"
+            Version=${Version:(${#BASH_REMATCH[1]} + 1)}
+        fi
+    elif [[ $FullName =~ -[a-z]+$ ]]; then
+        # wireguard-tools
+        Name=${FullName##*/} # basename
+    elif [[ $FullName =~ -(.*) ]]; then
+        Version=${BASH_REMATCH[1]}
+        Name=${FullName:0:${#FullName}-${#Version}-1}
+    elif [[ $FullName = *.SlackBuild ]]; then
+        Name=${FullName%.*}
+    else
+        Name=${FullName##*/} # basename
+    fi
+
+    # VersionArr
+    # 1.2.3 --> VersionArr=(1, 2, 3)
+    VersionArr=()
+    IFS=.- read -a VersionArr <<<"$Version"
+}
+
+pkg_set_destdir_() {
+    DestDir=$1
+    Prefix2=$DestDir$Prefix
+    Etc2=$DestDir$Etc
+    ManDir2=$DestDir$ManDir
+    InfoDir2=$DestDir$InfoDir
+    IncludeDir2=$DestDir$IncludeDir
+    DocDir2=$DestDir$DocDir
+    ShareDir2=$DestDir$ShareDir
+    LibDir2=$DestDir$LibDir
+    FontsDir2=$DestDir$FontsDir
+    PkgsLddDir2=$DestDir$PkgsLddDir
+    GoDir2=$DestDir$GoDir
+}
+
+pkg_check_tgzfile_() {
+    # check user:group (bad fakeroot)
+    local tar
+    pkg_define_tgzfile_
+    if [[ -f $TgzFile ]]; then
+        local count u=$(id -un) g=$(id -gn)
+        # https://unix.stackexchange.com/questions/546769/what-is-the-easiest-way-to-list-all-the-usergroup-found-in-a-tarball
+        tar=(
+            tar xf "$TgzFile"
+            --to-command='bash -c "echo $TAR_MODE $TAR_UNAME:$TAR_GNAME TAR_FILENAME"'
+        )
+        count=$("${tar[@]}" | grep -F " $u:$g " | wc -l)
+        if ((count > 0)); then
+            echo "bad $TgzFile: contains files with current ownership $u:$g (bad fakeroot?)"
+            return 1
+        fi
+    fi
+    return 0
+}
+
+main() {
+    local cmd=$1
+    [[ ! $cmd ]] && usage
+
+    FullName=$2
+    [[ ! $FullName ]] && usage
+    pkg_set_fullname_ "$FullName" 
+
+    Pwd=$PWD
+
+    local i
+
+    if (($(id -u) != 0)); then
+        case $cmd in
+            # fakeroot commands
+            all | all-clean | install)
+                echo "fakeroot ..."
+                #exec env LD_PRELOAD=libacl.so.1 fakeroot "$bash" "$Home/confpkg0" "$@"
+                #exec fakeroot "$bash" "$Home/confpkg0" "$@"
+                #exec fakeroot "$0" "$@"
+                fakeroot "$0" "$@" || return 1
+                #exec unshare -Ur "$0" "$@" # install fuse failed
+                pkg_check_tgzfile_
+                return $?
+                ;;
+            # sudo commands
+            installpkg | removepkg-warn | removepkg-old)
+                echo "sudo ..."
+                #exec sudo -- "$bash" "$Home/confpkg0" "$@"
+                exec sudo -- "$0" "$@"
+                ;;
+        esac
+    fi
+
+    shift 2
+
+    ScriptsDir=$Home/scripts
+
+    OrigSrcDir=$Pwd/$FullName
+    SrcDir=$OrigSrcDir
+    # may be changed, e.g. samba-.../source
+
+    BuildDir=$OrigSrcDir-BUILD
+    pkg_set_destdir_ "$OrigSrcDir-INSTALL"
+
+    case $cmd in
+        removepkg-warn)
+            pkg_removepkg_warn_ "$FullName"
+            exit 0
+            ;;
+        show-installed)
+            pkg_show_installed_
+            exit 0
+            ;;
+        removepkg-old)
+            pkg_del_old_pkg_ "$FullName"
+            exit 0
+            ;;
+        installpkg)
+            pkg_installpkg_ "$@"
+            exit 0
+            ;;
+    esac
+
+    Log=$Pwd/$FullName.log
+    # it must be outside src dir, some packages copies itself as is
+
+    FilesDir=$Home/files
+    SupportDir=$FilesDir/$Name
+
+    pkg_find_script2_
+
+    case "$cmd" in
+        script-path)
+            pkg_script_path_
+            exit 0
+            ;;
+        delete-script)
+            if [[ -f $Script ]]; then
+                read -r -p "delete script $Script? [y,n]" -s -n1 answer
+                echo
+                if [[ "$answer" = "y" ]]; then
+                    rm -f "$Script"
+                fi
+            fi
+            exit 0
+            ;;
+    esac
+
+    pkg_include_script_ || pkg_exit1_
+
+    local begin=$(date +%s)
+
+    case $cmd in
+        open-pkghome)
+            if ((${#PkgHome[*]})); then
+                for i in "${PkgHome[@]}"; do
+                    xdg-open "$i" &
+                done
+            elif [[ $Name ]]; then
+                # https://stract.com/search?q=libreoffice
+                #xdg-open "https://stract.com/search?q=$Name"
+                xdg-open "https://html.duckduckgo.com/html?q=$Name" &
+            fi
+            ;;
+        edit)
+            pkg_edit_script_
+            ;;
+        edit2)
+            pkg_edit2_script_
+            ;;
+        all)
+            pkg_all_
+            pkg_show_time_used "$begin" "all time"
+            ;;
+        all-clean)
+            pkg_clean_
+            pkg_all_
+            pkg_show_time_used "$begin" "all-clean time"
+            ;;
+        install)
+            pkg_install_all_
+            pkg_show_time_used "$begin" "install time"
+            ;;
+        *)
+            echo "unknown command: $cmd"
+            exit 1
+            ;;
+    esac
+}
+
+main "$@"
+exit 0
