@@ -1,0 +1,407 @@
+#!/bin/bash
+
+pkg_configure_replace() {
+    # prefix /usr
+    local arr i found
+    arr=()
+    for i in "${ConfigureOpts[@]}"; do
+        if [[ $i = $1=* ]]; then
+            [[ $found ]] && continue
+            arr+=("$1=$2")
+            found=1
+        else
+            arr+=("$i")
+        fi
+    done
+    ConfigureOpts=("${arr[@]}")
+}
+
+pkg_set_prefix() {
+    Prefix=$1
+    Prefix2=$DestDir$Prefix
+    pkg_configure_replace --prefix "$Prefix"
+
+    LibDir=$Prefix/$LibName
+    LibDir2=$DestDir$LibDir
+    pkg_configure_replace --libdir "$LibDir"
+}
+
+#CFLAGS="-march=native -O2"
+    # gcc -march=native -E -v - </dev/null 2>&1 | grep cc1
+    # gcc -mtune=native -E -v - </dev/null 2>&1 | grep cc1
+    # bad portable
+CFLAGS="-O2"
+case "$Arch" in
+    #i586)
+    #    CFLAGS+=" -march=i586 -mtune=i686"
+    #    ;;
+    i686)
+        #CFLAGS+=" -march=i686"
+        CFLAGS+="-O2 -march=pentium4 -mtune=generic"
+        ;;
+    x86_64)
+        #CFLAGS+=" -fPIC -march=x86-64"
+        CFLAGS+=" -O2 -march=x86-64 -mtune=generic -fPIC"
+        ;;
+    i?86)
+        Arch=i586
+        CFLAGS+=" -march=i586 -mtune=i686"
+        ;;
+    arm*)
+        readelf /usr/bin/file -A |\
+            grep -Eq "Tag_CPU.*[4,5]" \
+            && Arch=arm || Arch=armv7hl
+        ;;
+esac
+if [[ "$Arch" = "armv7hl" ]]; then
+    CFLAGS="-O3 -march=armv7-a -mfpu=vfpv3-d16"
+fi
+export CFLAGS
+export CXXFLAGS="$CFLAGS"
+
+pkg_set_prefix "$Prefix"
+
+ProtectDirs=("$Etc")
+
+pkg_configure=1
+Configure=./configure
+ConfigureOpts=(
+    --prefix="$Prefix"
+    --libdir="$LibDir"
+    --mandir="$ManDir"
+    --infodir="$InfoDir"
+    --includedir="$IncludeDir"
+    --docdir="$DocDir"
+    --sysconfdir="$Etc"
+    --localstatedir=/var
+    --localedir="$ShareDir/locale"
+    --datadir="$ShareDir"
+    --host="$Host"
+    --build="$Host"
+    --enable-shared
+    --disable-static
+)
+
+pkg_make=1
+Make=(make "-j$(nproc)")
+MakeEnv=()
+MakeOpts=()
+
+CheckOpts=(check)
+
+pkg_install=1
+InstallEnv=("DESTDIR=$DestDir")
+InstallOpts=(install)
+CleanOpts=(distclean)
+
+unset ProtectFiles
+unset Daemon DaemonOpts DaemonUser DaemonPidfile
+
+pkg_configure_del() {
+    local arr i v found
+    arr=()
+    for i in "${ConfigureOpts[@]}"; do
+        found=
+        for v; do
+            [[ ! $v ]] && continue
+            case $i in
+                $v=*|$v)       # --with-xxx=yes, -DXXX=ON, --with-xxx
+                    found=1
+                    break
+                    ;;
+            esac
+        done
+        [[ $found ]] && continue
+        arr+=("$i")
+    done
+    ConfigureOpts=("${arr[@]}")
+}
+
+pkg_configure_del2() {
+    local i arr arr2 v
+    arr=("enable" "disable" "with" "without")
+    arr2=()
+    for i in "${arr[@]}"; do
+        for v; do
+            [[ ! $v ]] && continue
+            arr2+=("--$i-$v")   # --enable-x
+        done
+    done
+    pkg_configure_del "${arr2[@]}"
+}
+
+pkg_autoreconf() {
+    NO_CONFIGURE=1 autoreconf -if "$@"
+}
+
+pkg_configure() {
+    if [[ -x $Configure ]]; then
+        :
+    elif [[ -f ./autogen.sh ]]; then
+        chmod 755 ./autogen.sh
+        NOCONFIGURE=1 ./autogen.sh
+    elif [[ -f ./configure.in || -f ./configure.ac ]]; then
+        pkg_autoreconf
+    else
+        return 0
+    fi
+    $Configure "${ConfigureOpts[@]}"
+}
+
+pkg_make() {
+    if (( ${#MakeOpts[*]} )); then
+        # separate make for each opt
+        local i
+        for i in "${MakeOpts[@]}"; do
+            "${Make[@]}" "${MakeEnv[@]}" "$i" || return 1
+        done
+    else
+        "${Make[@]}" "${MakeEnv[@]}" || return 1
+    fi
+}
+
+pkg_check() {
+    "${Make[@]}" "${CheckOpts[@]}"
+}
+
+pkg_install() {
+    # separate make install for each opt
+    local i
+    for i in "${InstallOpts[@]}"; do
+        echo "----------- install: $i -----------------"
+        "${Make[@]}" "${InstallEnv[@]}" "$i" || return 1
+    done
+}
+
+pkg_post_install() {
+    :
+}
+
+pkg_distclean() {
+    "${Make[@]}" "${CleanOpts[@]}"
+}
+
+pkg_set_rust_env() {
+    local cmd
+    for cmd in ccache sccache; do
+        cmd=$(command -v  "$cmd")
+        if [[ $cmd ]]; then
+            export RUSTC_WRAPPER="$cmd"
+            echo "RUSTC_WRAPPER=$RUSTC_WRAPPER"
+            break
+        fi
+    done
+}
+
+pkg_set_python() {
+    Python=$(command -v "$1") || return 1
+    Python=$(readlink -f "$Python")
+    export PYTHON="$Python"
+
+    # /usr/include/python3.12
+    #PythonIncludeDir=$($Python -c 'from distutils.sysconfig import get_python_inc; print(get_python_inc())')
+    PythonIncludeDir=$($Python -c 'import sysconfig as sc; print(sc.get_paths()["include"])')
+
+    # /usr/lib/python3.12/site-packages
+    #PythonSitePackagesDir=$PythonLibDir/site-packages
+    PythonSitePackagesDir=$($Python -c 'import sysconfig as sc; print(sc.get_paths()["purelib"])')
+
+    # /usr/lib/python3.12
+    #PythonLibDir=$PythonPrefix/$LibName/python$PythonV12
+    PythonLibDir=${PythonSitePackagesDir%/*}
+
+    PythonV1=$("$Python" -c 'import sys; print(sys.version_info[0])')
+    PythonV2=$("$Python" -c 'import sys; print(sys.version_info[1])')
+    PythonV12="$PythonV1.$PythonV2"
+
+    #PythonPrefix=$("$Python" -c "import sys; print(sys.prefix)")
+    # /usr
+
+    PythonLibDir2=$DestDir$PythonLibDir
+    PythonSitePackagesDir2=$DestDir$PythonSitePackagesDir
+}
+
+pkg_python_post_install() {
+    :
+}
+
+PythonVenvDir=".venv"
+
+pkg_python_install() {
+    # inside current dir
+    local newPrefix=$1 # /opt/conan
+    local newPrefix2=$DestDir$newPrefix
+
+    local python lib d2 man doc f venv_opts pipv_opts pipv_install
+    local pwd=$(pwd)
+    local libs0="$pwd/libs0.tmp"
+    local libs1="$pwd/libs1.tmp"
+    local libs2="$pwd/libs2.tmp"
+    local bins0="$pwd/bins0.tmp"
+    local bins1="$pwd/bins1.tmp"
+    local bins2="$pwd/bins2.tmp"
+
+    pkg_set_rust_env
+
+    venv_opts=()
+    [[ $PythonVenvSystem ]] && venv_opts+=(--system-site-packages)
+    pipv_opts=()
+    [[ $PythonNoBuildIsolation ]] && pipv_opts+=(--no-build-isolation)
+
+    if [[ $(command -v pipv-install) ]]; then
+        pipv_install=(pipv-install -v "${pipv_opts[@]}")
+    else
+        pipv_install=(
+            python
+            -m pip
+            -v
+            install
+            --disable-pip-version-check
+            --no-cache-dir
+            "${pipv_opts[@]}"
+        )
+    fi
+
+    for python in "${BuildForPython[@]}"; do
+        pkg_set_python "$python" || return 1
+
+        echo "---------------------------------------"
+        echo "make for $Python ..."
+        [[ -d $PythonVenvDir ]] && rm -rf "$PythonVenvDir"
+        "$Python" -m venv "$PythonVenvDir" "${venv_opts[@]}" || return 1
+
+        (
+            . "$PythonVenvDir/bin/activate" || exit 1
+            "${pipv_install[@]}" setuptools -U
+            "${pipv_install[@]}" pip -U
+            #"${pipv_install[@]}" wheel -U
+
+            # auxilliary libs needed for build
+            for i in "${PythonInstallLibs0[@]}"; do
+                "${pipv_install[@]}" "$i" || exit 1
+            done
+        ) || return 1
+
+        # save lib before install
+        lib=$(find "$PythonVenvDir/lib" -type d -name 'site-packages' -print -quit) || return 1
+        (
+            cd "$lib" || exit 1
+            ls | sort >"$libs0"
+        ) || return 1
+        # save bin before install
+        (
+            cd "$PythonVenvDir/bin" || exit 1
+            ls | sort >"$bins0"
+        ) || return 1
+
+        # install .
+        (
+            . "$PythonVenvDir/bin/activate" || exit 1
+            for i in "${PythonInstallLibs[@]}"; do
+                "${pipv_install[@]}" -I "$i" || exit 1 # force reinstall
+            done
+            if [[ -f "setup.py" || -f "pyproject.toml" ]]; then
+                "${pipv_install[@]}" . || exit 1
+            fi
+            for i in "${PythonInstallLibs2[@]}"; do
+                "${pipv_install[@]}" "$i" --no-build-isolation || exit 1
+            done
+        ) || return 1
+
+        pkg_python_post_install || return 1
+
+        # save lib after install
+        (
+            cd "$lib" || exit 1
+            ls | sort >"$libs1"
+        ) || return 1
+        # save bin after install
+        (
+            cd "$PythonVenvDir/bin" || exit 1
+            if ((${#PythonInstallBins[*]})); then
+                {
+                    cat "$bins0"
+                    printf '%s\n' "${PythonInstallBins[@]}"
+                } | sort | uniq  >"$bins1"
+            else
+                ls | sort >"$bins1"
+            fi
+        ) || exit 1
+
+        # install lib diff
+        diff -y --suppress-common-lines "$libs1" "$libs0" |
+            sed -r -e 's,[ \t]+(<$|\|.*),,' >"$libs2"
+            # pip-24.2.dist-info \t* |\t pip-24.1.2.dist-info
+        if [[ $newPrefix ]]; then
+            d2=$newPrefix2/lib/python$PythonV12/site-packages
+        else
+            d2=$PythonSitePackagesDir2
+        fi
+        mkdir -p "$d2" || return 1
+        while IFS= read -r f; do
+            cp -a "$lib/$f" "$d2" || return 1
+        done <"$libs2"
+        (
+            cd "$d2" || exit 1
+            find . -depth -type d -name '__pycache__' -exec rm -rf {} \;
+            "$Python" -m compileall .
+        ) || return 1
+
+        # install bin diff
+        diff -y --suppress-common-lines "$bins1" "$bins0" |
+            sed -r -e 's,[ \t]+<$,,' >"$bins2"
+        if [[ $newPrefix ]]; then
+            d2=$newPrefix2/bin
+        else
+            d2=$Prefix2/bin
+        fi
+        while IFS= read -r f; do
+            pkg_cp_fd "$PythonVenvDir/bin/$f" "$d2" || return 1
+            if [[ $newPrefix ]]; then
+                echo "$d2/$f" | pkg_ln_d "$Prefix2/bin"
+            fi
+        done <"$bins2"
+        if [[ $newPrefix ]]; then
+            pkg_cp_fd "$PythonVenvDir/bin"/python* "$d2" # /opt/conan/bin/python
+            pkg_cp_fd "$PythonVenvDir"/pyvenv.cfg "$newPrefix2"
+        fi
+        if [[ -d $d2 ]]; then
+            (
+                cd "$d2" || exit 1
+                # replace #!... -> #!$Python
+                while IFS= read -r f; do
+                    [[ -L $f ]] && continue
+                    if head -1 "$f" | grep -q '^#!.*python'; then
+                        cp -a "$f" "$f.tmp"
+                        #echo "#!$Python" >"$f.tmp"
+                        if [[ $newPrefix ]]; then
+                            echo "#!$newPrefix/bin/python" >"$f.tmp"
+                        else
+                            echo "#!$Python" >"$f.tmp"
+                        fi
+                        tail -n+2 "$f" >>"$f.tmp"
+                        mv "$f.tmp" "$f"
+                    fi
+                done < <(ls)
+            ) || return 1
+        fi
+
+        # install man
+        pkg_cp_dd "$PythonVenvDir/share/man" "$ManDir2"
+
+        # install doc
+        pkg_cp_dd "$PythonVenvDir/share/doc" "$DocDir2"
+
+        # remove bin/__pycache__/
+        d2="$Prefix2/bin/__pycache__"
+        if [[ -d $d2 ]]; then
+            rm -rf "$d2"
+        fi
+    done
+}
+
+pkg_add_cflags() {
+    CFLAGS+=" $*"
+    CXXFLAGS=$CFLAGS
+    export CFLAGS CXXFLAGS
+}
