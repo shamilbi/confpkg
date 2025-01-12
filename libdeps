@@ -1,0 +1,116 @@
+#!/bin/bash
+
+Home=$(dirname "$(realpath "$0")")
+. "$Home/env.sh" || exit 1
+# PkgsDir, PkgsLddDir
+
+grep_fn() {
+    while IFS= read -r fn; do
+        #ag -Q "$fn" $PkgsLddDir | sed -r -e 's,/([a-z0-9]+)/\.\./\1/,/\1/,'
+        fn2=$(sed -r -e 's,\.,\\.,g' <<<"$fn")
+        # . --> \. (regex)
+        grep -EHn -e "$fn2"'( |$)' "$PkgsLddDir"/* | sed -r -e 's,/([a-z0-9]+)/\.\./\1/,/\1/,'
+        # /lib64/../lib64/ --> /lib64/
+        # find -exec ... too long
+    done
+}
+
+pkg_pkg2files() {
+    local name=$1 file
+
+    # name.txz -> name
+    while :; do
+        case $name in
+            *.gz | *.xz | *.bz2 | *.tar | *.txz | *.tgz | *.tbz | *.tlz | *.tsz | *.zip)
+                name=${name%.*}
+                ;;
+            *)
+                break
+                ;;
+        esac
+    done
+
+    # list | sort | uniq
+    {
+        file=$PkgsDir/$name
+        if [[ -f $file ]]; then
+            # list files
+            local trigger
+            if grep -Fq "./" "$file"; then
+                trigger="^\.\/"
+            else
+                trigger="FILE LIST:"
+            fi
+            sed -n "/$trigger/,\$p" <"$file" |
+                grep -Fv "FILE LIST:"
+        fi
+
+        file=$PkgsScriptsDir/$name
+        if [[ -f $file ]]; then
+            # list links
+            # from removepkg2
+            sed -n 's,^[ ]*( [ ]*cd[ ]* \(.*\) [ ]*; [ ]*rm [ ]*-rf[ ]* \(.*\) [ ]*)[ ]*$,\1/\2,p' <"$file"
+        fi
+    } | sort | uniq
+}
+
+main2() {
+    # libs from current
+    local name=$1 tmp1
+    pkg_mkdir_cache || return 1
+    tmp1=$(mktemp "$UserCacheDir/XXXXXX") || return 1
+    trap 'rm -f $tmp1' RETURN
+    pkg_pkg2files "$name" >"$tmp1"
+    {
+        # libX.so.2
+        grep -E -e '/lib.*\.so\.[0-9.]+$' "$tmp1"
+        # libX-1.2.so
+        grep -E -e '-[0-9][a-z0-9.-]*\.so[0-9.]*$' "$tmp1"
+    } | sed -e 's,^.*/,,' | grep_fn  | sort | uniq
+}
+
+main2_r() {
+    # current from libs
+    local name=$1
+
+    # X.txz -> X
+    [[ $name = *.txz ]] && name=${name:0:(-4)}
+
+    name=$(pkg_check_pkgname "$name") || return 1
+    local pkgs_file=$PkgsDir/$name
+    if [[ ! -f $pkgs_file ]]; then
+        pkg_log "file not found: $pkgs_file"
+        exit 1
+    fi
+    local ldd_file=$PkgsLddDir/$name
+    if [[ ! -f $ldd_file ]]; then
+        pkg_log "file not found: $ldd_file"
+        exit 1
+    fi
+
+    (
+        cd "$PkgsDir" || exit 1
+        while IFS= read -r lib; do
+            lib=${lib/ => */} # libc.so.6 => /lib64/libc.so.6
+            lib=$(basename "$lib") # /lib64/ld-linux-x86-64.so.2
+            lib2=${lib//\./\\.}  # regex: . -> \.
+            pkg2s=($(grep -EH '/'"$lib2"'(\.[0-9.]*)?$' *))
+            for pkg2 in "${pkg2s[@]}"; do
+                echo "$lib: $pkg2"
+            done
+            ((! ${#pkg2s[*]} )) && echo "$lib"
+        done <"$ldd_file"
+    )
+}
+
+main() {
+    if [[ $1 = '-r' ]]; then
+        # reverse
+        shift 1
+        main2_r "$@"
+    else
+        main2 "$@"
+    fi
+}
+
+main "$@"
