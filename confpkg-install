@@ -1,0 +1,289 @@
+#!/bin/bash
+
+Home=$(dirname "$(realpath "$0")")
+. "$Home/env.sh" || exit 1
+# DOC, GTK_DOC
+
+unset pTmp logTmp installTmp
+
+close_file() {
+    if [[ ! $1 ]]; then
+        return 0
+    fi
+    if [[ -d $1 ]]; then
+        rm -rf "$1"
+        return 0
+    fi
+    if [[ -f $1 ]]; then
+        rm -f "$1"
+        return 0
+    fi
+}
+
+close_all() {
+    close_file "$pTmp"
+    close_file "$logTmp"
+    close_file "$installTmp"
+}
+
+trap 'close_all' EXIT
+
+usage() {
+    cat >&2 <<END
+Usage:
+    $0 <txz-file> [<root dir>]
+    $0 <package catalog> [<root dir>]
+    default root dir = /
+END
+    exit 1
+}
+
+copy_file2() {
+    local f=$1
+    local f2=$2
+    if [[ -L $f ]]; then
+        if [[ -L $f2 ]]; then
+            :
+        elif [[ -e $f2 ]]; then
+            rm -rf "$f2" || return 1
+        fi
+        ln -sfn "$(readlink "$f")" "$f2" || return 1
+    elif [[ -d $f ]]; then
+        # not copy, just mkdir
+        # -L $f2: /etc/rc.d --> /etc/init.d (opensuse)
+        if [[ -f $f2 ]]; then
+            rm -f "$f2" || return 1
+        fi
+        if [[ -e $f2 && ! -d $f2 ]]; then
+            rm -rf "$f2" || return 1
+        fi
+        if [[ ! -e $f2 ]]; then
+            mkdir -p "$f2" || return 1
+            chmod --reference="$f" "$f2" || return 1
+            chown --reference="$f" "$f2" || return 1
+        fi
+    else
+        # file
+        if [[ -L $f2 || -d $f2 ]]; then
+            rm -rf "$f2" || return 1
+        fi
+        if [[ -e $f2 ]]; then
+            # skip /dev
+            if [[ -b $f2 || -c $f2 ]]; then
+                echo "skip $f2 .."
+                return 0
+            fi
+        fi
+        cp -a "$f" "$f2.tmp" || return 1
+        mv "$f2.tmp" "$f2" || return 1
+    fi
+    return 0
+}
+
+install_dir() {
+    # installs $1/* --> $rootDir
+    local p=$1
+
+    if [[ ! $p ]]; then
+        usage
+    elif [[ ! -d $p ]]; then
+        echo "dir not exist: $p"
+        usage
+    fi
+    echo "installing --> $rootDir/ .."
+
+    echo "copying files ..."
+    (
+        cd "$p" || exit 1
+        # step 1: skip links
+        while IFS= read -r f; do
+            if [[ $f = "." ]]; then
+                continue
+            elif [[ -L $f ]]; then
+                continue
+            else
+                copy_file2 "$f" "$rootDir/${f:2}" || exit 1
+                # ./fn --> rootDir/fn
+            fi
+        done < <(find . | sort)
+    ) || return 1
+
+    if [[ $(command -v ldconfig) ]]; then
+        echo "ldconfig ..."
+        ldconfig
+    fi
+
+    echo "copying links ..."
+    (
+        cd "$p" || exit 1
+        # step 2: links
+        while IFS= read -r f; do
+            if [[ $f = "." ]]; then
+                continue
+            elif [[ ! -L $f ]]; then
+                continue
+            else
+                copy_file2 "$f" "$rootDir/${f:2}" || exit 1
+                # ./fn --> rootDir/fn
+            fi
+        done < <(find . | sort)
+    ) || return 1
+
+    return 0
+}
+
+create_tgz_log() {
+    pName=$(basename "$tgz")
+    pName=${pName%.*}
+    echo "PACKAGE NAME:     $pName" >"$logTmp"
+    {
+        echo -n "COMPRESSED PACKAGE SIZE: "
+        du -h "$tgz" | awk '{print $1}'
+    } >>"$logTmp"
+    {
+        echo -n "UNCOMPRESSED PACKAGE SIZE: "
+        du -sh "$pTmp" | awk '{print $1}'
+    } >>"$logTmp"
+    echo "PACKAGE LOCATION: $tgz" >>"$logTmp"
+    echo "PACKAGE DESCRIPTION:" >>"$logTmp"
+    #TODO: description
+    echo "FILE LIST:" >>"$logTmp"
+    (
+        cd "$pTmp" || exit 1
+        while IFS= read -r f; do
+            if [[ $f = "." ]]; then
+                echo "./"
+            elif [[ -L $f ]]; then
+                echo "${f:2}"
+            elif [[ -d $f ]]; then
+                echo "${f:2}/"
+            else
+                echo "${f:2}"
+            fi
+        done < <(find . | sort)
+    ) >>"$logTmp"
+}
+
+clean_before_install() {
+    (
+        cd "$pTmp" || exit 1
+        if [[ ! $DOC ]]; then
+            dirs_=(usr/doc usr/share/doc)
+            for i in "${dirs_[@]}"; do
+                if [[ -d $i ]]; then
+                    rm -rf "$i"
+                fi
+            done
+        fi
+        if [[ ! $GTK_DOC ]]; then
+            dirs_=(usr/share/gtk-doc)
+            for i in "${dirs_[@]}"; do
+                if [[ -d $i ]]; then
+                    rm -rf "$i"
+                fi
+            done
+        fi
+    )
+}
+
+install_tgz() {
+    #$1 (tgz) --> $rootDir
+    tgz=$1
+
+    # log
+    logTmp=$(mktemp "$TMP/log.XXXXXX") || return 1
+
+    # untar tgz
+    pTmp=$(mktemp -d "$TMP/packet.XXXXXX") || return 1
+    echo "untar $tgz --> $pTmp"
+    tar xpf "$tgz" -C "$pTmp" || return 1
+    if [[ -d $pTmp/install ]]; then
+        installTmp=$(mktemp -d "$TMP/install.XXXXXX")
+        mv "$pTmp/install" "$installTmp"
+    fi
+    clean_before_install
+    create_tgz_log
+    install_dir "$pTmp" || return 1
+
+    if [[ $installTmp && -f $installTmp/install/doinst.sh ]]; then
+        echo "Executing install script ..."
+        # $rootDir may be empty
+        (
+            cd "$rootDir/" || exit 1
+            bash "$installTmp/install/doinst.sh" -install
+        ) || return 1
+    fi
+
+    install -m 644 "$logTmp" "$ADM_DIR/packages/$pName" || return 1
+    return 0
+}
+
+init_dirs_() {
+    # Set the prefix for the package database directories (packages, scripts).
+    ADM_DIR=$ROOT/var/lib/pkgtools
+
+    # Set the prefix for the removed packages/scripts log files:
+    LOG_DIR=$ROOT/var/log/pkgtools
+
+    # If the directories don't exist, "initialize" the package database:
+    local d
+    for PKGDBDIR in packages scripts setup; do
+        d=$ADM_DIR/$PKGDBDIR
+        if [[ ! -d $d ]]; then
+            mkdir -p "$d"
+            chmod 755 "$d"
+        fi
+    done
+    for PKGLOGDIR in removed_packages removed_scripts; do
+        d=$LOG_DIR/$PKGLOGDIR
+        if [[ ! -d $d ]]; then
+            rm -rf "$d" # make sure it's not a symlink or something stupid
+            mkdir -p "$d"
+            chmod 755 "$d"
+        fi
+    done
+    # Likewise, make sure that the symlinks in /var/log exist. We no longer
+    # trust anything to remain in /var/log. Let the admin wipe it if that's
+    # what they like.
+    for symlink in packages scripts setup; do
+        if [[ ! -L $LOG_DIR/../$symlink && ! -d $LOG_DIR/../$symlink ]]; then
+            (
+                cd "$LOG_DIR/.." || exit 1
+                ln -sf "../lib/pkgtools/$symlink" .
+            )
+        fi
+    done
+
+    # Make sure there's a proper temp directory:
+    # Mon, 23 Dec 2024: rc.M: mount tmpfs
+    TMP=$ADM_DIR/setup/tmp
+    # If the $TMP directory doesn't exist, create it:
+    if [[ ! -d $TMP ]]; then
+        mkdir -pm 700 "$TMP" # no need to leave it open
+    fi
+}
+
+main() {
+    ((!$#)) && usage
+
+    local f=$1
+    rootDir=$2
+    shift 2
+
+    if [[ $rootDir && ! -d $rootDir ]]; then
+        echo "rootDir not found: $rootDir"
+        usage
+    fi
+
+    init_dirs_
+
+    if [[ -d $f ]]; then
+        install_dir "$f" || return 1
+    elif [[ -f $f ]]; then
+        install_tgz "$f" || return 1
+    else
+        usage
+    fi
+}
+
+main "$@"
