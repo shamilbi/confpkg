@@ -1,0 +1,25 @@
+diff --git a/src/gallium/frontends/rusticl/api/device.rs b/src/gallium/frontends/rusticl/api/device.rs
+index 9793092db5ad44fb84b5504baa5bf8a6a6142709..c1cb7902e0371a359e52a0429a1c6919eec4595c 100644
+--- a/src/gallium/frontends/rusticl/api/device.rs
++++ b/src/gallium/frontends/rusticl/api/device.rs
+@@ -196,7 +196,7 @@ impl CLInfo<cl_device_info> for cl_device_id {
+             // TODO proper retrival from devices
+             CL_DEVICE_MEM_BASE_ADDR_ALIGN => cl_prop::<cl_uint>(0x1000),
+             CL_DEVICE_MIN_DATA_TYPE_ALIGN_SIZE => {
+-                cl_prop::<cl_uint>(size_of::<cl_ulong16>() as cl_uint)
++                cl_prop::<cl_uint>(16 * size_of::<cl_ulong>() as cl_uint)
+             }
+             CL_DEVICE_NAME => cl_prop::<&str>(&dev.screen().name()),
+             CL_DEVICE_NATIVE_VECTOR_WIDTH_CHAR => cl_prop::<cl_uint>(1),
+diff --git a/src/gallium/frontends/rusticl/meson.build b/src/gallium/frontends/rusticl/meson.build
+index 612e47bfe88e1062320e1bba9c54e6f59f4db700..1fe75a611444d527bf5c0b9c1911ace7de9f7b13 100644
+--- a/src/gallium/frontends/rusticl/meson.build
++++ b/src/gallium/frontends/rusticl/meson.build
+@@ -146,6 +146,7 @@ rusticl_opencl_bindings_rs = rust.bindgen(
+     '--raw-line', 'unsafe impl std::marker::Send for _cl_image_desc {}',
+     '--raw-line', 'unsafe impl std::marker::Sync for _cl_image_desc {}',
+     '--allowlist-type', 'cl_.*',
++    '--blocklist-type', '(__)?cl_.*[2348(16)]',
+     '--allowlist-type', 'cl.*_fn',
+     '--allowlist-var', 'CL_.*',
+     # needed for gl_sharing extension

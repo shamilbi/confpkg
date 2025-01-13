@@ -1,0 +1,106 @@
+#!/bin/bash
+
+PkgHome="https://gitlab.freedesktop.org/mesa/mesa"
+
+#GALLIUM_DRIVERS="nouveau,r300,r600,svga,radeonsi,swrast,virgl,iris,crocus,zink"
+#GALLIUM_DRIVERS=nouveau,r300,r600,svga,radeonsi,swrast,virgl,i915,iris,crocus,zink,d3d12
+#GALLIUM_DRIVERS="nouveau,r300,r600,svga,radeonsi,softpipe,llvmpipe,virgl,i915,iris,crocus,zink,d3d12"
+#CODECS=${CODECS:-h264dec,h264enc,h265dec,h265enc,vc1dec,av1dec,av1enc,vp9dec}
+
+# v24.2.0
+# src/intel/vulkan/grl/meson.build:60:2: ERROR:
+# Problem encountered: Python (3.x) ply module required to build GRL kernels.
+
+ConfigureOpts+=(
+    # Slackware
+    -Dplatforms=x11,wayland
+    -Dgallium-opencl=icd
+    -Dgallium-nine=true
+    -Dgallium-rusticl=true
+    -Dgallium-extra-hud=true
+    -Drust_std=2021
+    -Dosmesa=true
+    -Dvulkan-drivers=amd,intel,intel_hasvk,swrast,virtio,nouveau
+    -Dvulkan-layers=device-select,intel-nullhw,overlay
+    -Dvideo-codecs=h264dec,h264enc,h265dec,h265enc,vc1dec,av1dec,av1enc,vp9dec
+    -Dglvnd=enabled
+    -Dllvm=enabled
+    -Dshared-llvm=enabled
+    -Dshared-glapi=enabled
+    -Degl=enabled
+    -Dgles1=enabled
+    -Dgles2=enabled
+    -Dopengl=true
+    -Dglx=dri
+    -Dlibunwind=disabled
+    -Dmicrosoft-clc=disabled
+    -Dvalgrind=enabled
+    -Dintel-clc=enabled
+
+    #"-Dgallium-drivers=$GALLIUM_DRIVERS"
+    -Dgallium-drivers=auto
+    # auto,
+    # choices : [ 'auto', 'kmsro', 'radeonsi', 'r300', 'r600', 'nouveau', 'freedreno',
+    #             'swrast', 'v3d', 'vc4', 'etnaviv', 'tegra', 'i915', 'svga', 'virgl',
+    #               'panfrost', 'iris', 'lima', 'zink', 'd3d12', 'asahi', 'crocus' ],
+    # List of gallium drivers to build.
+    # If this is set to auto all drivers applicable to the target OS/architecture
+    # will be built
+)
+
+# Slackware
+# Only supported on x86_64:
+[[ $Arch = "x86_64" ]] && ConfigureOpts+=(-Dintel-rt=enabled)
+
+unset ProtectDirs
+#   etc/OpenCL/vendors/mesa.icd
+ProtectFiles=(
+    # Slackware
+    # Install /etc/drirc as a .new file:
+    /etc/drirc
+)
+
+pkg_pre_configure() {
+    local f
+
+    # Slackware
+    # Let's kill the warning about operating on a dangling symlink:
+    f="src/gallium/state_trackers/d3d1x/w32api"
+    [[ -f $f ]] && rm -f "$f"
+
+    # Slackware
+    # Don't use the system DirectX headers:
+    #rm -f /usr/lib${LIBDIRSUFFIX}/pkgconfig/DirectX-Headers.pc
+
+    # 24.2.1, 24.2.2
+    # error[E0080]: evaluation of constant value failed
+    # https://www.linuxquestions.org/questions/slackware-14/mesa-build-regression-with-rust-bindgen-0-70-on-32-bit-4175740770/
+    # https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/30710/diffs?commit_id=93e96da9458c9d0348f2390dc0bea67cf140b1a0
+    if (($(pkg_cmp_versions "$Version" "24.2.2") <= 0)); then
+        if (($(pkg_cmp_versions "$Version" "24.2.1") >= 0)); then
+            pkg_patch_f3 30710.diff 1 || return 1
+        fi
+    fi
+}
+
+pkg_post_install() {
+    # Slackware
+    # Add a default provider for glvnd when the vendor cannot be determined:
+    (
+        cd "$LibDir2" || exit 1
+        if [[ ! -r libGLX_system.so.0 ]]; then
+            echo "link libGLX_mesa.so.0 --> libGLX_system.so.0"
+            ln -sfnr libGLX_mesa.so.0 libGLX_system.so.0
+        fi
+    ) || return 1
+
+    # link equals
+    (
+        cd "$LibDir2/dri" || exit 1
+        ls -d virtio_gpu_dri.so virtio_gpu_drv_video.so | pkg_ln_equals
+    )
+    (
+        cd "$LibDir2/vdpau" || exit 1
+        find . -type f -name 'libvdpau_virtio_gpu.so.*' | pkg_ln_equals
+    )
+}
