@@ -1,0 +1,30 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    --with-appdefaultdir="$Etc/X11/app-defaults"
+)
+[[ $PAM ]] && ConfigureOpts+=(--with-pam)
+
+unset ProtectDirs
+
+pkg_post_install() {
+    # /usr/lib64/X11/xdm --> /etc/X11/xdm
+    echo "$LibDir2/X11/xdm" | pkg_mv_ln "$Etc2/X11" || return 1
+
+    # etc/X11: *.new
+    (
+        cd "$DestDir" || exit 1
+        while read -r f; do
+            case "$f" in
+                *.so|*.la|*.xpm|*/chooser)
+                    continue
+                    ;;
+            esac
+            mv "$f" "$f.new"
+            pkg_doinst_add "config /$f"
+        done < <(find etc/X11 -type f)
+    ) || return 1
+
+    # /var/lib/xdm
+    mkdir -pm 755 "$DestDir/var/lib/xdm"
+}

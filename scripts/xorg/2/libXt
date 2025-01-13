@@ -1,0 +1,5 @@
+#!/bin/bash
+
+pkg_post_install() {
+    find "$DocDir2" -type f -name '*.xml' -delete
+}

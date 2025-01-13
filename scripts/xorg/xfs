@@ -1,0 +1,6 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    --with-default-config-file="$Etc/X11/fs/config"
+    --with-fontrootdir="$FontsDir"
+)

@@ -1,0 +1,7 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    --with-appdefaultdir="$Etc"/X11/app-defaults
+    #--enable-appdefaultdir="$Etc"/X11/app-defaults
+)
+unset ProtectDirs

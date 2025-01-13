@@ -1,0 +1,5 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    --with-fontrootdir="$FontsDir"
+)

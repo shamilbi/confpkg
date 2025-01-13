@@ -1,0 +1,7 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    --enable-unix-transport
+    --enable-tcp-transport
+    --enable-ipv6
+)

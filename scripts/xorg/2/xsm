@@ -1,0 +1,6 @@
+#!/bin/bash
+
+pkg_post_install()
+{
+    ls -d "$Etc2"/X11/xsm | pkg_ln_d "$LibDir2/X11"
+}

@@ -1,0 +1,23 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    --without-dtsaver
+    --without-ttf
+    --without-rplay
+    --without-nas
+    --disable-bomb
+    --without-motif
+    --without-esound
+    --without-gtk # disable GTK (no xglock build)
+    #--without-gtk2 # disable GTK2 (no xglock build)
+)
+
+pkg_post_install() {
+    (
+        cd xlock || exit 1
+        cat XLock.ad >"$Etc2"/X11/app-defaults/XLock
+        #cat xlock > $PKG/usr/bin/xlock
+        chown root.shadow "$Prefix2/bin/xlock"
+        chmod 2751 "$Prefix2/bin/xlock"
+    )
+}

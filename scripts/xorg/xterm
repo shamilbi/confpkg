@@ -1,0 +1,59 @@
+#!/bin/bash
+
+PkgHome="https://invisible-island.net/archives/xterm/?C=M;O=D"
+
+pkg_configure_del --docdir --localedir
+
+unset ProtectDirs
+ProtectFiles=("$Etc"/X11/app-defaults/XTerm)
+
+icons=(
+    filled-xterm
+    mini.xterm
+    xterm-color
+    xterm
+)
+
+ConfigureOpts+=(
+    # Slackware
+    --with-app-defaults="$Etc"/X11/app-defaults # directory in which to install resource files (EPREFIX/lib/X11/app-defaults)
+    --with-utempter
+    --enable-luit
+    --enable-wide-chars
+    --enable-88-color
+    --enable-256-color
+    --enable-regis-graphics
+    --enable-sixel-graphics
+    --with-icon-theme=hicolor
+    --with-icondir="$ShareDir"/icons # directory in which to install icons for desktop
+    --with-pixmapdir="$ShareDir"/pixmaps
+)
+
+InstallOpts+=(
+    install-desktop
+    #install-icon
+)
+
+pkg_post_install() {
+    # /usr/share/icons/hicolor/48x48/apps/*.png
+    local dir=$ShareDir2/icons/hicolor/48x48/apps
+    if [[ ! -d $dir && $(command -v magick) ]]; then
+        local i from
+        for i in "${icons[@]}"; do
+            from=icons/"$i"_48x48.xpm
+            [[ ! -f $from ]] && continue
+
+            to=${from%.*}.png
+            if [[ ! -f $to ]]; then
+                magick "$from" "$to"
+            fi
+            pkg_install_mff 644 "$to" "$dir/$i.png"
+        done
+    fi
+
+    # Install a sample XTerm app-defaults that looks like the Linux console.
+    # Thanks to GazL.
+    dir=$Etc2/X11/app-defaults
+    pkg_install_mff 644 "$dir"/XTerm "$dir"/XTerm-upstream
+    pkg_install_mff 644 "$SupportDir"/XTerm-console "$dir"
+}

@@ -1,0 +1,68 @@
+#!/bin/bash
+
+pkg_configure_del2 shared static
+
+ConfigureOpts+=(
+    --with-app-defaults=/etc/X11/app-defaults
+    --without-kerberos
+    --with-jpeg
+    --with-gl
+    --with-text-file=/usr/doc/netdate/COPYRIGHT
+
+    --without-systemd
+)
+[[ $PAM ]] && ConfigureOpts+=(--with-pam) || ConfigureOpts+=(--with-shadow)
+[[ $ELOGIND ]] && ConfigureOpts+=(--with-elogind) || ConfigureOpts+=(--without-elogind)
+
+#unset ProtectDirs
+InstallEnv=(
+    install_prefix="$DestDir"
+)
+pkg_check=
+
+pkg_pre_configure() {
+    if [[ $Version = 6.05* ]]; then
+        # Add support for the electricsheep distributed screensaver:
+        pkg_patch_f3 xscreensaver.electricsheep.diff.gz 1 --backup --suffix=.orig || return 1
+    else
+        # Add support for the electricsheep distributed screensaver:
+        pkg_patch_f3 xscreensaver.electricsheep-2.diff.gz 1 --backup --suffix=.orig || return 1
+    fi
+
+    # Remove a feature that pops up a nag screen claiming the version is old
+    # after one year.  Just don't send in bug reports on an old version, OK folks?
+    # I hate to swim against upstream, but with all respect this feature is not
+    # helpful to distributions.
+    pkg_patch_f3 xscreensaver.no.expiration.date.diff.gz 1 --backup --suffix=.orig || return 1
+}
+
+pkg_pre_install() {
+    if [[ $PAM ]]; then
+        mkdir -p "$DestDir/etc/pam.d"
+    fi
+}
+
+pkg_post_install() {
+    local f
+    if [[ ! $PAM ]]; then
+        # Needed for password unlock:
+        f="$Prefix2/bin/xscreensaver"
+        chown root:shadow "$f"
+        chmod 2751 "$f"
+    else
+        ## Commenting out the chmod below, since as of v6.00 this binary is no longer
+        ## made setuid at installation. But if that changes, we'll go along with it
+        ## since jwz says it may be required to prevent OOM killer abuse from
+        ## unlocking the screen.
+        # No special perms needed with PAM:
+        #chmod 755 $PKG/usr/bin/xscreensaver
+
+        #mkdir -p $PKG/etc/pam.d
+        #cat $CWD/xscreensaver.pam > $PKG/etc/pam.d/xscreensaver.new
+        cat >"$Etc2/pam.d/$Name" <<END
+#%PAM-1.0
+
+  auth       include      system-auth
+END
+    fi
+}

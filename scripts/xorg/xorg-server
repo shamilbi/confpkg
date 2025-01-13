@@ -1,0 +1,30 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    --with-log-dir=/var/log
+    --with-xkb-output=/var/lib/xkb
+    --with-fontrootdir="$FontsDir"
+    --enable-xorg
+    --enable-install-setuid
+    --disable-systemd-logind
+)
+#    --enable-dri2 \
+#    --enable-glx-tls \
+#    --enable-glamor \
+#    --enable-xvfb \
+#    --enable-xfbdev \
+#    --enable-dmx \
+
+[[ $WAYLAND ]] && ConfigureOpts+=(--enable-xwayland) \
+    || ConfigureOpts+=(--disable-xwayland)
+
+MakeEnv=("xorgconfddir=$Etc/X11/xorg.conf.d")
+InstallEnv+=("${MakeEnv[@]}")
+
+pkg_post_install()
+{
+    # /usr/lib/modules --> xorg/modules
+    ln -sfn xorg/modules "$LibDir2/modules"
+
+#    chmod u+s $Prefix2/bin/Xorg
+}

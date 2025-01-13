@@ -1,0 +1,6 @@
+#!/bin/bash
+
+MakeEnv=(
+    "pkgconfigdir=$LibDir/pkgconfig"
+)
+InstallEnv+=("${MakeEnv[@]}")

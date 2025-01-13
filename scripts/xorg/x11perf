@@ -1,0 +1,5 @@
+#!/bin/bash
+
+PkgHome+=(
+    "https://gitlab.freedesktop.org/xorg/test/x11perf/-/tags"
+)

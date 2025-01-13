@@ -1,0 +1,10 @@
+#!/bin/bash
+
+pkg_post_install() {
+    # /etc/X11/xinit/xinitrc --> xinitrc.twm
+    local f="$Etc2/X11/$Name/xinitrc"
+    if [[ -f $f ]]; then
+        chmod 755 "$f"
+        mv "$f" "$f".twm
+    fi
+}
