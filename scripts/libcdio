@@ -1,0 +1,16 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://ftp.gnu.org/gnu/libcdio/?C=M;O=D"
+    "https://packages.debian.org/bookworm/libcdio-dev"
+    "https://github.com/libcdio/libcdio"
+)
+
+ConfigureOpts+=(
+    # Slackware
+    --disable-silent-rules
+
+    # non Slackware
+    --enable-maintainer-mode # man files *.1
+    --enable-vcd-info=no
+)
