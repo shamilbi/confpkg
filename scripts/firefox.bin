@@ -1,0 +1,20 @@
+#!/bin/bash
+
+pkg_set_prefix "/opt/$Name"
+
+unset pkg_make pkg_check
+
+pkg_install() {
+    pkg_cp_fd . "$Prefix2"
+
+    local i dir=$ShareDir2/pixmaps
+    mkdir -p "$dir"
+    for i in icons browser/icons; do
+        if [[ -f $i/mozicon128.png ]]; then
+            ln -sfnr "$Prefix2/$i"/mozicon128.png "$dir"/firefox.png
+            break
+        fi
+    done
+
+    ls -d "$Prefix2/firefox" | pkg_ln_d "$DestDir/usr/bin"
+}
