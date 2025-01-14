@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if [[ $FullName = *-linux-* ]]; then
+    # firefox-134.0.1-linux-x86-64.txz
+    pkg_find_script_ "$Name.bin"
+else
+    pkg_find_script_ "$Name.src"
+fi
+pkg_include_script_
