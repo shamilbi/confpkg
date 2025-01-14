@@ -1,0 +1,13 @@
+#!/bin/bash
+
+PkgHome="https://github.com/OpenSC/OpenSC"
+
+ConfigureOpts+=(
+    #--enable-man
+    #   checking XSLTPROC requirement... configure: error: Missing xslstylesheetsdir
+    --enable-openpace=no # enable OpenPACE linkage [detect]
+)
+
+pkg_post_install() {
+    pkg_install_mff 644 etc/opensc.conf.example "$Etc2"/opensc.conf
+}
