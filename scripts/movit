@@ -1,0 +1,19 @@
+#!/bin/bash
+
+PkgHome="https://movit.sesse.net/"
+
+# REQ: googletest (/usr/src/googletest-*)
+
+pkg_pre_configure() {
+    local dir
+
+    # Makefile: GTEST_DIR ?= /usr/src/gtest
+    #dir=$(pkg_last_dir /usr/src 'googletest-[0-9]*')
+    dir=$(find "$Pwd" -mindepth 1 -maxdepth 1 -type d -name 'googletest-[0-9]*' |
+            grep -v -e '-INSTALL$' -e '-BUILD$' | head -1)
+    if [[ ! -d $dir ]]; then
+        echo "dir not found: $Pwd/googletest-[0-9]*"
+        return 1
+    fi
+    MakeEnv=(GTEST_DIR="$dir"/googletest)
+}
