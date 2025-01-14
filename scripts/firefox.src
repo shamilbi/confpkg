@@ -1,0 +1,40 @@
+#!/bin/bash
+
+pkg_set_prefix "/opt/$Name"
+
+UseBuildDir=1
+Configure="$OrigSrcDir/configure"
+pkg_configure_del --docdir --localedir
+ConfigureOpts+=(
+    --enable-release
+    --with-x
+    --with-system-nspr
+    --with-system-libevent
+    --enable-system-ffi
+    --with-system-jpeg
+    --with-system-zlib
+    --with-system-bz2
+    --with-system-png
+    --with-system-libvpx
+    --enable-system-sqlite
+    --enable-system-cairo
+    --enable-system-pixman
+    --with-system-icu
+    --with-system-nss
+    --enable-shared-js
+    --enable-update-channel=no
+    --enable-safe-browsing
+    --enable-optimize
+    --enable-content-sandbox
+    --enable-application=browser
+    --enable-address-sanitizer
+    --enable-memory-sanitizer
+    --disable-accessibility
+    --disable-gamepad
+    --disable-crashreporter
+    --disable-updater
+    --disable-parental-controls
+    --disable-logging
+    --disable-profilelocking
+    --disable-tests
+    )
