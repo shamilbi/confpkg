@@ -1,0 +1,4 @@
+#!/bin/bash
+
+PkgHome="https://github.com/imsnif/bandwhich"
+BinDir=$Prefix/sbin

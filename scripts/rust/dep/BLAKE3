@@ -1,0 +1,37 @@
+#!/bin/bash
+
+PkgHome="https://github.com/BLAKE3-team/BLAKE3"
+
+SrcDir=$OrigSrcDir/b3sum
+
+pkg_post_make() {
+    # universal-android-debloater
+    #   /usr/bin/ld.mold:
+    #   error while loading shared libraries: libblake3.so.0:
+    #   cannot open shared object file: No such file or directory
+    (
+        cd "$OrigSrcDir"/c || exit 1
+
+        # Here's an example of building a shared library on x86\_64 Linux using
+        # the assembly implementations:
+        gcc -shared -O3 -fPIC -o libblake3.so blake3.c blake3_dispatch.c blake3_portable.c \
+            blake3_sse2_x86-64_unix.S blake3_sse41_x86-64_unix.S blake3_avx2_x86-64_unix.S \
+            blake3_avx512_x86-64_unix.S
+
+        # When building the intrinsics-based implementations, you need to build
+        # each implementation separately, with the corresponding instruction set
+        # explicitly enabled in the compiler. Here's the same shared library using
+        # the intrinsics-based implementations:
+        #gcc -c -fPIC -O3 -msse2 blake3_sse2.c -o blake3_sse2.o
+        #gcc -c -fPIC -O3 -msse4.1 blake3_sse41.c -o blake3_sse41.o
+        #gcc -c -fPIC -O3 -mavx2 blake3_avx2.c -o blake3_avx2.o
+        #gcc -c -fPIC -O3 -mavx512f -mavx512vl blake3_avx512.c -o blake3_avx512.o
+        #gcc -shared -O3 -fPIC -o libblake3.so blake3.c blake3_dispatch.c blake3_portable.c \
+        #    blake3_avx2.o blake3_avx512.o blake3_sse41.o blake3_sse2.o
+    )
+}
+
+pkg_post_install() {
+    pkg_install_mff 755 "$OrigSrcDir"/c/libblake3.so "$LibDir2"/libblake3.so.0
+    ln -sfnr "$LibDir2"/libblake3.so.0 "$LibDir2"/libblake3.so
+}

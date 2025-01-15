@@ -1,0 +1,68 @@
+#!/bin/bash
+
+PkgHome="https://forge.rust-lang.org/infra/other-installation-methods.html#standalone"
+# rust-1.74.0-x86_64-unknown-linux-gnu.*
+
+unset pkg_configure pkg_make pkg_strip
+
+pkg_install() {
+    if [[ $FullName = *-linux-* ]]; then
+        : # ok
+    else
+        echo "Install only binary package"
+        return 1
+    fi
+
+    local f="install.sh"
+
+    if pkg_create_orig "$f"; then
+        # valopt destdir "" "set installation root"
+        sed -i -r -e 's,(valopt destdir) ".*" (.*),\1 "'"$DestDir"'" \2,' "$f"
+
+        # valopt prefix "/usr/local" "set installation prefix"
+        sed -i -r -e 's,(valopt prefix) ".*" (.*),\1 "'"$Prefix"'" \2,' "$f"
+
+        # valopt libdir "$CFG_DESTDIR_PREFIX/lib" "install libraries"
+        sed -i -r -e 's,(valopt libdir) ".*" (.*),\1 "'"$LibDir2"'" \2,' "$f"
+
+        # valopt mandir "${CFG_DATADIR-"$CFG_DESTDIR_PREFIX/share"}/man" "install man pages in PATH"
+        sed -i -r -e 's,(valopt mandir) ".*" (.*),\1 "'"$ManDir2"'" \2,' "$f"
+
+        # valopt docdir "\<default\>" "install documentation in PATH"
+        sed -i -r -e 's,(valopt docdir) ".*" (.*),\1 "'"$DocDir2"'" \2,' "$f"
+
+        # opt ldconfig 1 "run ldconfig after installation (Linux only)"
+        sed -i -r -e 's,(opt ldconfig) 1 (.*),\1 0 \2,' "$f"
+    fi
+
+    ./"$f" || return 1
+
+    # -$DocDir2/html (too big)
+    rm -rf "$DocDir2"/html
+
+    # usr/etc/bash_completion.d/cargo -> usr/share/bash-completion/completions/cargo
+    find "$Prefix2"/etc -type f -name 'cargo' |
+        pkg_mv_d "$ShareDir2/bash-completion/completions"
+    find "$Prefix2/etc" -depth -type d -empty -delete
+
+    # manifest*: -$DestDir
+    local rustlib
+    rustlib=$LibDir2/rustlib
+    while f=$(pkg_read_exist); do
+        sed -i -e 's,'"$DestDir"',,g' "$f"
+    done < <(find "$rustlib" -type f -name 'manifest*'; echo "$rustlib/install.log"; echo "$rustlib/uninstall.sh")
+
+    # /usr/lib64/*.so -> /usr/lib64/rustlib/*/lib/
+    local d
+    d=$(find "$rustlib" -type d -name lib -print -quit)
+    while f=$(pkg_read_exist); do
+        ln -sfnr "$LibDir2/${f##*/}" "$f"
+    done < <(find "$d" -type f -name '*.so')
+
+    # /usr/lib64/rustlib/x86_64-unknown-linux-gnu/bin/gcc-ld/*
+    d=$(find "$rustlib" -type d -name bin -print -quit)
+    d=$d/gcc-ld
+    [[ -d $d ]] && ls -d "$d"/* | pkg_ln_equals
+
+    :
+}

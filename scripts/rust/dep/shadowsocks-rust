@@ -1,0 +1,52 @@
+#!/bin/bash
+
+PkgHome="https://github.com/shadowsocks/shadowsocks-rust"
+
+BinDir=$Prefix/sbin
+MakeOpts+=(-F "local-tun") # experimental feature
+
+user="shadowsocks"
+group="shadowsocks"
+userId=
+groupId=
+userHome=/dev/null
+userShell=/bin/false
+userComment=
+
+Daemon=$Prefix/sbin/sslocal
+#DaemonUser=$user
+DaemonPidfile=/run/shadowsocks.pid
+DaemonConfDir=/etc/vpn/shadowsocks
+DaemonOpts=(
+    -c "$DaemonConfDir/default.json"
+    -a "$user"
+    -d  # daemonize
+    --daemonize-pid "$DaemonPidfile"
+)
+
+pkg_pre_make() {
+    pkg_check_group "$group" "$groupId" || return 1
+    pkg_check_user "$user" "$group" "$userId" "$userHome" "$userShell" "$userComment" || return 1
+}
+
+pkg_post_install() {
+    pkg_cp_fd examples configs debian "$DocDir2"
+
+    # example conf
+    local d=${DestDir}${DaemonConfDir}
+    mkdir -pm 700 "$(dirname "$d")" "$d" || return 1
+    local f=$d/example.json
+    cat >"$f" <<EOF
+{
+    "server": "127.0.0.1",
+    "password": "xxxxxxxxxxxx",
+    "method": "chacha20-ietf-poly1305",
+    "mode": "tcp_and_udp",
+    "server_port": 1443,
+    "local_address": "127.0.0.1",
+    "local_port": 1080,
+    "timeout": 300
+}
+EOF
+    chmod 600 "$f"
+}

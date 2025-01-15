@@ -1,0 +1,11 @@
+#!/bin/bash
+
+if [[ $FullName = *-linux-* ]]; then
+    # rust-1.74.0-x86_64-unknown-linux-gnu.tar.xz
+    pkg_find_script_ "$Name.bin1"
+elif [[ $FullName = *${Arch}* ]]; then
+    # Slackware
+    # rust-1.70.0-x86_64-3.txz
+    pkg_find_script_ "$Name.bin2"
+fi
+pkg_include_script_

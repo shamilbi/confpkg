@@ -1,0 +1,29 @@
+#!/bin/bash
+
+BinDir=$Prefix/bin
+MakeOpts=("--release")
+
+pkg_configure=
+
+pkg_make() {
+    pkg_set_rust_env
+    cargo build "${MakeOpts[@]}"
+}
+
+pkg_install() {
+    (
+        cd target/release || exit 1
+        while IFS= read -r f; do
+            t=$(pkg_filetype "$f")
+            if [[ $t == "so" ]]; then
+                pkg_install_mfd 755 "$f" "$LibDir2"
+            else
+                pkg_install_mfd 755 "$f" "${DestDir}${BinDir}"
+            fi
+        done < <(find -maxdepth 1 -type f -perm /111)
+    )
+}
+
+pkg_distclean() {
+    cargo clean
+}

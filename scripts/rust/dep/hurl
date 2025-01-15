@@ -1,0 +1,18 @@
+#!/bin/bash
+
+pkg_post_install() {
+    local d d2 f
+
+    # man
+    d="docs/manual"
+    if [[ -d $d ]]; then
+        pkg_install_mfd 644 "$d"/*.1 "$ManDir2/man1"
+    fi
+
+    # vim
+    d="$SrcDir/contrib/vim"
+    for d2 in "syntax" "ftdetect"; do
+        f="$d/$d2/$Name.vim"
+        [[ -f $f ]] && pkg_install_mfd 644 "$f" "$ShareDir2/vim/vimfiles/$d2"
+    done
+}

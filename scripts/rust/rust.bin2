@@ -1,0 +1,28 @@
+#!/bin/bash
+
+PkgHome="https://slackware.osuosl.org/slackware64-current/slackware64/d/"
+
+unset pkg_configure pkg_make
+
+pkg_install() {
+    mkdir -p "$DestDir"
+    cp -al . "$DestDir"/ # hard linked (too big)
+
+    # /usr/lib64/*.so -> /usr/lib64/rustlib/*/lib/
+    local rustlib=$LibDir2/rustlib
+    local d f
+    d=$(find "$rustlib" -maxdepth 1 -type d -name "$Arch-*" -print -quit)
+    d=$d/lib
+    while f=$(pkg_read_exist); do
+        ln -sfnr "$f" "$d"
+    done < <(find "$LibDir2" -maxdepth 1 -type f -name '*.so')
+
+    # -/install
+    rm -rf "$DestDir/install"
+
+    # -/usr/doc/*/html (too big)
+    d=$(find "$Prefix2/doc" -maxdepth 2 -type d -name html -print -quit)
+    [[ -d $d ]] && rm -rf "$d"
+
+    :
+}

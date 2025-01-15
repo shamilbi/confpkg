@@ -1,0 +1,8 @@
+#!/bin/bash
+
+pkg_post_install() {
+    local f=target/release/$Name.pc
+    sed -i -r -e 's,^(prefix)=.*,\1='"$Prefix"',' "$f"
+    sed -i -r -e 's,^(libdir)=.*,\1='"$LibDir"',' "$f"
+    pkg_install_mfd 644 "$f" "$LibDir2/pkgconfig"
+}

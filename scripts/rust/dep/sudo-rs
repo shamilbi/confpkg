@@ -1,0 +1,18 @@
+#!/bin/bash
+
+pkg_post_install() {
+    # /usr/bin/sudo, /bin/su, /usr/sbin/visudo
+    local bin=$Prefix2/bin
+    local bin2=$DestDir/bin
+    local sbin2=$Prefix2/sbin
+
+    chmod 4711 "$bin"/{sudo,su} || return 1
+
+    mv "$bin"/sudo "$bin"/sudo-rs
+
+    mkdir -p "$bin2" || return 1
+    mv "$bin"/su "$bin2"/su-rs
+
+    mkdir -p "$sbin2" || return 1
+    mv "$bin"/visudo "$sbin2"/visudo-rs
+}
