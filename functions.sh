@@ -54,8 +54,7 @@ pkg_unrpm_fd() { # unzip rpm -> dir
     local cpio=(cpio -idm)
     if [[ $d ]]; then
         if [[ ! -d $d ]]; then
-            pkg_log "dir not found: $d"
-            return 1
+            mkdir -p "$d" || return 1
         fi
         cpio+=(-D "$d")
     fi
