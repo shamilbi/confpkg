@@ -1,0 +1,35 @@
+#!/bin/bash
+
+PkgHome="https://gitlab.com/libvirt/libvirt/-/tags"
+
+ConfigureOpts+=(
+    -Dexpensive_tests=disabled
+    #-Ddocs=disabled # auto, whether to generate documentation
+    -Dtests=disabled # auto, whether to build and run tests
+    -Ddocdir="$DocDir" # '', documentation installation directory
+)
+[[ ! $AUDIT ]] &&
+    ConfigureOpts+=(-Daudit=disabled) # auto, audit support
+
+unset ProtectDirs
+
+pkg_pre_configure() {
+    local dir=subprojects/keycodemapdb
+    if pkg_dir_empty "$dir"; then
+        git clone --depth 1 "https://gitlab.com/keycodemap/keycodemapdb.git" "$dir" || return 1
+    fi
+}
+
+pkg_post_install() {
+    # *.conf --> *.conf.new
+    (
+        cd "$DestDir" || exit 1
+        while IFS= read -r fpath; do
+            mv "$fpath" "$fpath.new"
+            pkg_doinst_add "config ${fpath:1}"
+        done < <(find . -type f -name '*.conf')
+    )
+
+    rm -rf "$DocDir2"/html
+    :
+}
