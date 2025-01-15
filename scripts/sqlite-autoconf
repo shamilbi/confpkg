@@ -1,0 +1,62 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    --enable-threadsafe
+    --enable-tempstore=yes
+    #--enable-load-extension
+    #--enable-fts3
+    --enable-fts4
+    --enable-fts5
+    --enable-rtree
+    --enable-session
+
+    --enable-readline
+    --enable-dynamic-extensions
+)
+
+
+pkg_pre_configure() {
+    # Define C preprocessor feature switches
+    # https://www.sqlite.org/compile.html
+
+    # Enable AND, NOT and nested parenthesis in FTS3
+    CFLAGS+=" -DSQLITE_ENABLE_FTS3_PARENTHESIS=1"
+
+    # Enable the ICU extension
+    CFLAGS+=" -DSQLITE_ENABLE_ICU"
+
+    # Enables the retrieval of column metadata
+    CFLAGS+=" -DSQLITE_ENABLE_COLUMN_METADATA=1"
+
+    # Disable directory syncs
+    CFLAGS+=" -DSQLITE_DISABLE_DIRSYNC=1"
+
+    # Add additional logic to the ANALYZE command and to the query planner
+    # to chose better query plans under certain situations
+    CFLAGS+=" -DSQLITE_ENABLE_STAT4=1"
+
+    # Enable the sqlite3_unlock_notify() interface and its associated functionality
+    # https://www.sqlite.org/unlock_notify.html
+    CFLAGS+=" -DSQLITE_ENABLE_UNLOCK_NOTIFY=1"
+
+    # The secure_delete setting causes deleted content to be overwritten with zeros
+    # https://www.sqlite.org/pragma.html#pragma_secure_delete
+    CFLAGS+=" -DSQLITE_SECURE_DELETE=1"
+
+    # Enable the "Resumable Bulk Update" extension
+    # https://www.sqlite.org/rbu.html
+    CFLAGS+=" -DSQLITE_ENABLE_RBU=1"
+
+    # Enable the DBSTAT Virtual Table
+    # https://www.sqlite.org/dbstat.html
+    # fossil: Error: system SQLite library omits required build option -DSQLITE_ENABLE_DBSTAT_VTAB
+    CFLAGS+=" -DSQLITE_ENABLE_DBSTAT_VTAB=1"
+
+    export CFLAGS
+    export CPPFLAGS="$CFLAGS $(icu-config --cppflags)"
+    export LDFLAGS="$(icu-config --ldflags)"
+}
+
+pkg_post_install() {
+    pkg_install_mfd 644 *.1 "$ManDir2/man1"
+}
