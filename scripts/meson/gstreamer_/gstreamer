@@ -1,0 +1,12 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    # Slackware
+    -Dcoretracers=enabled
+
+    -Dexamples=disabled
+    -Dtests=disabled
+    -Dbenchmarks=disabled
+    #-Dgtk_doc=disabled
+    -Ddoc=disabled
+)

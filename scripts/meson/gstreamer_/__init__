@@ -1,0 +1,3 @@
+#!/bin/bash
+
+PkgHome="https://gstreamer.freedesktop.org/src/$Name/?C=M;O=D"

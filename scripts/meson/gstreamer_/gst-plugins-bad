@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# REQ: openexr-2
+
+ConfigureOpts+=(
+    -Ddvbsuboverlay=disabled
+    -Ddvdspu=disabled
+    -Dsiren=disabled
+
+    -Dneon=disabled
+    -Dexamples=disabled
+    #-Dkate=disabled
+    -Ddc1394=disabled
+    -Dfaac=disabled
+    -Dfaad=disabled
+    -Dvoaacenc=disabled
+    -Dvoamrwbenc=disabled
+    -Dvulkan=disabled
+    -Drtmp=disabled
+    -Drtmp2=disabled
+    -Dmodplug=disabled      # ModPlug audio decoder plugin (libmodplug)
+)

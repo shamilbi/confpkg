@@ -1,0 +1,8 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    -Dshout2=disabled
+)
+[[ ! $PULSE ]] && ConfigureOpts+=(-Dpulse=disabled)
+[[ ! $AALIB ]] && ConfigureOpts+=(-Daalib=disabled) # aalib text console video sink plugin
+:

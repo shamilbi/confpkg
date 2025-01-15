@@ -1,0 +1,6 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    -Dexamples=disabled
+    -Dtests=disabled
+)
