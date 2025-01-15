@@ -1,0 +1,42 @@
+#!/bin/bash
+
+# REQ: asciidoc (python3)
+
+CleanOpts=(clean)
+
+MakeEnv=(
+    prefix="$Prefix"
+    mandir="$ManDir"
+    #INSTALLDIRS=vendor
+    #ASCIIDOC8=YesPlease
+    USE_LIBPCRE2=YesPlease
+)
+MakeOpts=(all doc)
+
+InstallEnv+=("${MakeEnv[@]}")
+InstallOpts=(install install-doc)
+
+pkg_pre_configure() {
+	make configure
+}
+
+pkg_post_install() {
+    local i src
+
+    # Add git-subtree:
+    src=contrib/subtree
+    for i in "${InstallOpts[@]}"; do
+        echo "------------------------------------"
+        echo "$src: $i ..."
+        "${Make[@]}" -C "$src" "${InstallEnv[@]}" "$i" || return 1
+    done
+
+    (
+        cd "$Prefix2/bin" || exit 1
+        ls -d git | pkg_ln_equals
+    )
+    (
+        cd "$Prefix2/libexec/git-core" || exit 1
+        ls -d git git-gui git-remote-ftp | pkg_ln_equals
+    )
+}
