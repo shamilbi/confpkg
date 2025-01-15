@@ -1,0 +1,40 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://sourceforge.net/projects/libpng/files/"
+    "https://sourceforge.net/projects/libpng-apng/files/" # APNG patch
+    "https://github.com/pnggroup/libpng"
+)
+
+
+ConfigureOpts+=(--enable-static)
+
+pkg_pre_configure() {
+    #define PNG_APNG_SUPPORTED
+    grep -Fq PNG_APNG_SUPPORTED png.h || {
+        echo "\
+APNG patch not found
+URL: https://sourceforge.net/projects/libpng-apng/"
+        return 1
+        }
+}
+
+pkg_post_install() {
+    if [[ ! -d $IncludeDir2/$Name ]]; then
+        (
+            cd "$IncludeDir2" || exit 1
+            while read -r f; do
+                d=${f:2}    #./
+                ln -sfn "$d" "$Name"
+            done < <(find -maxdepth 1 -type d -name "$Name*")
+        ) || return 1
+    fi
+    if [[ -e pngcp ]]; then
+        pkg_install_mfd 755 pngcp "$Prefix2/bin"
+    fi
+
+    local f=$LibDir2/libpng.la
+    [[ -e $f ]] && rm -f "$f"
+
+    :
+}
