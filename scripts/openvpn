@@ -1,0 +1,14 @@
+#!/bin/bash
+
+[[ ! $PAM ]] && ConfigureOpts+=(--disable-plugin-auth-pam)
+
+ConfigureOpts+=(
+    --enable-iproute2
+)
+
+pkg_post_install() {
+    local i
+    for i in sample-keys sample-config-files sample-scripts; do
+        pkg_cp_fd "sample/$i" "$DocDir2"
+    done
+}
