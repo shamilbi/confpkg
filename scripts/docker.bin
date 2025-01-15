@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# dockerd
+#   kernel: +overlayfs, +CFS_BANDWIDTH, +CPUSETS
+#   xfs: mkfs.xfs -n ftype=1 dev
+#       xfsdump - mnt >ext/mnt.xfsdump
+#       mkfs...
+#       xfsrestore -f ext/mnt.xfsdump mnt
+
+# If you are interested in enabling cgroup memory resource controll over swap
+# as well, then append "swapaccount=1" to your kernel's parameters
+
+# https://slackbuilds.org/uid_gid.txt
+# usermod -aG docker <user>
+
+unset pkg_configure pkg_make pkg_check
+
+pkg_install() {
+    find -type f -perm /111 |
+        pkg_install_md 755 "$Prefix2/bin"
+    pkg_install_mfd 755 "$SupportDir/rc.docker" "$Etc2/rc.d"
+}
+
+read -r -d '' pkg_post_installpkg <<EOF
+pkg_post_installpkg() {
+    [[ ! \$(getent group docker) ]] && groupadd -g 281 docker
+    echo "NOTE: add users to group docker: usermod -aG docker <user>"
+}
+pkg_post_installpkg
+EOF
+
+:
