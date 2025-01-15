@@ -1,0 +1,13 @@
+#!/bin/bash
+
+PkgHome="https://github.com/unicode-org/icu"
+
+SrcDir="$OrigSrcDir/icu4c/source"
+
+ConfigureOpts+=(
+    # Slackware
+    --disable-samples
+
+    --enable-layoutex
+    --disable-tests
+)
