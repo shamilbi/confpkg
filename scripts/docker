@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if [[ $FullName = *-linux-* ]]; then
+    # docker-27.5.0-linux-x86_64.tgz
+    pkg_find_script_ "$Name.bin"
+else
+    pkg_find_script_ "$Name.src"
+fi
+pkg_include_script_
