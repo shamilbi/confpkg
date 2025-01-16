@@ -1,0 +1,58 @@
+#!/bin/bash
+
+UseBuildDir=1
+UseClang=1
+
+ConfigureOpts=(
+    -DCMAKE_BUILD_TYPE=Release
+    -DBUILD_SHARED_LIBS=ON
+    -DCMAKE_C_FLAGS="$CFLAGS"
+    -DCMAKE_CXX_FLAGS="$CFLAGS"
+
+    -DCMAKE_INSTALL_PREFIX="$Prefix"
+    -DCMAKE_INSTALL_MANDIR="$ManDir"
+    -DCMAKE_INSTALL_DOCDIR="$DocDir"
+    -DCMAKE_INSTALL_LIBDIR="$LibDir"
+)
+
+check_ccache=1
+
+pkg_configure() {
+    local cmd
+
+    if [[ $UseClang && $(command -v clang) ]]; then
+        # https://stackoverflow.com/questions/7031126/switching-between-gcc-and-clang-llvm-using-cmake
+        export CC=clang
+        export CXX=clang++
+        ConfigureOpts+=(-D_CMAKE_TOOLCHAIN_PREFIX=llvm-)
+    fi
+
+    if [[ $check_ccache ]]; then
+        for cmd in ccache sccache; do
+            cmd=$(command -v  "$cmd")
+            if [[ $cmd ]]; then
+                ConfigureOpts+=(
+                    "-DCMAKE_C_COMPILER_LAUNCHER=$cmd"
+                    "-DCMAKE_CXX_COMPILER_LAUNCHER=$cmd"
+                )
+                break
+            fi
+        done
+    fi
+
+    cmake "${ConfigureOpts[@]}" -S "$SrcDir" -B .
+
+    # SDL2: configure
+    # unshare: unshare failed: Operation not permitted
+    #unshare -n cmake "${ConfigureOpts[@]}" -S "$SrcDir" -B .
+}
+
+pkg_add_cflags() {
+    CFLAGS+=" $*"
+    CXXFLAGS=$CFLAGS
+    export CFLAGS CXXFLAGS
+    ConfigureOpts+=(
+        "-DCMAKE_C_FLAGS=$CFLAGS"
+        "-DCMAKE_CXX_FLAGS=$CFLAGS"
+    )
+}

@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# REQ: fmt
+
+ConfigureOpts+=(
+    -DENABLE_TESTING=OFF
+    #-DREDIS_STORAGE_BACKEND=OFF # hiredis
+)
+
+unset check_ccache

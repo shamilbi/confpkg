@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# REQ: pyparsing
+
+ConfigureOpts=(
+    # Slackware
+    "--prefix=$Prefix"
+    "--docdir=/doc/$FullName"
+    #--parallel=$(echo $NUMJOBS | cut -f 2 -d j | tr -d ' ')
+    #--qt-gui
+    #--system-curl
+    #--system-expat
+    #--system-libarchive
+    #--system-zlib
+    #--system-bzip2
+    --no-system-jsoncpp
+    --sphinx-man
+
+    --mandir=/man
+    --no-qt-gui
+    --system-libs
+    --no-system-cppdap # use cmake-provided cppdap library (default)
+    --parallel=$(nproc)
+)
+pkg_check=
+CleanOpts=(clean)
+
+pkg_configure() {
+    export CFLAGS+=" -Wdeprecated-declarations"
+    ./bootstrap "${ConfigureOpts[@]}"
+}
+
+pkg_post_install() {
+    find "$ShareDir2" -depth -type d -name Help -exec rm -rf {} \;
+}
