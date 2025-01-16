@@ -1,10 +1,12 @@
 #!/bin/bash
 
-[[ ! $PAM ]] && ConfigureOpts+=(--disable-plugin-auth-pam)
-
 ConfigureOpts+=(
+    # Slackware
+    --sysconfdir=/etc/openvpn
+    --enable-lzo
     --enable-iproute2
 )
+[[ ! $PAM ]] && ConfigureOpts+=(--disable-plugin-auth-pam)
 
 pkg_post_install() {
     local i
