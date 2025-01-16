@@ -1,2 +1,2 @@
 #!/bin/bash
-[[ -x $SrcDir/configure ]]
+[[ -x $SrcDir/configure || -f $SrcDir/configure.ac && -x $SrcDir/autogen.sh ]]
