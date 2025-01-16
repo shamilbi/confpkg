@@ -1,0 +1,35 @@
+#!/bin/bash
+
+pkg_configure() {
+    if [[ -n "$GoDir" && -d "$GoDir" ]]; then
+        export GOROOT_BOOTSTRAP=$GoDir
+    else
+        echo "dir not exist: $GoDir"
+        echo "install binary distribution before build"
+        exit 1
+    fi
+    export GOROOT_FINAL="$GoDir"
+    export GOROOT=$GoDir
+    export GOOS=linux
+    if [[ $Arch = "x86_64" ]]; then
+        export GOARCH=amd64
+    fi
+}
+
+pkg_make() {
+    (cd src || exit 1
+        #./all.bash
+        #./bootstrap.bash
+        ./make.bash
+    )
+}
+
+pkg_install() {
+    pkg_cp_fd . "$GoDir2"
+
+    ls -d "$GoDir2"/bin/* | pkg_ln_d "$Prefix2/bin"
+}
+
+pkg_distclean() {
+    rm -rf bin pkg
+}

@@ -1,0 +1,5 @@
+#!/bin/bash
+
+PkgHome="https://github.com/mvdan/sh"
+
+GoBuild=(go build -o . -trimpath "./cmd/...")

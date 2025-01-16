@@ -1,0 +1,4 @@
+#!/bin/bash
+
+GoBuild=(go build -o . -trimpath "./cmd/...")
+GoBuildBins=(age age-keygen)

@@ -1,0 +1,55 @@
+#!/bin/bash
+
+# ~/.cache/go-build: go clean -cache
+
+BinDir=$Prefix/bin
+
+pkg_configure=
+GoBuild=()
+GoBuildBins=()
+
+pkg_make() {
+    export GIT_DISCOVERY_ACROSS_FILESYSTEM=1
+    if [[ -d vendor ]]; then
+        go mod vendor
+    fi
+    if (( ${#GoBuild[*]} )); then
+        "${GoBuild[@]}"
+    elif [[ -f ./build && -x ./build ]]; then
+        ./build || return 1
+    elif [[ -f builder.Makefile ]]; then
+        # docker-compose v2
+        "${Make[@]}" -f builder.Makefile || return 1
+    elif [[ -d cmd ]]; then
+        GoBuild=(go build -o . -trimpath "./cmd/...")
+        "${GoBuild[@]}"
+    else
+        go build -pkgdir "$GoDir/pkg"
+    fi
+}
+
+pkg_install() {
+    local i
+
+    # custom files
+    if ((${#GoBuildBins[*]})); then
+        for i in "${GoBuildBins[@]}"; do
+            if [[ -x $i ]]; then
+                pkg_install_mfd 755 "$i" "${DestDir}${BinDir}"
+            fi
+        done
+        return 0
+    fi
+
+    # $Name
+    if [[ -x $Name ]]; then
+        pkg_install_mfd 755 "$Name" "${DestDir}${BinDir}"
+    fi
+
+    # bin/
+    if [[ -d bin ]]; then
+        while IFS= read -r i; do
+            pkg_install_mfd 755 "$i" "${DestDir}${BinDir}"
+        done < <(find bin -maxdepth 1 -type f -perm /111)
+    fi
+}

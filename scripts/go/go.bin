@@ -1,0 +1,22 @@
+#!/bin/bash
+
+PkgHome="https://go.dev/"
+
+unset pkg_configure pkg_make pkg_check
+
+pkg_install() {
+    pkg_cp_fd . "$GoDir2"
+
+    ls -d "$GoDir2"/bin/* | pkg_ln_d "$Prefix2/bin"
+
+    local f=$DestDir/etc/profile.d/go.sh
+    mkdir -p "$(dirname "$f")"
+    cat >"$f" <<END
+#!/bin/sh
+export GOROOT=$GoDir
+END
+}
+
+pkg_distclean() {
+    :
+}

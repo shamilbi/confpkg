@@ -1,0 +1,20 @@
+#!/bin/bash
+
+PkgHome="https://github.com/XTLS/Xray-core"
+
+GoBuild=(go build -o build -trimpath "./...")
+GoBuildBins+=(
+    build/main # xray
+    #build/errorgen
+    #build/v2api
+    #build/vformat
+    #build/vprotogen
+)
+
+pkg_pre_make() {
+    mkdir -p build
+}
+
+pkg_post_install() {
+    mv "$Prefix2/bin/main" "$Prefix2/bin/xray"
+}

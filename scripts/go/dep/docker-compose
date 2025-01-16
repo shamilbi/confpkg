@@ -1,0 +1,14 @@
+#!/bin/bash
+
+GoBuild=(go build -o ./build -trimpath "./cmd/...")
+GoBuildBins+=(
+    build/cmd
+)
+
+pkg_pre_make() {
+    mkdir -p "build"
+}
+
+pkg_post_install() {
+    mv "$Prefix2"/bin/cmd "$Prefix2"/bin/"$Name"
+}

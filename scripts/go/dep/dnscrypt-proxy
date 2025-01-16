@@ -1,0 +1,11 @@
+#!/bin/bash
+
+PkgHome="https://github.com/DNSCrypt/dnscrypt-proxy"
+
+GoBuild=(go build -o "$Name" -trimpath "./$Name/...")
+
+pkg_install() {
+    pkg_install_mfd 750 "$Name/$Name" "$Prefix2/sbin"
+    pkg_install_mff 644 "$Name/example-$Name.toml" "$Etc2/$Name/$Name.toml"
+    pkg_install_mfd 644 "$Name"/example-*.txt "$DocDir2"
+}
