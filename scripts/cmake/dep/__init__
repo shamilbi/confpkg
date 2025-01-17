@@ -56,3 +56,11 @@ pkg_add_cflags() {
         "-DCMAKE_CXX_FLAGS=$CFLAGS"
     )
 }
+
+pkg_configure_opt_dir() {
+    local name=$1 # SPIRV-Tools
+    local option=$2 # -DSHADERC_SPIRV_TOOLS_DIR
+    local dir
+    dir=$(pkg_find_opt_dir "$name") || return 1
+    ConfigureOpts+=("$option"="$dir")
+}
