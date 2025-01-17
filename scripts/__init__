@@ -405,3 +405,17 @@ pkg_add_cflags() {
     CXXFLAGS=$CFLAGS
     export CFLAGS CXXFLAGS
 }
+
+pkg_find_opt_dir() {
+    local name=$1 # SPIRV-Tools
+    local dir=$(realpath "$OrigSrcDir/..")
+    local dir2=$(
+        find "$dir" -mindepth 1 -maxdepth 1 -type d -name "$name-*" |
+            grep -v -e '-INSTALL$' -e '-BUILD$' | head -1
+    )
+    if [[ ! $dir2 || ! -d $dir2 ]]; then
+        echo "dir not found: $dir/$name-*" >&2
+        return 1
+    fi
+    echo "$dir2"
+}
