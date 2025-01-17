@@ -631,11 +631,6 @@ pkg_mkdir_cache() {
     chmod 700 "$d"
 }
 
-pkg_add_cflags() {
-    CFLAGS+=" $*"
-    export CFLAGS
-}
-
 pkg_reinstall_python() {
     # reinstall python (egg -> dist-info)
     # pkg_reinstall_python <dir>
