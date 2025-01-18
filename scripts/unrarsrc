@@ -1,0 +1,21 @@
+#!/bin/bash
+
+PkgHome=(
+    "ftp://ftp.rarlab.com/rar/"
+    "https://www.linuxfromscratch.org/blfs/view/svn/general/unrar.html"
+    "https://packages.debian.org/bookworm/amd64/unrar"
+)
+
+pkg_check=
+
+Make+=(-f makefile)
+MakeEnv=(
+    CXXFLAGS="-O2 -fPIC"
+)
+MakeOpts=(all lib)
+CleanOpts=(clean)
+
+pkg_install() {
+    pkg_install_mfd 755 unrar "$Prefix2/bin"
+    pkg_install_mfd 755 libunrar.so "$LibDir2"
+}
