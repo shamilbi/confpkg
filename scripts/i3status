@@ -1,0 +1,14 @@
+#!/bin/bash
+
+PkgHome="https://github.com/i3/i3status"
+
+ConfigureOpts+=(
+    --enable-debug=no
+)
+
+pkg_cd_makedir() {
+    local dir
+    dir=$(find "$SrcDir" -mindepth 1 -maxdepth 1 -type d -name '*-linux*' |
+            head -1) || return 1
+    cd "$dir"
+}
