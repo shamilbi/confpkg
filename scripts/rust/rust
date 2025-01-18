@@ -7,5 +7,7 @@ elif [[ $FullName = *${Arch}* ]]; then
     # Slackware
     # rust-1.70.0-x86_64-3.txz
     pkg_find_script_ "$Name.bin2"
+else
+    pkg_find_script_ "$Name.src"
 fi
 pkg_include_script_
