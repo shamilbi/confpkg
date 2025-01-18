@@ -1,0 +1,9 @@
+#!/bin/bash
+
+PkgHome="https://github.com/vivien/i3blocks"
+
+Make=(make)
+
+pkg_pre_install() {
+    mkdir -p "$ShareDir2/bash-completion/completions"
+}
