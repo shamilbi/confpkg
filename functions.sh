@@ -374,11 +374,13 @@ pkg_filter_doc() {
             SConstruct | SConscript | Kbuild | Kconfig | Jambase | Jamroot | PKGBUILD | WORKSPACE)
                 continue
                 ;;
-            *.html | *.txt | *.pdf)
+            *.html | *.txt | *.pdf | ChangeLog | ChangeLog.*)
+                # ChangeLog.md
                 bad=
                 ;;
             [A-Z]*)
-                if [[ $fn =~ ^[A-Z]+\. ]]; then
+                if [[ $fn =~ ^[A-Z]+$ || $fn =~ ^[A-Z]+\. ]]; then
+                    # NEWS, README.md, README.win32.md
                     bad=
                 elif [[ $fn =~ \. ]]; then
                     continue
