@@ -1,0 +1,20 @@
+#!/bin/bash
+
+pkg_pre_configure() {
+    #[submodule "libgwater"]
+    #	path = subprojects/libgwater
+    #	url = https://github.com/sardemff7/libgwater
+    #[submodule "libnkutils"]
+    #	path = subprojects/libnkutils
+    #	url = https://github.com/sardemff7/libnkutils
+    local i j
+    local -A url
+    url[libgwater]="https://github.com/sardemff7/libgwater"
+    url[libnkutils]="https://github.com/sardemff7/libnkutils"
+    for i in libgwater libnkutils; do
+        j=subprojects/$i
+        if pkg_dir_empty "$j"; then
+            git clone --depth 1 "${url[$i]}" "$j" || return 1
+        fi
+    done
+}
