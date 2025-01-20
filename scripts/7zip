@@ -1,0 +1,18 @@
+#!/bin/bash
+
+PkgHome="https://github.com/ip7z/7zip/"
+
+#SrcDir=$OrigSrcDir/CPP/7zip/Bundles/Alone7z
+SrcDir=$OrigSrcDir/CPP/7zip/Bundles/Alone
+
+unset pkg_configure
+Make+=(-f makefile.gcc)
+CleanOpts=(clean)
+
+pkg_install() {
+    pkg_install_mfd 755 _o/7za "$Prefix2/bin"
+}
+
+pkg_install_doc() {
+    pkg_install_mfd 644 "$OrigSrcDir"/DOC/*.txt "$DocDir2"
+}
