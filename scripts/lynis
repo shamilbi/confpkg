@@ -1,0 +1,17 @@
+#!/bin/bash
+
+PkgHome="https://github.com/CISOfy/lynis"
+
+unset pkg_make pkg_check ProtectDirs
+
+pkg_install() {
+    # /usr/sbin/$Name
+    pkg_install_mfd 750 "$Name" "$Prefix2/sbin"
+
+    # $ShareDir/$Name/*
+    pkg_cp_fd db include plugins "$ShareDir2/$Name"
+
+    pkg_cp_fd *.prf "$Etc2/$Name"
+
+    pkg_cp_fd *.8 "$ManDir2/man8"
+}
