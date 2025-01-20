@@ -1,0 +1,14 @@
+#!/bin/bash
+
+pkg_check=
+MakeEnv=("PREFIX=$Prefix" "DATADIR=$ShareDir")
+InstallEnv+=("${MakeEnv[@]}")
+CleanOpts=(clean)
+
+pkg_post_install() {
+    # /usr/share/lshw/pci.ids -> ../hwdata/pci.ids
+    local i
+    for i in pci.ids pnp.ids usb.ids oui.txt; do
+        ln -sfn ../hwdata/"$i" "$ShareDir2/$Name/$i"
+    done
+}
