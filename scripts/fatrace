@@ -1,0 +1,6 @@
+#!/bin/bash
+
+MakeEnv=(
+    PREFIX="$Prefix"
+)
+InstallEnv+=("${MakeEnv[@]}")
