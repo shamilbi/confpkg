@@ -1,0 +1,40 @@
+#!/bin/bash
+
+PkgHome="https://git.kernel.org/pub/scm/network/iproute2/iproute2.git/"
+
+unset ConfigureOpts pkg_check
+
+ProtectDirs=(
+    /etc/iproute2
+    /usr/lib/iproute2
+)
+
+MakeEnv=(
+    # Slackware
+    CCOPTS="$CFLAGS"
+    LIBDIR="$LibDir"
+    CONF_ETC_DIR=/etc/iproute2
+    CONF_USR_DIR=/usr/lib/iproute2
+    DOCDIR="$DocDir"
+    MANDIR="$ManDir"
+    DBM_INCLUDE="$IncludeDir/db48"
+
+    SBINDIR=/sbin
+)
+InstallEnv+=("${MakeEnv[@]}")
+
+pkg_post_install() {
+    # Slackware
+    # Add a configuration override directory:
+    mkdir -p "$Etc2"/iproute2
+    # This stuff has always been installed under /sbin rather than
+    # /usr/sbin, as the latter could possibly be network-mounted, and
+    # these utilities may be needed to set up that network, so move
+    # them appropriately, but leave symlinks in /usr/sbin so that
+    # any scripts using absolute paths will work either way:
+    ls -d "$DestDir"/sbin/* | pkg_ln_d "$Prefix2/sbin"
+
+    # for users
+    # /usr/bin/ip
+    ls -d "$DestDir"/sbin/ip | pkg_ln_d "$Prefix2/bin"
+}
