@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# REQ: python-pillow, pygobject, tpm2-tss, libsmbios
+# REQ: kernel (msr, platform-integrity, EFIVAR_FS)
+# https://wiki.archlinux.org/index.php/Unified_Extensible_Firmware_Interface
+
+# daemon: /usr/libexec/fwupd/fwupd
+# client: /usr/bin/fwupdmgr [get-devices | get-updates | update | refresh]
+
+PkgHome="https://github.com/fwupd/fwupd"
+
+ConfigureOpts+=(
+    # Slackware
+    -Db_lto=true
+    -Dbuild=all
+    #-Dconsolekit=disabled # deprecated
+    #-Delogind=disabled # deprecated
+    -Dfirmware-packager=true
+    -Dgcab:docs=false
+    #-Dhsi=enabled # deprecated, Host Security Information
+    -Dlvfs=true # install LVFS remotes
+    -Dman=true
+    -Dpassim=disabled # Passim support
+    -Dplugin_amdgpu=disabled
+    #-Dplugin_redfish=disabled # deprecated, Redfish support
+    #-Dplugin_uefi_capsule=enabled # deprecated
+    #-Dsupported_build=enabled # deprecated, distribution package with upstream support
+    #-Dsystemd=disabled # deprecated
+
+    -Dtests=false
+    -Ddocs=disabled
+
+    # plugins/modem-manager/fu-mm-device.c:1592:22: warning: nested extern declaration of ‘fu_mm_device_mbim_switch_to_edl’ [-Wnested-externs]
+    -Dplugin_modem_manager=disabled # deprecated, ModemManager support
+)
+
+pkg_post_install() {
+    # Slackware
+    # fix permissions on rules.d
+    local d=$ShareDir2/polkit-1/rules.d
+    chown polkitd:root "$d"
+    chmod 0700 "$d"
+    # dbxtool -> fwupd-dbxtool
+    d=$Prefix2/bin
+    mv "$d"/dbxtool "$d"/$Name-dbxtool
+    d=$ManDir2/man1
+    mv "$d"/dbxtool.1 "$d"/fwupd-dbxtool.1
+}
