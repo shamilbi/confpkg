@@ -1,0 +1,47 @@
+#!/bin/bash
+
+# DEPENDS ON: libcurl.so.4
+
+PkgHome="https://github.com/Cisco-Talos/clamav"
+
+Daemon=$Prefix/sbin/clamd
+
+# https://slackbuilds.org/uid_gid.txt
+user=clamav
+group=clamav
+userId=210
+groupId=210
+userHome=/dev/null
+userShell=/bin/false
+userComment=
+
+dbdir=/var/lib/clamav
+
+ConfigureOpts+=(
+    -DCLAMAV_USER="$user"
+    -DCLAMAV_GROUP="$group"
+    -DENABLE_SYSTEMD=OFF
+    -DCMAKE_INSTALL_DOCDIR="$DocDir"
+    -DDATABASE_DIRECTORY="$dbdir"
+    -DAPP_CONFIG_DIRECTORY=/etc/clamav
+    -DENABLE_TESTS=OFF # pytest
+
+    -DENABLE_MILTER=OFF
+        # v1.4.2
+        # /usr/bin/ld: /usr/lib64/libmilter.a(main.o): relocation R_X86_64_32 against `.rodata.str1.1' can not be used when making a PIE object; recompile with -fPIE
+        # /usr/bin/ld: failed to set dynamic section sizes: bad value
+)
+
+pkg_pre_configure() {
+    pkg_check_group "$group" "$groupId" || return 1
+    pkg_check_user "$user" "$group" "$userId" "$userHome" "$userShell" "$userComment" || return 1
+}
+
+pkg_post_install() {
+    local dbdir2=${DestDir}${dbdir}
+    mkdir -p "$dbdir2"
+    chown -R "$user:$group" "$dbdir2"
+
+    # del *.a
+    find "$LibDir2" -type f -name '*.a' -delete
+}
