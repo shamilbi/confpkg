@@ -1,0 +1,56 @@
+#!/bin/bash
+
+PkgHome="https://github.com/ventoy/Ventoy"
+
+pkg_make=
+
+pkg_configure() {
+    # xz -d tool/*/*.xz
+    find tool -type f -name '*.xz' -exec xz -d {} \;
+
+    # delete
+    local f d
+    for d in plugin WebUI; do
+        [[ -d $d ]] && rm -rf "$d"
+    done
+    local fns=(
+        xzcat mount.exfat-fuse hexdump mkexfatfs ash
+        Plugson V2DServer VentoyGTK.glade languages.json plugson.tar distro_gui_type.json
+        "*.qt*" "*.gtk*"
+    )
+    for f in "${fns[@]}"; do
+        find tool -type f -name "$f" -delete
+    done
+    fns=(VentoyWeb.sh VentoyPlugson.sh "VentoyGUI.*")
+    for f in "${fns[@]}"; do
+        find . -type f -name "$f" -delete
+    done
+
+    # chmod 755 tool/*/*
+    while IFS= read -r d; do
+        chmod 755 "$d"/*
+    done < <(find tool -mindepth 1 -maxdepth 1 -type d)
+
+    # ./log.txt --> "$log"
+    f=tool/VentoyWorker.sh
+    sed -i 's,log\.txt,$log,' "$f"
+    sed -i -e 's,\<mkexfatfs\>,mkfs.exfat,' "$f"
+    sed -i -r -e 's,(cluster_sectors)=([0-9]+),\1=$(expr \2 / 2)K,' "$f" # cluster_sectors in KB
+    sed -i -e '/^ *mkfs\.exfat /s, -n , -L ,' "$f" # volume label
+    sed -i -e '/^ *mkfs\.exfat /s, -s , -c ,' "$f" # cluster_sectors in KB
+
+    f=tool/ventoy_lib.sh
+    # (>> *log.txt) -> (>>"$log")
+    sed -i 's,>> *\./log\.txt,>>"$log",' "$f"
+    sed -i -e 's,\<mkexfatfs\>,mkfs.exfat,' "$f"
+    # if mkexfatfs -V > /dev/null; then
+    # returns 1 in exfatprogs-1.2.1
+    sed -i -r -e 's,(.*) if mkfs.exfat -V (.*),\1 if [ ! -z "$(command -v mkfs.exfat)" ]; then,' "$f"
+}
+
+pkg_install() {
+    local d=$DestDir/opt/$Name
+    pkg_cp_fd . "$d"
+    pkg_install_mfd 755 "$SupportDir/Ventoy2Disk.bash" "$d"
+    ls -d "$d"/Ventoy2Disk.bash | pkg_ln_ff "$Prefix2"/sbin/Ventoy2Disk
+}
