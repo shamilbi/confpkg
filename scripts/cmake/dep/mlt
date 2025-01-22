@@ -1,0 +1,26 @@
+#!/bin/bash
+
+PkgHome="https://github.com/mltframework/mlt"
+
+python=
+
+ConfigureOpts+=(
+    #Slackware
+    -DMOD_QT=ON
+    -DMOD_GLXANIMATE=ON
+    -DMOD_QT6=ON
+    -DMOD_GLXANIMATE_QT6=ON
+
+    #-DMOD_OPENCV=ON
+)
+
+[[ $python ]] && ConfigureOpts+=(-DSWIG_PYTHON=ON)
+
+pkg_post_install() {
+    if [[ $python ]]; then
+        (
+            cd "$LibDir2" || exit 1
+            python3 -m compileall .
+        )
+    fi
+}
