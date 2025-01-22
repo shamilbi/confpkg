@@ -1,0 +1,23 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://veracrypt.fr/"
+    "https://sourceforge.net/projects/veracrypt/files/"
+)
+
+SrcDir=$OrigSrcDir/src
+MakeEnv=(
+    NOGUI=1
+    #WXSTATIC=1
+)
+InstallEnv+=("${MakeEnv[@]}")
+CleanOpts=(clean)
+
+pkg_install() {
+    pkg_install_mfd 755 Main/veracrypt "$Prefix2/bin"
+
+    pkg_cp_dd "$OrigSrcDir"/doc "$DocDir2"
+    rm -rf "$DocDir2"/chm
+    rm -rf "$DocDir2"/html
+    :
+}
