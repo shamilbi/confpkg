@@ -1,0 +1,7 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    # Slackware
+    -DCMAKE_SKIP_RPATH=TRUE
+    -DFMT_TEST=OFF
+)
