@@ -1,0 +1,14 @@
+#!/bin/bash
+
+PkgHome="https://github.com/Reference-LAPACK/lapack/tags"
+
+BuildSteps=(static shared)
+unset UseClang
+
+pkg_pre_configure() {
+    if [[ $BuildStep = "static" ]]; then
+        ConfigureOpts+=("-DBUILD_SHARED_LIBS=OFF")
+    elif [[ $BuildStep = "shared" ]]; then
+        ConfigureOpts+=("-DBUILD_SHARED_LIBS=ON")
+    fi
+}
