@@ -1,0 +1,44 @@
+#!/bin/bash
+
+PkgHome="https://github.com/intel/Intel-Linux-Processor-Microcode-Data-Files"
+
+# Linux Processor Microcode Data File
+
+# intel-ucode dirctory contains binary microcode files named in
+# family-model-stepping pattern. The file is supported in most modern Linux
+# distributions. It's generally located in the /lib/firmware directory,
+# and can be updated throught the microcode reload interface.
+#
+# To update the intel-ucode package to the system, one need:
+# 1. Ensure the existence of /sys/devices/system/cpu/microcode/reload
+# 2. Copy intel-ucode directory to /lib/firmware, overwrite the files in
+# /lib/firmware/intel-ucode/
+# 3. Write the reload interface to 1 to reload the microcode files, e.g.
+#   echo 1 > /sys/devices/system/cpu/microcode/reload
+
+# uses /usr/sbin/iucode_tool to create /boot/intel-ucode.cpio
+
+unset pkg_configure pkg_make pkg_check
+
+pkg_install() {
+    local dir
+
+    # Slackware
+    dir=$DestDir/lib/firmware
+    pkg_cp_fd intel-ucode "$dir"
+    # The "list" file is not always present in the upstream tarball.
+    # For consistency, let's ensure it's never present in the package.
+    rm -f "$dir"/intel-ucode/list
+
+    # Slackware
+    dir=$DestDir/boot
+    mkdir -p "$dir"
+    iucode_tool -v \
+        --write-earlyfw="$dir"/intel-ucode.img \
+        intel-ucode || return 1
+}
+
+pkg_install_doc() {
+    pkg_install_mfd 644 license *.md "$DocDir2"
+    :
+}
