@@ -1,0 +1,22 @@
+#!/bin/bash
+
+PkgHome="https://git.kernel.org/pub/scm/devel/pahole/pahole.git"
+
+ConfigureOpts+=(
+    -DCMAKE_INSTALL_LIBDIR="$LibName"
+)
+
+pkg_pre_configure() {
+    #[submodule "lib/bpf"]
+    #	path = lib/bpf
+    #	url = https://github.com/libbpf/libbpf
+    local d1=$OrigSrcDir/lib/bpf
+    if pkg_dir_empty "$d1"; then
+        git clone --depth 1 "https://github.com/libbpf/libbpf" "$d1" || return 1
+    fi
+}
+
+pkg_install_doc() {
+    pkg_install_mfd 644 "$OrigSrcDir"/{COPYING,NEWS,README*} "$DocDir2"
+    pkg_install_mfd 644 "$OrigSrcDir"/lib/bpf/{*.md,L*} "$DocDir2"/libbpf
+}
