@@ -1,0 +1,21 @@
+#!/bin/bash
+
+PkgHome="https://gitlab.freedesktop.org/mesa/demos"
+
+pkg_post_install() {
+    # Slackware
+    # Install gears and glinfo, as well as a few other demos:
+    local f1 fn
+    while IFS= read -r f1; do
+        fn=${f1##*/}
+        case $fn in
+            eglinfo | gears | glinfo | glthreads | glxcontexts | glxdemo)
+                ;;
+            glxgears | glxgears_fbconfig | glxheads | glxinfo | glxpbdemo | glxpixmap)
+                ;;
+            *)
+                rm -f "$f1"
+                ;;
+        esac
+    done < <(ls -d "$Prefix2"/bin/*)
+}
