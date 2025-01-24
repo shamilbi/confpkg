@@ -1,0 +1,12 @@
+#!/bin/bash
+
+PkgHome="https://github.com/Genivia/ugrep"
+
+pkg_post_install() {
+    (
+        cd "$Prefix2/bin" || exit 1
+        # ug -> ugrep, ug+ -> ugrep+
+        ls -d ugrep | pkg_ln_equals
+        ls -d ugrep+ | pkg_ln_ff ug+
+    )
+}
