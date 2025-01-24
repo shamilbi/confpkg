@@ -1,0 +1,23 @@
+#!/bin/bash
+
+PkgHome="https://midnight-commander.org/"
+
+ConfigureOpts+=(
+    # Slackware
+    --enable-background # Support for background file operations [yes]
+    --enable-charset # Support for charset selection and conversion [yes]
+    #--enable-aspell # --enable-aspell[=prefix]
+        # Enable aspell support for internal editor [no] and
+        # optionally set path to aspell installation prefix
+        # [default=/usr]
+    #--with-gpm-mouse # Compile with gpm mouse support (Linux only) [yes if found]
+    #--with-x=yes
+
+    # non Slackware
+    #--enable-extcharset
+    --without-x # in terminal
+    --with-gpm-mouse=no
+    --with-internal-edit=no # vim
+    --with-diff-viewer=no # less, view, vim
+    --with-search-engine=pcre2     # >=4.8.30
+)
