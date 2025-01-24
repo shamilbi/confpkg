@@ -1,0 +1,34 @@
+#!/bin/bash
+
+PkgHome="https://tukaani.org/xz"
+
+ConfigureOpts+=(
+    # Slackware
+    --disable-rpath
+    --program-prefix=
+    --program-suffix=
+
+    --bindir=/bin
+        # Slackware
+        # At least the xz binary should also be in /bin:
+    --libdir="/$LibName"
+        # Slackware
+        # It might be advisable to have the libraries in /lib${LIBDIRSUFFIX}
+)
+pkg_check=1
+
+pkg_pre_configure() {
+    # Slackware
+    # Change default verbosity from V_WARNING to V_ERROR to prevent spamming
+    # the screen with messages concerning steps that xz it taking to reduce
+    # memory use (these aren't indicating any sort of failure, so...)
+    pkg_patch_f3 xz.default.verbosity.V_ERROR.diff.gz 1 || return 1
+}
+
+pkg_post_install() {
+    # Slackware
+    # link /lib64/* --> /usr/lib64/
+    ls -d "$DestDir/$LibName"/lib* | pkg_ln_d "$LibDir2"
+    # link /bin/* --> /usr/bin/
+    ls -d "$DestDir"/bin/* | pkg_ln_d "$Prefix2/bin"
+}
