@@ -1,0 +1,47 @@
+#!/bin/sh
+
+name=dnscrypt-proxy
+service=/usr/sbin/$name
+config=/etc/$name/$name.toml
+pid=/var/run/$name.pid
+log=/var/log/$name.log
+
+_start()
+{
+    if [ -e $pid ]; then
+        echo "$name is running: $pid"
+        return
+    fi
+    if [ -x $service ]; then
+        echo "Starting $name .."
+        $service -config $config -pidfile $pid &>$log &
+    fi
+}
+
+_stop()
+{
+    if [ -r $pid ]; then
+        echo "Closing $name .."
+        kill $(cat $pid)
+    fi
+}
+
+_restart() {
+    _stop
+    sleep 1
+    _start
+}
+
+case "$1" in
+    'start')
+        _start
+        ;;
+    'stop')
+        _stop
+        ;;
+    'restart')
+        _restart
+        ;;
+    *)
+    echo "usage: $(basename $0) (start|stop|restart)"
+esac

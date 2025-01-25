@@ -1,0 +1,52 @@
+#!/bin/sh
+
+name=dnscrypt-proxy
+service=/usr/sbin/$name
+pid=/var/run/$name.pid
+log=/var/log/$name.log
+listen="127.0.0.1:2053"
+resolver=soltysiak
+    # soltysiak: OK
+    # ns0.dnscrypt.is
+    # dnscrypt.org-fr
+    # /usr/share/dnscrypt-proxy/dnscrypt-resolvers.csv
+
+_start()
+{
+    if [ -e $pid ]; then
+        echo "$name is running: $pid"
+        return
+    fi
+    if [ -x $service ]; then
+        echo "Starting $name .."
+        $service -a $listen -p $pid -l $log -d -R $resolver
+    fi
+}
+
+_stop()
+{
+    if [ -r $pid ]; then
+        echo "Closing $name .."
+        kill $(cat $pid)
+    fi
+}
+
+_restart() {
+    _stop
+    sleep 1
+    _start
+}
+
+case "$1" in
+    'start')
+        _start
+        ;;
+    'stop')
+        _stop
+        ;;
+    'restart')
+        _restart
+        ;;
+    *)
+    echo "usage: $(basename $0) (start|stop|restart)"
+esac
