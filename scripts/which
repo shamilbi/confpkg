@@ -1,0 +1,12 @@
+#!/bin/bash
+
+PkgHome="https://ftp.gnu.org/gnu/which/?C=M;O=D"
+
+ConfigureOpts+=(
+    --bindir=/bin
+)
+
+pkg_post_install() {
+    # Slackware
+    ls -d "$DestDir"/bin/which | pkg_ln_d "$Prefix2/bin"
+}
