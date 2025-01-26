@@ -211,7 +211,7 @@ install_tgz() {
         (
             cd "$rootDir/" || exit 1
             bash "$installTmp/install/doinst.sh" -install
-        ) || return 1
+        ) # ignore error
     fi
 
     install -m 644 "$logTmp" "$ADM_DIR/packages/$pName" || return 1
