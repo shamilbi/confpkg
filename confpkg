@@ -351,8 +351,12 @@ EOF
 
 unset -v pkg_post_installpkg
 # read -r -d '' pkg_post_installpkg <<EOF
+# pkg_post_installpkg() {
 # ... # relative paths
 # ... # $ -> \$
+#     : # must return 0
+# }
+# pkg_post_installpkg
 # EOF
 # :
 
