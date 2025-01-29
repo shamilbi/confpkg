@@ -1,0 +1,71 @@
+#!/bin/bash
+
+PkgHome="https://github.com/LudovicRousseau/PCSC"
+
+# https://slackbuilds.org/uid_gid.txt
+user=pcscd
+group=pcscd
+userId=257
+groupId=257
+userHome=/var/run/pcscd
+userShell=/bin/false
+userComment=
+
+# Slackware
+# Debug is off by default
+debugAtr=
+# Inserted card's automatic poweroff (on-demand power on)
+autoPOff= # disabled by default
+
+ConfigureOpts+=(
+    # Slackware
+    #--enable-ipcdir=/var/run/pcscd
+    --enable-usbdropdir="$LibDir/pcsc/drivers" # directory containing USB drivers (default /usr/local/lib/pcsc/drivers)
+    --enable-confdir=/etc/reader.conf.d # directory containing reader configurations (default ${sysconfdir}/reader.conf.d)
+    #--${DEBUGATR_FLAG}able-debugatr
+    --disable-libsystemd
+
+    --enable-ipcdir="$userHome" # directory containing IPC files (default /run/pcscd)
+    --enable-polkit
+    --enable-libudev
+)
+
+# ATR (answer to reset) debug parsing output
+# enable ATR debug messages from pcscd
+[[ $debugAtr ]] && ConfigureOpts+=(--enable-debugatr) ||
+    ConfigureOpts+=(--disable-debugatr)
+
+pkg_pre_configure() {
+    # Slackware
+    # Bail out if user or group isn't valid on your system
+    # For slackbuilds.org, assigned pcscd uid/gid are 257/257
+    # See http://slackbuilds.org/uid_gid.txt
+    # 20230801 bkw: grepping /etc/passwd and /etc/group may fail if e.g. NIS
+    # or LDAP is in use; always use getent. Also, print both messages (for user
+    # and group) if either doesn't exist.
+    pkg_check_group "$group" "$groupId" || return 1
+    pkg_check_user "$user" "$group" "$userId" "$userHome" "$userShell" "$userComment" || return 1
+    # disabling/enabling card's automatic power off
+    # src/pcscd.h.in
+    # /* Uncomment the next line if you do NOT want to use auto power off */
+    # /* #define DISABLE_ON_DEMAND_POWER_ON */
+    if [[ ! $autoPOff ]]; then
+        local f1=src/pcscd.h.in
+        pkg_create_orig "$f1"
+        sed -i -r -e 's,^.* (#define DISABLE_ON_DEMAND_POWER_ON) .*,\1,' "$f1"
+    fi
+}
+
+pkg_post_install() {
+    # Slackware
+    # Create the directory for drivers and such (not included with this package):
+    mkdir -p "$LibDir2"/pcsc/{drivers,services}
+    # Install init script:
+    pkg_install_mfd 644 "$SupportDir"/rc.pcscd "$Etc2"/rc.d
+    # Default options file:
+    pkg_install_mff 644 "$SupportDir"/pcscd.default "$Etc2"/default/pcscd
+
+    # rc.pcscd
+    # PIDFILE=/var/run/pcscd/pcscd.pid
+    sed -i -r -e 's,^(PIDFILE)=.*,\1='"$userHome"'/pcscd.pid,' "$Etc2"/rc.d/rc.pcscd
+}
