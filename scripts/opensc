@@ -2,12 +2,38 @@
 
 PkgHome="https://github.com/OpenSC/OpenSC"
 
+unset ProtectDirs
+ProtectFiles=(/etc/opensc.conf)
+
+# Slackware
+# opensc now supports only one reader subsystem (pcsc-lite or openct):
+openCT= # pcsc-lite is the default, openct disabled
+if [[ $openCT ]]; then
+    ConfigureOpts+=(--disable-pcsc --enable-openct)
+else
+    ConfigureOpts+=(--enable-pcsc --disable-openct)
+fi
+
 ConfigureOpts+=(
-    #--enable-man
-    #   checking XSLTPROC requirement... configure: error: Missing xslstylesheetsdir
+    # Slackware
+    --enable-doc
+    #--with-xsl-stylesheetsdir=/usr/share/xml/docbook/xsl-stylesheets-${XSL_STYLESHEETS_VER}
+    --enable-sm
+
+    --with-xsl-stylesheetsdir=$(find /usr/share/xml/docbook -maxdepth 1 -type d -name 'xsl-stylesheets-*' -print -quit)
+    --with-completiondir=/etc/bash_completion.d # Directory of Bash completion [detect]
     --enable-openpace=no # enable OpenPACE linkage [detect]
 )
 
-pkg_post_install() {
-    pkg_install_mff 644 etc/opensc.conf.example "$Etc2"/opensc.conf
+read -r -d '' pkg_post_installpkg <<EOF
+pkg_post_installpkg() {
+    # Slackware
+    local exe=/usr/bin/update-desktop-database
+    if [[ -x \$exe ]]; then
+        "\$exe" -q usr/share/applications &>/dev/null
+    fi
 }
+pkg_post_installpkg
+EOF
+
+:
