@@ -1,0 +1,18 @@
+#!/bin/bash
+
+PkgHome="https://github.com/LudovicRousseau/CCID"
+
+ConfigureOpts+=(
+    # Slackware
+    --enable-twinserial # also compile and install the serial Twin driver
+    --enable-composite-as-multislot # composite device are seen as multi-slots
+
+    --enable-zlp # enable the Zero Length Packet patch for some Gemalto readers
+    --enable-usbdropdir="$LibDir"/pcsc/drivers
+)
+
+pkg_post_install() {
+    # Slackware
+    # Install the udev rules since this is not done automatically:
+    pkg_install_mfd 644 src/92_pcscd_ccid.rules "$DestDir"/lib/udev/rules.d
+}
