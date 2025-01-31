@@ -1,0 +1,10 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    # Slackware
+    #-DDOC_INSTALL_DIR="doc"
+    #-DMAN_INSTALL_DIR="$ManDir"
+    -DSDL_STATIC=OFF
+
+    -DSDL_TEST_LIBRARY=OFF # Build the SDL3_test library, ON
+)
