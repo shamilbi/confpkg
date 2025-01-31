@@ -377,6 +377,11 @@ pkg_post_install_() {
 pkg_post_install2_() {
     local i j dir fpath
 
+    # Slackware SDL3
+    # Drop this duplicate that's also in a directory we don't use:
+    dir=$ShareDir2/licenses
+    [[ -d $dir ]] && rm -rf "$dir"
+
     # chmod -x /usr/include/* /usr/lib/pkgconfig/*
     for i in "$Prefix2/include" "$LibDir2/pkgconfig"; do
         if [[ -d $i ]]; then
