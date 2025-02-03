@@ -140,17 +140,16 @@ create_tgz_log() {
     echo "FILE LIST:" >>"$logTmp"
     (
         cd "$pTmp" || exit 1
+        echo "./"
         while IFS= read -r f; do
-            if [[ $f = "." ]]; then
-                echo "./"
-            elif [[ -L $f ]]; then
+            if [[ -L $f ]]; then
                 echo "${f:2}"
             elif [[ -d $f ]]; then
                 echo "${f:2}/"
             else
                 echo "${f:2}"
             fi
-        done < <(find . | sort)
+        done < <(find . -mindepth 1 | sort)
     ) >>"$logTmp"
 }
 
