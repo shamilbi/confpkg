@@ -1,5 +1,11 @@
 #!/bin/bash
 
+pkg_echo() {
+    # Printing the value of a variable
+    # https://www.etalabs.net/sh_tricks.html
+    printf '%s\n' "$@"
+}
+
 pkg_check_pkgname() {
     local name=$1
     if [[ ! $name ]]; then
@@ -21,7 +27,7 @@ pkg_check_pkgname() {
         pkg_log "file not found: $pkgs_file"
         return 1
     fi
-    echo "$name"
+    pkg_echo "$name"
 }
 
 pkg_dir_empty() {
@@ -41,7 +47,7 @@ pkg_gitmodules_get() {
 }
 
 pkg_log() {
-    echo "${FUNCNAME[1]}: $*" >&2
+    pkg_echo "${FUNCNAME[1]}: $*" >&2
 }
 
 pkg_unrpm_fd() { # unzip rpm -> dir
@@ -65,7 +71,7 @@ pkg_autoconf_version() {
     local s
     s=$(autoconf --version | head -1) || return 1
     if [[ $s =~ (^autoconf .* ([0-9.]+)$) ]]; then
-        echo "${BASH_REMATCH[2]}"
+        pkg_echo "${BASH_REMATCH[2]}"
         return 0
     fi
     return 1
@@ -75,7 +81,7 @@ pkg_replace_autoconf_version() {
     local f=$1
     [[ ! $f ]] && f="configure.ac"
     if [[ ! $f ]]; then
-        echo "file not found: $f"
+        pkg_echo "file not found: $f"
         return 1
     fi
     local ac
@@ -128,7 +134,7 @@ pkg_kernel_src_dir() {
         # new kernel
         KernelSrcDir=$(pkg_last_dir /usr/src 'linux-*[0-9]')
         if [[ ! -d $KernelSrcDir ]]; then
-            echo "kernel source not found"
+            pkg_echo "kernel source not found"
             unset KernelSrcDir
             return 1
         fi
@@ -152,9 +158,9 @@ pkg_last_dir() {
     d2=$(find "$d" -mindepth 1 -maxdepth 1 -type d -name "$mask" |
         while IFS= read -r d; do
             stat=$(stat -c '%Y' "$d")
-            echo "$stat $d"
+            pkg_echo "$stat $d"
         done | sort -r | head -1 | awk '{print $2}')
-    echo "$d2"
+    pkg_echo "$d2"
 }
 
 pkg_patch_f() {
@@ -227,7 +233,7 @@ pkg_debian_patch() {
         while IFS= read -r i; do
             [[ ! $i ]] && continue
             echo "--------------------"
-            echo "patch from $d/$i ..."
+            pkg_echo "patch from $d/$i ..."
             patch -p1 <"$d/$i" || return 1
         done < <(grep -v '^#' "$d/series")
         mv "$d" "$d.tmp"
@@ -260,7 +266,7 @@ pkg_read_exist() {
         elif [[ ! -e $x ]]; then
             continue
         fi
-        echo "$x"
+        pkg_echo "$x"
         return 0
     done
     return 1
@@ -344,7 +350,7 @@ pkg_filter_doc() {
     # ls | pkg_filter_doc
     local f1 fn bad
     while true; do
-        [[ $f1 && ! $bad ]] && echo "$f1"
+        [[ $f1 && ! $bad ]] && pkg_echo "$f1"
         bad=1
 
         IFS= read -r f1 || break
@@ -717,4 +723,11 @@ pkg_show_time_used() {
     time2=$((time1 % 60))
     ((time1 /= 60))
     echo "${time1}h${time2}m" && return 0
+}
+
+pkg_read2var() {
+    # pkg_read2var var_name <<EOF
+    # ...
+    # EOF
+    read -r -d '' "$1"
 }
