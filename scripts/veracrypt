@@ -2,7 +2,7 @@
 
 PkgHome=(
     "https://veracrypt.fr/"
-    "https://sourceforge.net/projects/veracrypt/files/"
+    "https://github.com/veracrypt/VeraCrypt"
 )
 
 SrcDir=$OrigSrcDir/src
