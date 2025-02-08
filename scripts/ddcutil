@@ -1,0 +1,14 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://github.com/rockowitz/ddcutil"
+    "https://xaselgio.net/posts/08.playing-with-brightness/"
+)
+
+unset ProtectDirs
+
+MakeEnv=(
+    rulesdir=/lib/udev/rules.d
+    installed_modulesdir=/etc/modules-load.d
+)
+InstallEnv+=("${MakeEnv[@]}")
