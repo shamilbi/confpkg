@@ -451,23 +451,20 @@ pkg_install_mfd() {
         return 1
     fi
 
-    ## filter args exist
-    #local i files2=()
-    #for i in "${args[@]}"; do
-    #    [[ ! -e $i ]] && continue
-    #    files2+=("$i")
-    #done
-    #if (( ! ${#files2} )); then
-    #    pkg_log "no files to install: ${args[*]}"
-    #    return 0
-    #fi
     if [[ ! -d $dir ]]; then
         mkdir -p "$dir" || {
             pkg_log "mkdir error"
             return 1
         }
     fi
-    install -pm "$mode" "${args[@]}" "$dir"
+    local i
+    for i in "${args[@]}"; do
+        if [[ -L $i ]]; then
+            cp -a "$i" "$dir"
+        else
+            install -pm "$mode" "$i" "$dir"
+        fi
+    done
 }
 
 pkg_install_mff() {
