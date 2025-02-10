@@ -1,0 +1,10 @@
+#!/bin/bash
+
+unset pkg_configure pkg_make
+
+pkg_install() {
+    pkg_install_mfd 755 bin/pandoc* "$Prefix2/bin"
+
+    # pandoc.1
+    pkg_install_mfd 644 share/man/man1/pandoc* "$ManDir2/man1"
+}
