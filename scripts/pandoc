@@ -1,0 +1,11 @@
+#!/bin/bash
+
+PkgHome="https://github.com/jgm/pandoc"
+
+if [[ $FullName = *-linux-* ]]; then
+    # pandoc-3.6.3-linux-amd64
+    pkg_find_script_ "$Name.bin"
+else
+    pkg_find_script_ "$Name.src"
+fi
+pkg_include_script_
