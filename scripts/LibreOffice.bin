@@ -1,0 +1,67 @@
+#!/bin/bash
+
+PkgHome="https://www.libreoffice.org/download/download-libreoffice/"
+# LibreOffice-24.2.5_Linux_x86-64_rpm.tar.gz
+
+unset pkg_make pkg_check
+
+pkg_configure() {
+    if [[ ! -d RPMS ]]; then
+        echo "install only LibreOffice rpm package"
+        echo "(e.g. LibreOffice-24.2.5_Linux_x86-64_rpm.tar.gz)"
+        return 1
+    fi
+    (
+        cd RPMS || exit 1
+        #find -name '*-dict-*.rpm' -delete
+        find -name '*-kde-*.rpm' -delete
+        find -name '*-onlineupdate-*.rpm' -delete
+        #find -name '*-librelogo-*.rpm' -delete
+        find -name '*-nlpsolver-*.rpm' -delete
+        find -name '*-mediawiki-*.rpm' -delete
+        find -name '*-extension-*.rpm' ! -name '*pdf*' -delete
+        #extension-beanshell-script-provider
+        #extension-javascript-script-provider
+        #extension-mediawiki-publisher
+        #extension-nlpsolver
+        #extension-pdf-import
+        #extension-report-builder
+        find -name '*-gnome-integration-*.rpm' -delete
+    )
+}
+
+pkg_install() {
+    mkdir -p "$DestDir"
+    (
+        cd RPMS || exit 1
+        for i in *.rpm; do
+            #rpm2cpio $i | cpio -idm -D "$DestDir"
+            pkg_unrpm_fd "$i" "$DestDir"
+        done
+    )
+    local lo # libreoffice7.5
+    #lo=$(cd $Prefix2/bin; ls -d * | head -1)
+    lo=$(ls -d "$DestDir"/opt/* | head -1)
+    lo=${lo##*/}
+    (
+        cd "$DestDir/opt/$lo/program" || exit 1
+
+        # *.pyc
+        dn=$(find -maxdepth 1 -type d -name 'python-core-*' -print -quit)
+        ./python -m compileall $dn/lib
+
+    )
+    (
+        cd "$Prefix2"/bin || exit 1
+        ln -sfn "$lo" libreoffice
+    )
+
+    # libreofficeX.Y-*.desktop -> libreoffice-*.desktop
+    (
+        cd "$ShareDir2"/applications || exit 1
+        while IFS= read -r f; do
+            f2=libreoffice-${f#*-}
+            ln -sfn "$f" "$f2"
+        done < <(ls libreoffice[0-9]*)
+    ) || return 1
+}
