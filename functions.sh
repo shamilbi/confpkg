@@ -283,6 +283,23 @@ pkg_mv_ln() {
     done
 }
 
+pkg_mv_ln_ff() {
+    # pkg_mv_ln_ff <file1> <file2>
+    # pkg_mv_ln_ff "$Prefix2"/bin/gdk-pixbuf-query-loaders{,-64}
+    local f1=$1 f2=$2
+    if [[ ! $f1 || ! $f2 ]]; then
+        pkg_log "empty args"
+        return 1
+    fi
+    if [[ ! -e $f1 ]]; then
+        pkg_log "not exist: $f1"
+        return 1
+    fi
+    pkg_mkdir "$(dirname "$f2")" || return 1
+    mv "$f1" "$f2" || return 1
+    ln -sfnr "$f2" "$f1"
+}
+
 pkg_mv_d() {
     # ls *.so*| pkg_mv_d dir
     # read f; mv $f $1/
