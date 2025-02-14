@@ -30,8 +30,15 @@ ConfigureOpts+=(
     -Dtests=false
     -Ddocs=disabled
 
-    # plugins/modem-manager/fu-mm-device.c:1592:22: warning: nested extern declaration of ‘fu_mm_device_mbim_switch_to_edl’ [-Wnested-externs]
     -Dplugin_modem_manager=disabled # deprecated, ModemManager support
+        # plugins/modem-manager/fu-mm-device.c:1592:22: warning: nested extern declaration of ‘fu_mm_device_mbim_switch_to_edl’ [-Wnested-externs]
+    -Dplugin_logitech_bulkcontroller=disabled # Logitech bulk controller support
+        # This plugin can upgrade the firmware on Logitech Video Collaboration products
+        # (Rally Bar and RallyBar Mini), using USB bulk transfer.
+        # FAILED: plugins/logitech-bulkcontroller/libfu_plugin_logitech_bulkcontroller.a.p/antiflicker.pb-c.c plugins/logitech-bulkcontroller/libfu_plugin_logitech_bulkcontroller.a.p/antiflicker.pb-c.h 
+        # /usr/bin/protoc --proto_path=../plugins/logitech-bulkcontroller/proto --c_out=plugins/logitech-bulkcontroller/libfu_plugin_logitech_bulkcontroller.a.p ../plugins/logitech-bulkcontroller/proto/antiflicker.proto
+        # protoc-gen-c: symbol lookup error: protoc-gen-c: undefined symbol: _ZN6google8protobuf2io7Printer9PrintImplESt17basic_string_viewIcSt11char_traitsIcEEN4absl12lts_202407224SpanIKNSt7__cxx1112basic_stringIcS5_SaIcEEEEENS2_12PrintOptionsE
+        # --c_out: protoc-gen-c: Plugin failed with status code 127.
 )
 
 pkg_post_install() {
