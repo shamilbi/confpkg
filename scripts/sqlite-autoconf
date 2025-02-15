@@ -3,9 +3,10 @@
 pkg_configure_del --docdir --localedir
 
 ConfigureOpts+=(
+    # Slackware
     --enable-threadsafe
-    #--enable-load-extension
-    #--enable-fts3
+    --enable-load-extension
+    --enable-fts3
     --enable-fts4
     --enable-fts5
     --enable-rtree
@@ -14,56 +15,80 @@ ConfigureOpts+=(
     --enable-readline
 )
 
+if (($(pkg_cmp_versions "$Version" "3490000") < 0)); then
+    ConfigureOpts+=(
+        # Slackware
+        --enable-tempstore=yes
+        --enable-dynamic-extensions
+    )
+fi
+
+# Slackware
+#tclsh=$(readlink -f "$(which tclsh)")
+#ConfigureOpts+=(--with-tclsh="$tclsh")
+    # Error: Unknown option --with-tclsh
+
+# make: *** No rule to make target 'dbdump'.  Stop.
+#MakeOpts+=(
+#    all
+#
+#    # Slackware
+#    dbdump dbhash dbtotxt index_usage scrub showdb showjournal
+#    showshm showstat4 showwal sqldiff sqlite3_analyzer
+#    sqlite3_checker sqlite3_expert sqlite3_rsync sqltclsh
+#)
 
 pkg_pre_configure() {
-    if (($(pkg_cmp_versions "$Version" "3490000") < 0)); then
-        ConfigureOpts+=(
-            --enable-tempstore=yes
-            --enable-dynamic-extensions
-        )
-    fi
-
+    # Slackware
     # Define C preprocessor feature switches
     # https://www.sqlite.org/compile.html
-
     # Enable AND, NOT and nested parenthesis in FTS3
     CFLAGS+=" -DSQLITE_ENABLE_FTS3_PARENTHESIS=1"
-
     # Enable the ICU extension
     CFLAGS+=" -DSQLITE_ENABLE_ICU"
-
     # Enables the retrieval of column metadata
     CFLAGS+=" -DSQLITE_ENABLE_COLUMN_METADATA=1"
-
     # Disable directory syncs
     CFLAGS+=" -DSQLITE_DISABLE_DIRSYNC=1"
-
     # Add additional logic to the ANALYZE command and to the query planner
     # to chose better query plans under certain situations
     CFLAGS+=" -DSQLITE_ENABLE_STAT4=1"
-
     # Enable the sqlite3_unlock_notify() interface and its associated functionality
     # https://www.sqlite.org/unlock_notify.html
     CFLAGS+=" -DSQLITE_ENABLE_UNLOCK_NOTIFY=1"
-
     # The secure_delete setting causes deleted content to be overwritten with zeros
     # https://www.sqlite.org/pragma.html#pragma_secure_delete
     CFLAGS+=" -DSQLITE_SECURE_DELETE=1"
-
     # Enable the "Resumable Bulk Update" extension
     # https://www.sqlite.org/rbu.html
     CFLAGS+=" -DSQLITE_ENABLE_RBU=1"
-
     # Enable the DBSTAT Virtual Table
     # https://www.sqlite.org/dbstat.html
     # fossil: Error: system SQLite library omits required build option -DSQLITE_ENABLE_DBSTAT_VTAB
     CFLAGS+=" -DSQLITE_ENABLE_DBSTAT_VTAB=1"
-
+    ## Fix a bug in ./configure that discards all but the last considered option:
+    #sed -i "s|\$(OPT_FEATURE_FLAGS)|\${OPT_FEATURE_FLAGS}|g" ./configure
     export CFLAGS
     export CPPFLAGS="$CFLAGS $(icu-config --cppflags)"
     export LDFLAGS="$(icu-config --ldflags)"
+    #local tcl_version=$(readlink "$(which tclsh)" | sed -e 's,^[a-z]*,,') # 8.6
+    #export TCLLIBDIR="$LibDir"/tcl$tcl_version/sqlite3
 }
 
 pkg_post_install() {
+    # Slackware
+    # Install extra tools:
+    #local files=(
+    #    dbdump dbhash dbtotxt index_usage scrub showdb
+    #    showjournal showshm showstat4 showwal sqldiff sqlite3_expert
+    #    sqlite3_rsync
+    #)
+    #pkg_install_mfd 755 "${files[@]}" "$Prefix2"/bin
+    # Avoid taking the name of a well-known tool:
+    #mv "$Prefix2"/bin/scrub "$Prefix2"/bin/sqlite3_scrub
+    # Add missed man page:
     pkg_install_mfd 644 *.1 "$ManDir2/man1"
+    # Fix up the pkgconfig file
+    #sed -i 's|Libs: -L${libdir} -lsqlite3|Libs: -L${libdir} -lsqlite3 -ldl|g' \
+    #  "$LibDir2"/pkgconfig/sqlite3.pc
 }
