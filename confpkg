@@ -260,7 +260,7 @@ pkg_gzip_man_() {
                 )
                 rm -f "$file"
             done < <(find "$dir2" -type l ! -name '*.gz')
-        done < <(find "$dir" -type d -name 'man[0-9]')
+        done < <(find "$dir" -type d -name 'man[0-9]*')
     done < <(find "$root_dir" -type d -name 'man')
 }
 
