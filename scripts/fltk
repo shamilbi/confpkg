@@ -1,0 +1,22 @@
+#!/bin/bash
+
+PkgHome="https://github.com/fltk/fltk"
+
+MakeEnv=("docdir=$DocDir")
+InstallEnv+=("${MakeEnv[@]}")
+
+pkg_pre_configure() {
+    if [[ ! -e config.sub ]]; then
+        NOCONFIGURE=1 ./autogen.sh
+    fi
+}
+
+pkg_post_install() {
+    # del *.a
+    find "$LibDir2" -type f -name '*.a' -delete
+
+    # del examples/
+    rm -rf "$DocDir2"/examples
+
+    :
+}
