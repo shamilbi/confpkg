@@ -1,0 +1,137 @@
+#!/bin/bash
+
+# REQ: libfdt (dtc)
+
+UseBuildDir=1
+Configure=$OrigSrcDir/configure
+
+pkg_configure_del --infodir --build --host
+pkg_configure_del2 shared static
+
+target=(
+    aarch64-linux-user
+    aarch64-softmmu
+    aarch64_be-linux-user
+    arm-linux-user
+    arm-softmmu
+    armeb-linux-user
+
+    i386-linux-user
+    i386-softmmu
+    x86_64-linux-user
+    x86_64-softmmu
+)
+# set target list (default: build all)
+# Available targets:
+# aarch64-linux-user
+# aarch64-softmmu
+# aarch64_be-linux-user
+# alpha-linux-user
+# alpha-softmmu
+# arm-linux-user
+# arm-softmmu
+# armeb-linux-user
+# avr-softmmu
+# cris-linux-user
+# cris-softmmu
+# hexagon-linux-user
+# hppa-linux-user
+# hppa-softmmu
+# i386-linux-user
+# i386-softmmu
+# loongarch64-linux-user
+# loongarch64-softmmu
+# m68k-linux-user
+# m68k-softmmu
+# microblaze-linux-user
+# microblaze-softmmu
+# microblazeel-linux-user
+# microblazeel-softmmu
+# mips-linux-user
+# mips-softmmu
+# mips64-linux-user
+# mips64-softmmu
+# mips64el-linux-user
+# mips64el-softmmu
+# mipsel-linux-user
+# mipsel-softmmu
+# mipsn32-linux-user
+# mipsn32el-linux-user
+# nios2-linux-user
+# nios2-softmmu
+# or1k-linux-user
+# or1k-softmmu
+# ppc-linux-user
+# ppc-softmmu
+# ppc64-linux-user
+# ppc64-softmmu
+# ppc64le-linux-user
+# riscv32-linux-user
+# riscv32-softmmu
+# riscv64-linux-user
+# riscv64-softmmu
+# rx-softmmu
+# s390x-linux-user
+# s390x-softmmu
+# sh4-linux-user
+# sh4-softmmu
+# sh4eb-linux-user
+# sh4eb-softmmu
+# sparc-linux-user
+# sparc-softmmu
+# sparc32plus-linux-user
+# sparc64-linux-user
+# sparc64-softmmu
+# tricore-softmmu
+# x86_64-linux-user
+# x86_64-softmmu
+# xtensa-linux-user
+# xtensa-softmmu
+# xtensaeb-linux-user
+# xtensaeb-softmmu
+
+audio_drv_list="alsa,oss,sdl"
+# alsa/coreaudio/default/dsound/jack/oss/pa/pipewire/sdl/sndio
+[[ $JACK ]] && audio_drv_list+=",jack"
+
+ConfigureOpts+=(
+    --enable-spice
+    --enable-vte
+    --disable-docs
+    --enable-linux-io-uring
+    --enable-modules
+    --enable-crypto-afalg
+    --enable-membarrier
+    --enable-virglrenderer
+    #--enable-gcrypt
+)
+[[ $PULSE ]] && audio_drv_list+=",pa" || ConfigureOpts+=(--disable-pa)
+[[ $PIPEWIRE ]] && audio_drv_list+=",pipewire"
+ConfigureOpts+=(
+    --audio-drv-list="$audio_drv_list"
+)
+
+pkg_pre_configure() {
+    local f
+
+    f=configure
+    if pkg_create_orig "$f"; then
+        sed -i -r -e 's,(vtepackage)="vte-2.90",\1="vte-2.91",' "$f"
+        sed -i -e 's,#include <sys/memfd\.h>,#include <sys/mman.h>,' "$f"
+    fi
+
+    f=util/memfd.c
+    if pkg_create_orig "$f"; then
+        sed -i -e 's,#ifdef CONFIG_MEMFD,,' "$f"
+        sed -i -e 's,#include <sys/memfd\.h>,,' "$f"
+        sed -i -e 's,#elif defined CONFIG_LINUX,#if defined CONFIG_LINUX \&\& !defined CONFIG_MEMFD,' "$f"
+    fi
+
+    local i list
+    for i in "${target[@]}"; do
+        list="$i,"
+    done
+    [[ $list ]] && list=${list:0:-1} # del last comma
+    [[ $list ]] && ConfigureOpts+=(--target-list="$list")
+    :
+}
