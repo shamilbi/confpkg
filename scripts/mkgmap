@@ -1,0 +1,25 @@
+#!/bin/bash
+
+PkgHome="https://www.mkgmap.org.uk/"
+
+unset pkg_make pkg_check
+
+pkg_install() {
+    local destdir=$DestDir/opt/$Name
+    pkg_cp_fd . "$destdir" || return 1
+
+    cat >"$destdir/$Name.sh" <<END
+#!/bin/bash
+
+dir=\$(dirname "\$(realpath "\$0")")
+for i in "\$dir"/lib/* ; do
+    CLASSPATH+=":\$i"
+done
+export CLASSPATH
+
+java -jar "\$dir/$Name.jar" "\$@"
+END
+    chmod 755 "$destdir/$Name.sh"
+    #ln -sfnr "$destdir/$Name.sh" "$(mk_dir "$Prefix2/bin")/$Name"
+    ls -d "$destdir/$Name.sh" | pkg_ln_ff "$Prefix2/bin/$Name"
+}
