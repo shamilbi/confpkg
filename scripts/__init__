@@ -278,7 +278,7 @@ pkg_python_install() {
 
             # auxilliary libs needed for build
             for i in "${PythonInstallLibs0[@]}"; do
-                "${pipv_install[@]}" "$i" || exit 1
+                "${pipv_install[@]}" -I "$i" || exit 1 # force reinstall
             done
         ) || return 1
 
