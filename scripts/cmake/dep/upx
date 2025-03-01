@@ -1,0 +1,17 @@
+#!/bin/bash
+
+PkgHome="https://github.com/upx/upx"
+
+pkg_pre_configure() {
+    # submodules
+    (
+        cd "$OrigSrcDir" || exit 1
+        for i in zlib ucl doctest valgrind lzma-sdk; do
+            dir=vendor/$i
+            if pkg_dir_empty "$dir"; then
+                url=$(pkg_gitmodules_get .gitmodules url "$dir")
+                git clone --depth 1 -b upx-vendor "$url" "$dir" || exit 1
+            fi
+        done
+    )
+}
