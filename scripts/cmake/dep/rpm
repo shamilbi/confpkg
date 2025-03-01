@@ -1,0 +1,63 @@
+#!/bin/bash
+
+# REQ: rpm-sequoia (pgp)
+
+UseClang=
+    # clang: error: unknown argument: '-fhardened'
+
+localstatedir=/var/lib/rpm
+localstatedir2=$DestDir$localstatedir
+
+ConfigureOpts+=(
+    # Slackware
+    -DWITH_AUDIT=OFF
+    #-DWITH_SELINUX=OFF
+    #-DWITH_INTERNAL_OPENPGP=ON
+    #-DWITH_SEQUOIA=OFF
+    -DENABLE_TESTSUITE=OFF
+)
+[[ ! $SELINUX ]] && ConfigureOpts+=(-DWITH_SELINUX=OFF)
+
+pkg_post_install() {
+    # Slackware
+    local dir=$Etc2/dbus-1
+    if [[ -d $dir ]]; then
+        # Put this in the system directory:
+        echo "$dir" | pkg_mv_d "$ShareDir2"
+        rmdir "$Etc2"
+    fi
+    # This used to be at /bin/rpm, so make a symlink from there to the new
+    # location:
+    echo "$Prefix2/bin/rpm" | pkg_ln_d "$DestDir/bin"
+    # Here's a bug - /var/tmp should NOT have mode 0755
+    dir=$DestDir/var/tmp
+    if [[ -d $dir ]]; then
+        rmdir "$dir" || return 1
+    fi
+    # Initialize a dummy package database
+    dir=$localstatedir2/tmp
+    pkg_install_mfd 644 "$SupportDir"/Packages.gz "$dir"
+    gzip -d "$dir"/Packages.gz
+
+    # -doc/API
+    rm -rf "$DocDir2"/API
+    :
+}
+
+read -r -d '' pkg_post_installpkg <<EOF
+pkg_post_installpkg() {
+    # Slackware
+    local d1=${localstatedir:1}
+    local f1=\$d1/Packages # var/lib/rpm/Packages
+    local d2=\$d1/tmp
+    local f2=\$d2/Packages # var/lib/rpm/tmp/Packages
+    if [[ ! -r \$f1 && -f \$f2 ]]; then
+        cp -a "\$f2" "\$f1"
+    fi
+    [[ -d \$d2 ]] && rm -rf "\$d2"
+    :
+}
+pkg_post_installpkg
+EOF
+
+:
