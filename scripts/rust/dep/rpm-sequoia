@@ -1,7 +1,21 @@
 #!/bin/bash
 
+PkgHome="https://github.com/rpm-software-management/rpm-sequoia"
+
 pkg_post_install() {
-    local f=target/release/$Name.pc
+    local dir=target/release/
+
+    # librpm_sequoia.so -> librpm_sequoia.so.1
+    local f1 f2 fn
+    f1=$LibDir2/librpm_sequoia.so # file
+    f2=$(find "$dir" -mindepth 1 -maxdepth 1 -type l -name 'librpm*' -print -quit)
+    fn=$(basename "$f2") # librpm_sequoia.so.1 (link)
+    f2=$LibDir2/$fn
+    mv "$f1" "$f2" # librpm_sequoia.so -> librpm_sequoia.so.1
+    ln -sfnr "$f2" "$f1" # librpm_sequoia.so.1 -> librpm_sequoia.so
+
+    # $Name.pc
+    local f=$dir/$Name.pc
     sed -i -r -e 's,^(prefix)=.*,\1='"$Prefix"',' "$f"
     sed -i -r -e 's,^(libdir)=.*,\1='"$LibDir"',' "$f"
     pkg_install_mfd 644 "$f" "$LibDir2/pkgconfig"
