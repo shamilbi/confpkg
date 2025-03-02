@@ -1,0 +1,13 @@
+#!/bin/bash
+
+PkgHome="https://www.google.com/chrome/"
+
+unset pkg_make pkg_check
+
+pkg_install() {
+    mkdir -p "$Prefix2/bin" || return 1
+
+    pkg_cp_fd opt "$DestDir" || return 1
+    pkg_cp_fd usr/share/man/man1 "$ManDir2" || return 1
+    ln -sfnr "$DestDir"/opt/google/chrome/google-chrome "$Prefix2/bin"
+}
