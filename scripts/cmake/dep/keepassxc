@@ -1,0 +1,26 @@
+#!/bin/bash
+
+PkgHome="https://github.com/keepassxreboot/keepassxc"
+
+# REQ: botan, minizip, qt5
+
+ConfigureOpts+=(
+    -DKEEPASSXC_BUILD_TYPE=Release
+    -DWITH_CCACHE=ON # Use ccache for build, OFF
+
+    -DWITH_TESTS=OFF
+    -DWITH_GUI_TESTS=OFF # Enable building of GUI tests, OFF
+
+    -DWITH_ASAN=ON
+
+    -DWITH_XC_SSHAGENT=ON # Include SSH agent support, OFF
+    -DWITH_XC_KEESHARE=ON # Sharing integration with KeeShare (requires quazip5 for secure containers)
+    -DWITH_XC_BROWSER_PASSKEYS=ON # Passkeys support for browser integration, OFF
+    -DWITH_XC_BROWSER=ON # Include browser integration with keepassxc-browser, OFF
+    -DWITH_XC_YUBIKEY=ON # Include YubiKey support, OFF
+
+    -DWITH_XC_AUTOTYPE=OFF
+    -DWITH_XC_DOCS=OFF
+    -DWITH_XC_NETWORKING=OFF # Include networking code (e.g. for downloading website icons), OFF
+    -DWITH_XC_UPDATECHECK=OFF # Include automatic update checks; disable for controlled distributions, ON
+)
