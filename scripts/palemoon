@@ -1,0 +1,21 @@
+#!/bin/bash
+
+PkgHome="https://www.palemoon.org/"
+# palemoon-33.6.0.1.linux-x86_64-gtk3.tar.xz
+
+unset pkg_configure pkg_make
+
+pkg_install() {
+    local dir=$DestDir/opt/$Name
+    pkg_cp_fd . "$dir"
+    local f1 fn f2
+    for f1 in "$dir"/*.so; do
+        fn=${f1##*/}
+        f2=$LibDir/$fn
+        if [[ -e $f2 ]]; then
+            ln -sfn "$f2" "$f1"
+        fi
+    done
+
+    ls -d "$dir/$Name" | pkg_ln_d "$Prefix2"/bin
+}
