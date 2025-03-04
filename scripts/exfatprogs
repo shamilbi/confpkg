@@ -1,0 +1,5 @@
+#!/bin/bash
+
+PkgHome="https://github.com/exfatprogs/exfatprogs"
+
+ConfigureOpts+=(--sbindir=/sbin)
