@@ -1,0 +1,23 @@
+#!/bin/bash
+
+PkgHome="https://github.com/tree-sitter/tree-sitter"
+
+MakeEnv=(
+    "PREFIX=$Prefix"
+    "LIBDIR=$LibDir"
+)
+InstallEnv+=("${MakeEnv[@]}")
+
+pkg_make() {
+    "${Make[@]}" "${MakeEnv[@]}" "${MakeOpts[@]}" || return 1
+    (
+        cd cli || exit 1
+        cargo build --release --all-features
+    ) || return 1
+}
+
+pkg_post_install() {
+    find "$LibDir2" -type f -name '*.a' -delete
+
+    pkg_install_mfd 755 target/release/"$Name" "$Prefix2"/bin
+}
