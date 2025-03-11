@@ -3,8 +3,10 @@
 # REQ: fmt
 
 ConfigureOpts+=(
+    # Slackware
+    -DREDIS_STORAGE_BACKEND=OFF # hiredis
+
     -DENABLE_TESTING=OFF
-    #-DREDIS_STORAGE_BACKEND=OFF # hiredis
 )
 
 unset check_ccache
