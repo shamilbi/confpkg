@@ -1,0 +1,20 @@
+#!/bin/bash
+
+PkgHome="https://github.com/google/shaderc"
+
+# REQ: $OrigSrcDir/../{SPIRV-Tools-*,SPIRV-Headers-*,glslang-*}
+
+ConfigureOpts+=(
+    -DSHADERC_SKIP_TESTS=yes
+    -DSHADERC_ENABLE_TESTS=OFF
+)
+
+pkg_pre_configure() {
+    pkg_configure_opt_dir SPIRV-Tools -DSHADERC_SPIRV_TOOLS_DIR || return 1
+    pkg_configure_opt_dir SPIRV-Headers -DSHADERC_SPIRV_HEADERS_DIR || return 1
+    pkg_configure_opt_dir glslang -DSHADERC_GLSLANG_DIR || return 1
+}
+
+pkg_post_install() {
+    find "$LibDir2" -maxdepth 1 -type f -name '*.a' ! -name 'libshaderc*.a' -delete
+}
