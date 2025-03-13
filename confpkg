@@ -647,6 +647,9 @@ pkg_include_script_() {
     # . scripts/a/__init__
     # . scripts/a/b/__init__
     # . scripts/a/b/script
+
+    SrcDir=$OrigSrcDir
+
     local fp=$Script
     ScriptArr=()
     local i
