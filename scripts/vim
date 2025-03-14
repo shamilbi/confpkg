@@ -1,0 +1,41 @@
+#!/bin/bash
+
+PkgHome="https://github.com/vim/vim"
+
+pkg_configure_del2 shared static
+
+ConfigureOpts+=(
+    # Slackware
+    --enable-multibyte
+    --enable-cscope
+    --with-features=huge
+    --disable-canberra
+
+    --disable-gtktest
+    --disable-netbeans # Disable NetBeans integration support
+)
+
+# vim --version: +xterm_clipboard ("+y)
+[[ $X ]] && ConfigureOpts+=(--with-x --enable-gui=gtk3)
+
+Make=(make)
+pkg_check=
+ProtectFiles=("$ShareDir/vim/vimrc")
+
+pkg_post_install() {
+    # eview, evim
+    ln -sf vim "$Prefix2/bin/eview"
+    ln -sf vim "$Prefix2/bin/evim"
+    cp -a runtime/vimrc_example.vim "$ShareDir2/vim/vimrc"
+
+    # man
+    local i
+    for i in ex rview rvim view; do
+        ln -sfn vim.1 "$ManDir2/man1/$i.1"
+    done
+
+    # textwidth
+    # autocmd FileType text setlocal textwidth=78
+    i=$ShareDir2/vim/vimrc
+    sed -i -r -e 's,(autocmd FileType text .*),"\1,' "$i"
+}
