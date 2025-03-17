@@ -1,0 +1,7 @@
+#!/bin/bash
+
+PkgHome="https://gitlab.com/mbunkus/mkvtoolnix"
+
+ConfigureOpts+=(
+    --enable-gui=no
+)
