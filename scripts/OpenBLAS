@@ -1,0 +1,37 @@
+#!/bin/bash
+
+MakeEnv=(
+    # Slackware
+    PREFIX="$Prefix"
+    MAKE_NB_JOBS="$(nproc)"
+    OPENBLAS_LIBRARY_DIR="$LibDir"
+    # Use GENERIC CPU target:
+    TARGET=GENERIC
+    DYNAMIC_ARCH=1
+    NO_STATIC=1
+    USE_THREAD=1
+    NUM_THREADS=64
+    USE_OPENMP=1
+    USE_TLS=1
+    NO_LAPACK=0
+    BUILD_LAPACK_DEPRECATED=1
+    NO_AFFINITY=1
+    BUILD_RELAPACK=1
+)
+InstallEnv+=("${MakeEnv[@]}")
+
+pkg_post_install() {
+    # Slackware
+    # Install compatibility symlinks:
+    local f1=$(find "$LibDir2" -mindepth 1 -maxdepth 1 -type f -name '*.so')
+    local fn=${f1##*/} # libopenblasp-r0.3.29.so
+    local i
+    for i in blas cblas lapack lapacke; do
+        ln -sfn "$fn" "$LibDir2"/lib"$i".so
+        ln -sfn "$fn" "$LibDir2"/lib"$i".so."${VersionArr[0]}"
+        ln -sfn "$fn" "$LibDir2"/lib"$i".so."$Version"
+        ln -sfn openblas.pc "$LibDir2"/pkgconfig/"$i".pc
+    done
+
+    find "$DestDir" -depth -type d -empty -delete
+}
