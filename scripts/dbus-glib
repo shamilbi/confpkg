@@ -1,0 +1,9 @@
+#!/bin/bash
+
+pkg_post_install() {
+    # Slackware
+    # Put bash-completion file in system directory:
+    chmod 644 "$Etc2"/bash_completion.d/*.sh
+    pkg_mv_ff "$Etc2"/bash_completion.d/*.sh "$ShareDir2"/bash-completion/completions/dbus
+    find "$Etc2" -depth -type d -empty -delete
+}
