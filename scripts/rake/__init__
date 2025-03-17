@@ -1,0 +1,4 @@
+#!/bin/bash
+
+Make=(rake)
+CleanOpts=("clean:dist")
