@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PkgHome="https://github.com/davatorium/rofi"
+
 pkg_pre_configure() {
     #[submodule "libgwater"]
     #	path = subprojects/libgwater
