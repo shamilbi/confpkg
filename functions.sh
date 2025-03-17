@@ -744,4 +744,5 @@ pkg_read2var() {
     # ...
     # EOF
     read -r -d '' "$1"
+    :
 }
