@@ -1,0 +1,9 @@
+#!/bin/bash
+
+PkgHome="https://github.com/pwsafe/pwsafe"
+
+# REQ: xerces-c
+
+ConfigureOpts+=(
+    -DNO_GTEST=ON
+)
