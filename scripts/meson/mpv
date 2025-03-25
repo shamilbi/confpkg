@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# REQ: libplacebo
+
+ConfigureOpts+=(
+    # Slackware
+    -Dmanpage-build=enabled
+    -Dlibmpv=true # true, libmpv library
+    -Dcdda=enabled # auto, cdda support (libcdio)
+    -Ddvdnav=enabled # auto, dvdnav support
+    -Ddvbin=enabled # auto, DVB input module
+    -Dcplugins=enabled # auto, C plugins
+    -Diconv=enabled # auto, iconv
+    -Dlibarchive=enabled # auto, libarchive wrapper for reading zip files and more
+    -Dlibbluray=enabled # auto, Bluray support
+    -Dsdl2=enabled # disabled, SDL2
+    #-Dgl-x11=enabled # disabled, OpenGL X11/GLX (deprecated/legacy)
+    -Dsdl2-gamepad=enabled # auto, SDL2 gamepad input
+    #-Dpulse=enabled # auto, PulseAudio audio output
+    -Dpipewire=enabled # auto, PipeWire audio output
+    -Dsdl2-audio=enabled # auto, SDL2 audio output
+    -Dopenal=enabled # disabled, OpenAL audio output
+    -Dlua=luajit
+        # ['lua', 'lua52', 'lua5.2', 'lua-5.2', 'luajit', 'lua51', 'lua5.1', 'lua-5.1',
+        # 'auto', 'enabled', 'disabled']
+        # auto, Lua
+    -Djavascript=enabled # auto, Javascript (MuJS backend)
+)
+[[ ! $PULSE ]] && ConfigureOpts+=(-Dpulse=disabled)
+
+pkg_post_install() {
+    # Slackware
+    # Install all sample config files:
+    pkg_install_mfd 644 etc/*.conf "$Etc2"/mpv
+}
+pkg_install_doc() {
+    # Slackware
+    # Add a documentation directory:
+    pkg_install_mfd 644 Copyright* LICENSE* README* RELEASE_NOTES* \
+        DOCS/*.{md,rst,txt} "$DocDir2"
+}
