@@ -1,6 +1,13 @@
 #!/bin/bash
 
+PkgHome=(
+    "https://sillycycle.com/xlock/?C=M;O=D"
+    "https://www.jwz.org/xscreensaver/versus-xlock.html"
+        # XScreenSaver is superior to XLock/XLockmore
+)
+
 ConfigureOpts+=(
+    # Slackware
     --without-dtsaver
     --without-ttf
     --without-rplay
@@ -9,15 +16,42 @@ ConfigureOpts+=(
     --without-motif
     --without-esound
     --without-gtk # disable GTK (no xglock build)
+    --enable-appdefaultdir="$Etc"/X11/app-defaults
+
     #--without-gtk2 # disable GTK2 (no xglock build)
 )
 
-pkg_post_install() {
+# Slackware
+if [[ $PAM ]]; then
+    ConfigureOpts+=(--enable-pam)
+    ProtectFiles=(/etc/pam.d/xlock)
+fi
+
+pkg_pre_configure() {
+    # Slackware
+    pkg_patch_f3 xlockmore.bitmap.diff.gz 1 || return 1
+}
+
+pkg_install() {
+    # Slackware
     (
         cd xlock || exit 1
-        cat XLock.ad >"$Etc2"/X11/app-defaults/XLock
-        #cat xlock > $PKG/usr/bin/xlock
-        chown root.shadow "$Prefix2/bin/xlock"
-        chmod 2751 "$Prefix2/bin/xlock"
+
+        pkg_install_mff 644 XLock.ad "$Etc2"/X11/app-defaults/XLock
+
+        pkg_install_mfd 2751 xlock "$Prefix2"/bin
+        chown root.shadow "$Prefix2"/bin/xlock
+
+        pkg_install_mfd 644 xlock.man "$ManDir2"/man1/xlock.1
     )
+    pkg_install_mfd 644 "$SupportDir"/{l-bob,s-bob,l-linux}.xbm "$IncludeDir2"/X11/bitmaps
+    if [[ $PAM ]]; then
+        mkdir -p $PKG/etc/pam.d
+        pkg_install_mff 644 "$SupportDir"/xlock.pam "$Etc2"/pam.d/xlock
+    fi
+}
+
+pkg_install_doc() {
+    # Slackware
+    pkg_install_mfd 644 README docs/* "$SupportDir"/l-bob.README "$DocDir2"
 }
