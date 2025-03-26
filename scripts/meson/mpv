@@ -33,9 +33,31 @@ pkg_post_install() {
     # Install all sample config files:
     pkg_install_mfd 644 etc/*.conf "$Etc2"/mpv
 }
+
 pkg_install_doc() {
     # Slackware
     # Add a documentation directory:
     pkg_install_mfd 644 Copyright* LICENSE* README* RELEASE_NOTES* \
         DOCS/*.{md,rst,txt} "$DocDir2"
 }
+
+pkg_read2var pkg_post_installpkg <<EOF
+pkg_post_installpkg() {
+    local exe dir
+
+    # Slackware
+    exe=/usr/bin/update-desktop-database
+    if [[ -x \$exe ]]; then
+        "\$exe" -q usr/share/applications &>/dev/null
+    fi
+
+    dir=usr/share/icons/hicolor
+    if [[ -e \$dir/icon-theme.cache ]]; then
+        exe=/usr/bin/gtk-update-icon-cache
+        if [[ -x \$exe ]]; then
+            "\$exe" -f "\$dir" &>/dev/null
+        fi
+    fi
+}
+pkg_post_installpkg
+EOF
