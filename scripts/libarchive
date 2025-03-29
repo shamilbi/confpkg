@@ -1,0 +1,25 @@
+#!/bin/bash
+
+PkgHome="https://github.com/libarchive/libarchive/tags"
+
+ConfigureOpts+=(
+    --without-iconv # Don't try to link against iconv
+)
+
+if [[ ! $(command -v lzma) ]]; then
+    ConfigureOpts+=(--without-lzma)
+fi
+
+pkg_pre_configure() {
+    # Slackware
+    # Revert patch that causes regressions:
+    pkg_patch_f3 eddb9fcf93974f1ecca14fcfa4f67992f25bb790.patch 1 -R || return 1
+
+    pkg_autoreconf
+}
+
+#pkg_post_install() {
+#    # Slackware
+#    # Don't list iconv in libarchive.pc:
+#    sed -i "s/iconv //" "$LibDir2"/pkgconfig/libarchive.pc
+#}
