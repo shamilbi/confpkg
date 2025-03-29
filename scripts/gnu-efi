@@ -1,0 +1,24 @@
+#!/bin/bash
+
+PkgHome="https://github.com/ncroxon/gnu-efi/tags"
+
+MakeEnv=(
+    # Slackware
+    #CPPFLAGS="$CFLAGS"
+    LIBDIR="$LibDir"
+
+    PREFIX="$Prefix"
+        # Slackware
+        # sed -i "s,/usr/local,/usr,g" Make.defaults
+)
+InstallEnv+=(
+    INSTALLROOT="$DestDir"
+    "${MakeEnv[@]}"
+)
+CleanOpts=(clean)
+
+pkg_post_install() {
+    # Slackware
+    # Fix install locations:
+    mv "$LibDir2"/{*.lds,crt0*.o} "$LibDir2"/gnuefi/
+}
