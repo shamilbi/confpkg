@@ -1,0 +1,15 @@
+#!/bin/bash
+
+PkgHome="https://yingtongli.me/git/gimp-xsanecli"
+
+unset pkg_configure pkg_make
+
+pkg_install() {
+    local dir
+
+    # Slackware
+    # Add a scanning plugin:
+    dir=$LibDir2/gimp/3.0/plug-ins/xsanecli
+    pkg_install_mfd 755 *.py "$dir"
+    pkg_install_mfd 644 R* "$dir"
+}
