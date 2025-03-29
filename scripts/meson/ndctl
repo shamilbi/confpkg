@@ -1,0 +1,21 @@
+#!/bin/bash
+
+PkgHome="https://github.com/pmem/ndctl"
+
+ConfigureOpts+=(
+    # Slackware
+    -Dsystemd=disabled
+    -Dlibtracefs=enabled
+
+    #--without-bash
+    #-Ddocs=disabled
+    #-Dlibtracefs=disabled
+    -Dmodprobedatadir=/lib/modprobe.d
+)
+
+pkg_post_install() {
+    (
+        cd "$ShareDir2"/bash-completion/completions || exit 1
+        ls -d ndctl | pkg_ln_equals
+    )
+}
