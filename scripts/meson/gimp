@@ -1,0 +1,12 @@
+#!/bin/bash
+
+PkgHome="https://download.gimp.org/gimp/?C=M&O=D"
+
+ConfigureOpts+=(
+    # Slackware
+    --localstatedir=/var/lib
+    -Dlua=true
+    -Dgi-docgen=disabled
+    -Dcheck-update=no
+    -Dheadless-tests=disabled
+)
