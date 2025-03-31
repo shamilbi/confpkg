@@ -1,0 +1,67 @@
+#!/bin/bash
+
+PkgHome="https://github.com/ImageMagick/ImageMagick"
+
+# REQ BY: zbar
+
+# /usr/doc/ImageMagick-7
+DocDir=$Prefix/doc/$Name-${VersionArr[0]}
+DocDir2=$DestDir/$DocDir
+pkg_configure_del --docdir
+
+ConfigureOpts+=(
+    # Slackware
+    --program-prefix=
+    #--with-x
+        # --with-x or not --with-x, that is the question.  It seems many other
+        # distributions don't compile with X support, but it's been traditional
+        # here.  I am moving the prefix to /usr (instead of /usr/X11R6) though,
+        # because many X-linked things are put into /usr now (like GNOME), and
+        # I've heard a few reports of compile failures when this isn't in /usr.
+        # Everyone else does it -- time to follow the path of least resistance.
+    --with-frozenpaths=no # freeze delegate paths
+    --with-modules # enable building dynamically loadable modules
+    --enable-opencl
+    --enable-hdri # High Dynamic Range Imagery
+        # accurately represent the wide range of intensity levels found in real scenes
+    --with-fftw
+    --with-gcc-arch="$Arch"
+    --with-perl
+    --with-perl-options="INSTALLDIRS=vendor INSTALL_BASE="
+    --with-rsvg
+    --with-security-policy=limited # open|limited|secure|websafe security policy variant to enforce, [default=open]
+        # Default security policy to install as policy.xml:
+        # POLICY=${POLICY:-limited}
+
+    # non Slackware
+    --docdir="$DocDir"
+    --without-zip # libzip zip.h error
+    --without-x
+)
+MakeEnv=(
+    DOCUMENTATION_PATH="$DocDir"
+)
+InstallEnv+=("${MakeEnv[@]}")
+
+pkg_post_install() {
+    # Slackware
+    # Provide all the security policy XML files as examples:
+    pkg_install_mfd 644 config/policy-*.xml "$Etc2"/ImageMagick-"${VersionArr[0]}"
+    # Nothing but a perl upgrade should replace this (and maybe not even that)
+    find "$DestDir" -name perllocal.pod -delete
+    # Remove rpaths:
+    local f1
+    while IFS= read -r f1; do
+        [[ "$(patchelf --print-rpath "$f1")" ]] &&
+            patchelf --remove-rpath "$f1"
+    done < <(find "$LibDir2" -type f -name '*.so*')
+}
+
+pkg_del_la() {
+    # Slackware
+    # .la files in /usr/lib${LIBDIRSUFFIX}/ should be removed.
+    # Other .la files should be left alone, as ImageMagick uses them internally
+    # to locate modules.
+    rm -f "$LibDir2"/*.la
+    :
+}
