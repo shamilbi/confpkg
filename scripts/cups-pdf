@@ -1,0 +1,31 @@
+#!/bin/bash
+
+PkgHome="https://www.cups-pdf.de/"
+
+SrcDir=$OrigSrcDir/src
+
+unset pkg_configure
+
+pkg_make() {
+    # Modify the file cups-pdf.h to set the location of the configuration file
+
+    # Compile cups-pdf.c in the same directory as cups-pdf.h is located
+    # and move the binary to CUPS' backend directory (/usr/lib/cups/backend/cups-pdf)
+    # gcc -O9 -s cups-pdf.c -o /usr/lib/cups/backend/cups-pdf -lcups
+    gcc -O9 -s cups-pdf.c -o cups-pdf -lcups
+}
+
+pkg_install() {
+    pkg_install_mfd 755 cups-pdf "$LibDir2"/cups/backend
+    # Copy the file cups-pdf.conf to /etc/cups/cups-pdf.conf (or whatever you set above in cups-pdf.h)
+    # and modify it to meet you requirements.
+    # All options are commented and the defaults should work fine on most systems
+    pkg_install_mfd 644 "$OrigSrcDir"/extra/cups-pdf.conf "$Etc2"/cups
+    # Copy the file CUPS-PDF_opt.ppd to /usr/share/cups/model/Generic/CUPS-PDF_opt.ppd
+    # [ if you do not wish to use option setting via PPD you can use CUPS-PDF_noopt.ppd instead ]
+    pkg_install_mfd 644 "$OrigSrcDir"/extra/*.ppd "$ShareDir2"/cups/model/Generic
+}
+
+pkg_install_doc() {
+    pkg_install_mfd 644 "$OrigSrcDir"/{C*,R*} "$DocDir2"
+}
