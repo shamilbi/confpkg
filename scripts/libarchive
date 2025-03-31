@@ -11,9 +11,11 @@ if [[ ! $(command -v lzma) ]]; then
 fi
 
 pkg_pre_configure() {
-    # Slackware
-    # Revert patch that causes regressions:
-    pkg_patch_f3 eddb9fcf93974f1ecca14fcfa4f67992f25bb790.patch 1 -R || return 1
+    if (($(pkg_cmp_versions "$Version" "3.7.9") < 0)); then
+        # Slackware
+        # Revert patch that causes regressions:
+        pkg_patch_f3 eddb9fcf93974f1ecca14fcfa4f67992f25bb790.patch 1 -R || return 1
+    fi
 
     pkg_autoreconf
 }
