@@ -538,12 +538,13 @@ pkg_cp_fd() {
 }
 
 pkg_cp_dd() {
-    # pkg_cp_dd [cp options] dir1 dir2
+    # pkg_cp_dd [cp options] dir1 dir2 [cp options]
     # pkg_cp_dd doc dir2
     # cd dir1 && cp -a . dir2
 
     local dir1=$1
     local dir2=$2
+    shift 2
 
     if [[ ! $dir1 || ! -d $dir1 ]]; then
         pkg_log "dir1 empty or not dir: $dir1"
@@ -559,7 +560,7 @@ pkg_cp_dd() {
     dir2=$(readlink -f "$dir2")
     (
         cd "$dir1" || exit 1
-        cp -a . "$dir2"
+        cp -a . "$@" "$dir2"
     )
 }
 
