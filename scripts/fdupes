@@ -1,0 +1,5 @@
+#!/bin/bash
+
+MakeEnv=("PREFIX=$Prefix")
+InstallEnv+=("${MakeEnv[@]}")
+pkg_check=
