@@ -1,0 +1,16 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    # Slackware
+    -DLATEX_FOUND=NO
+    -DALLOW_IN_SOURCE_BUILD=YES
+
+    -DJAS_ENABLE_DOC=OFF
+)
+
+pkg_post_install() {
+    local dir=$ShareDir2/doc/JasPer
+    if [[ -d $dir ]]; then
+        rm -rf "$dir"
+    fi
+}
