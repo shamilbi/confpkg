@@ -15,6 +15,10 @@ ConfigureOpts=(
     -DCMAKE_INSTALL_LIBDIR="$LibDir"
 )
 
+# Slackware
+# Allow build to use CMake 4.x:
+export CMAKE_POLICY_VERSION_MINIMUM=3.5
+
 check_ccache=1
 
 pkg_configure() {
