@@ -1,0 +1,11 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://www.kernel.org/pub/linux/bluetooth/"
+    "https://www.linuxfromscratch.org/blfs/view/svn/multimedia/sbc.html"
+)
+
+ConfigureOpts+=(
+    # Slackware
+    --disable-tester
+)
