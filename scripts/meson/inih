@@ -1,0 +1,23 @@
+#!/bin/bash
+
+PkgHome="https://github.com/benhoyt/inih"
+
+ConfigureOpts+=(
+    # Slackware
+    -Ddefault_library=shared
+    -Ddistro_install=true
+)
+
+pkg_post_install() {
+    # Slackware
+    # We don't support a /usr partition, but will still at least move the
+    # library out of there since utilities in /sbin use it:
+    #mkdir $PKG/lib${LIBDIRSUFFIX}
+    #( cd $PKG/usr/lib${LIBDIRSUFFIX}
+    #  for file in lib*.so.? ; do
+    #    mv $file ../../lib${LIBDIRSUFFIX}
+    #    ln -sf ../../lib${LIBDIRSUFFIX}/$file .
+    #  done
+    #)
+    ls -d "$LibDir2"/lib*.so.* | pkg_mv_ln "$DestDir/$LibName"
+}
