@@ -1,0 +1,17 @@
+#!/bin/bash
+
+PkgHome="https://gitlab.freedesktop.org/libinput/libinput"
+
+ConfigureOpts+=(
+    # Slackware
+    -Dudev-dir=/lib/udev
+    -Ddocumentation=false
+    -Dtests=false
+
+    #-Dlibwacom=false
+)
+
+pkg_pre_configure() {
+    # Slackware
+    pkg_patch_f3 libinput.less.lag.complaining.diff.gz 1 || return 1
+}
