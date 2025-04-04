@@ -1,20 +1,19 @@
 #!/bin/bash
 
-pkg_set_prefix "/opt/$Name"
+pkg_set_prefix /opt/firefox
 
 unset pkg_make pkg_check
 
 pkg_install() {
-    pkg_cp_fd . "$Prefix2"
+    pkg_cp_dd . "$Prefix2" -l # hard links
 
-    local i dir=$ShareDir2/pixmaps
-    mkdir -p "$dir"
-    for i in icons browser/icons; do
-        if [[ -f $i/mozicon128.png ]]; then
-            ln -sfnr "$Prefix2/$i"/mozicon128.png "$dir"/firefox.png
-            break
-        fi
-    done
+    # /usr/share/pixmaps/firefox.png
+    local icon=browser/chrome/icons/default/default128.png
+    if [[ -f $icon ]]; then
+        pkg_install_mff 644 "$icon" "$ShareDir2"/pixmaps/firefox.png
+    fi
 
     ls -d "$Prefix2/firefox" | pkg_ln_d "$DestDir/usr/bin"
+
+    pkg_install_mfd 644 "$SupportDir"/firefox.desktop "$ShareDir2"/applications
 }
