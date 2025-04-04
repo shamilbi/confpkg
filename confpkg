@@ -350,7 +350,7 @@ EOF
 }
 
 unset -v pkg_post_installpkg
-# read -r -d '' pkg_post_installpkg <<EOF
+# pkg_read2var pkg_post_installpkg <<EOF
 # pkg_post_installpkg() {
 # ... # relative paths
 # ... # $ -> \$
@@ -463,6 +463,15 @@ pkg_post_install2_() {
         pkg_doinst_add "$pkg_post_installpkg"
     fi
 
+    # /usr/share/applications/*.desktop
+    if [[ -d $ShareDir2/applications ]]; then
+        pkg_doinst_add <<EOF
+if [[ -x /usr/bin/update-desktop-database ]]; then
+    /usr/bin/update-desktop-database -q usr/share/applications &>/dev/null
+fi
+EOF
+    fi
+
     if [[ ! $DOC && -d $DocDir2 ]]; then
         rm -rf "$DocDir2"
     fi
@@ -476,6 +485,9 @@ pkg_doinst_add() {
     fi
     if (($# > 0)); then
         echo "$1" >>"$file"
+    else
+        # stdin
+        cat >>"$file"
     fi
 }
 
