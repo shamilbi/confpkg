@@ -24,16 +24,3 @@ ConfigureOpts+=(
     --with-completiondir=/etc/bash_completion.d # Directory of Bash completion [detect]
     --enable-openpace=no # enable OpenPACE linkage [detect]
 )
-
-read -r -d '' pkg_post_installpkg <<EOF
-pkg_post_installpkg() {
-    # Slackware
-    local exe=/usr/bin/update-desktop-database
-    if [[ -x \$exe ]]; then
-        "\$exe" -q usr/share/applications &>/dev/null
-    fi
-}
-pkg_post_installpkg
-EOF
-
-:
