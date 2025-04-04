@@ -46,10 +46,10 @@ pkg_post_installpkg() {
     local exe dir
 
     # Slackware
-    exe=/usr/bin/update-desktop-database
-    if [[ -x \$exe ]]; then
-        "\$exe" -q usr/share/applications &>/dev/null
-    fi
+    #exe=/usr/bin/update-desktop-database
+    #if [[ -x \$exe ]]; then
+    #    "\$exe" -q usr/share/applications &>/dev/null
+    #fi
 
     dir=usr/share/icons/hicolor
     if [[ -e \$dir/icon-theme.cache ]]; then
