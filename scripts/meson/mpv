@@ -28,6 +28,11 @@ ConfigureOpts+=(
 )
 [[ ! $PULSE ]] && ConfigureOpts+=(-Dpulse=disabled)
 
+pkg_pre_configure() {
+    # Slackware
+    pkg_patch_f3 fix_wayland_clipboard_high_cpu_usage.patch 1 || return 1
+}
+
 pkg_post_install() {
     # Slackware
     # Install all sample config files:
@@ -44,12 +49,6 @@ pkg_install_doc() {
 pkg_read2var pkg_post_installpkg <<EOF
 pkg_post_installpkg() {
     local exe dir
-
-    # Slackware
-    #exe=/usr/bin/update-desktop-database
-    #if [[ -x \$exe ]]; then
-    #    "\$exe" -q usr/share/applications &>/dev/null
-    #fi
 
     dir=usr/share/icons/hicolor
     if [[ -e \$dir/icon-theme.cache ]]; then
