@@ -1,0 +1,13 @@
+#!/bin/bash
+
+PkgHome="https://github.com/harfbuzz/harfbuzz"
+
+ConfigureOpts+=(
+    # Slackware
+    -Dglib=enabled
+    -Dgobject=enabled
+    -Dgraphite2=enabled
+    -Dintrospection=enabled
+    -Dtests=disabled # enabled, Enable or disable unit tests
+    -Dbenchmark=disabled
+)
