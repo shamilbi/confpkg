@@ -1,0 +1,12 @@
+#!/bin/bash
+
+pkg_make() {
+    if [[ ! -f VERSION ]]; then
+        echo "v$Version" >VERSION
+    fi
+    ./build.bash
+}
+
+pkg_install_doc() {
+    pkg_install_mfd 644 R* L* "$DocDir2"
+}
