@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# REQ: libpcap.a
+
+ConfigureOpts+=(
+    # Slackware
+    -Ddoc-path="$DocDir"
+    -Dglobal-config-path=/etc/lxc
+    -Drootfs-mount-path=/var/lib/rootfs-lxc
+    -Dapparmor=false
+    -Dpam-cgroup=true
+    -Dinit-script=sysvinit  # ['systemd', 'sysvinit', 'upstart']
+
+    -Dexamples=false        # build and install examples
+)
+
+pkg_post_install() {
+    # Slackware
+    # The PAM module gets installed in the wrong location and there's no config
+    # option to put it in the right place, so we'll do it ourselves:
+    ls -d "$LibDir2"/security | pkg_mv_d "$DestDir/$LibName"
+    # Add the template file:
+    pkg_install_mff 755 "$SupportDir"/lxc-slackware.in "$ShareDir2"/lxc/templates/lxc-slackware
+    # Make the default configuration directories and an empty rootfs folder:
+    mkdir -p "$DestDir"/var/lib/lxc "$DestDir"/etc/lxc "$DestDir"/var/lib/rootfs-lxc "$DestDir"/var/lib/misc
+    # Create a sample default configuration file:
+    echo "lxcpath = /var/lib/lxc" > "$DestDir"/etc/lxc/lxc.conf.sample
+    # Install an init script (non executable by default):
+    pkg_install_mfd 644 "$SupportDir"/rc.lxc "$DestDir"/etc/rc.d
+    # Remove init scripts that we do not use:
+    rm -rf "$DestDir"/etc/init.d
+    # --disable-static
+    find "$LibDir2" -type f -name '*.a' -delete
+}
