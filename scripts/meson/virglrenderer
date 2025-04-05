@@ -1,0 +1,7 @@
+#!/bin/bash
+
+PkgHome="https://gitlab.freedesktop.org/virgl/virglrenderer"
+
+ConfigureOpts+=(
+    -Dvideo=true # false, enable support for hardware video acceleration
+)
