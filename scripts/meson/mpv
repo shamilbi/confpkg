@@ -45,18 +45,3 @@ pkg_install_doc() {
     pkg_install_mfd 644 Copyright* LICENSE* README* RELEASE_NOTES* \
         DOCS/*.{md,rst,txt} "$DocDir2"
 }
-
-pkg_read2var pkg_post_installpkg <<EOF
-pkg_post_installpkg() {
-    local exe dir
-
-    dir=usr/share/icons/hicolor
-    if [[ -e \$dir/icon-theme.cache ]]; then
-        exe=/usr/bin/gtk-update-icon-cache
-        if [[ -x \$exe ]]; then
-            "\$exe" -f "\$dir" &>/dev/null
-        fi
-    fi
-}
-pkg_post_installpkg
-EOF
