@@ -472,6 +472,25 @@ fi
 EOF
     fi
 
+    # glib-compile-schemas
+    dir=$(ls -d "$ShareDir2"/glib-*/schemas 2>/dev/null | head -1)
+    if [[ -d $dir ]]; then
+        pkg_doinst_add <<EOF
+#chroot . /usr/bin/glib-compile-schemas /usr/share/glib-2.0/schemas/ &>/dev/null
+chroot . /usr/bin/glib-compile-schemas "${dir:${#DestDir}}"/ &>/dev/null
+EOF
+    fi
+
+    # gtk-update-icon-cache usr/share/icons/*
+    while IFS= read -r dir; do
+        dir=${dir: ${#DestDir}+1} # /usr/... -> usr/...
+        pkg_doinst_add <<EOF
+if [[ -e "$dir"/icon-theme.cache ]]; then
+    /usr/bin/gtk-update-icon-cache -qft "$dir" &>/dev/null
+fi
+EOF
+    done < <(find "$ShareDir2"/icons -mindepth 1 -maxdepth 1 -type d 2>/dev/null)
+
     if [[ ! $DOC && -d $DocDir2 ]]; then
         rm -rf "$DocDir2"
     fi
