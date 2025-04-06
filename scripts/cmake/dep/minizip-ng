@@ -1,0 +1,8 @@
+#!/bin/bash
+
+PkgHome="https://github.com/zlib-ng/minizip-ng"
+
+ConfigureOpts+=(
+    #"-DCMAKE_INSTALL_INCLUDEDIR=$IncludeDir/$Name"
+    -DCMAKE_INSTALL_INCLUDEDIR="$IncludeDir" # /usr/include/minizip
+)
