@@ -1,0 +1,19 @@
+#!/bin/bash
+
+PkgHome="https://github.com/protobuf-c/protobuf-c"
+
+pkg_pre_configure() {
+    if (($(pkg_cmp_versions "$Version" "1.5.1") < 0)); then
+        # v1.5.0: protobuf<28
+        pkg_patch_f3 protobuf-c-1.5.0-consolidated_fixes-1.patch 1 || return 1
+    fi
+
+    # disable tests
+    # Makefile.am
+    # if CROSS_COMPILING -> if !CROSS_COMPILING
+    local f1=Makefile.am
+    if pkg_create_orig "$f1"; then
+        sed -i -e 's,^if CROSS_COMPILING$,if !CROSS_COMPILING,' "$f1"
+    fi
+    pkg_autoreconf
+}
