@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# REQ: python-pillow, pygobject, tpm2-tss, libsmbios
+# REQ: python-pillow, pygobject, tpm2-tss, libsmbios, protobuf-c (protobuf-gen-c)
 # REQ: kernel (msr, platform-integrity, EFIVAR_FS)
 # v2.0.6: pango<1.56.2
 # https://wiki.archlinux.org/index.php/Unified_Extensible_Firmware_Interface
