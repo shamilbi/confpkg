@@ -1,0 +1,5 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    -DABSL_USE_EXTERNAL_GOOGLETEST=ON
+)
