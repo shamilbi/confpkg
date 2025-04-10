@@ -55,8 +55,8 @@ InfoDir=/usr/info
 DocDir0=/usr/doc
 
 Python=python3
-#BuildForPython=(python3.11 python3.12)
-BuildForPython=(python3)
+#BuildForPython=(python3)
+BuildForPython=(python3.12 python3.13)
 
 _find_utils() {
     local i
