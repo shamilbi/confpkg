@@ -1,0 +1,8 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    --enable-unicode
+    --enable-cgroup
+    --enable-taskstats
+    --enable-delayacct
+)
