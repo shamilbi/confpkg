@@ -1,0 +1,6 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    # Slackware
+    --disable-tests
+)
