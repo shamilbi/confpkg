@@ -1,0 +1,15 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    --bindir=/bin
+)
+
+pkg_check=1
+
+pkg_post_install() {
+    # Slackware
+    # The ncompress package already has this:
+    rm -f "$DestDir"/bin/uncompress
+    # ln -sfnr /bin/* /usr/bin/
+    ls -d "$DestDir"/bin/* | pkg_ln_d "$Prefix2/bin"
+}
