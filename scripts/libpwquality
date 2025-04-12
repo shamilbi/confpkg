@@ -1,0 +1,16 @@
+#!/bin/bash
+
+PkgHome="https://github.com/libpwquality/libpwquality"
+
+BuildSteps=("${BuildForPython[@]}")
+[[ $BuildStep ]] && pkg_set_python "$BuildStep"
+
+ConfigureOpts+=(
+    # Slackware
+    --with-python-binary="$Python"
+    --with-securedir="/$LibName/security"
+)
+
+pkg_post_install() {
+    pkg_reinstall_python python
+}
