@@ -1,0 +1,23 @@
+#!/bin/bash
+
+PkgHome="https://git.libssh.org/projects/libssh.git/"
+
+ConfigureOpts+=(
+    # Slackware
+    #-DWITH_GCRYPT=ON # Compile against libgcrypt (deprecated), OFF
+        # /usr/include/gpg-error.h:1727:33: error: unknown type name 'estream_t'
+    -DWITH_SSH1=ON # v0.11.1: not found
+    -DWITH_PCAP=ON # Compile with Pcap generation support, ON
+    -DWITH_SFTP=ON # Build with SFTP support, ON
+    -DWITH_SERVER=ON # Build with SSH server support, ON
+    -DWITH_STATIC_LIB=OFF # v0.11.1: not found
+)
+# WITH_BLOWFISH_CIPHER "Compile with blowfish support" OFF
+# WITH_PKCS11_URI "Build with PKCS#11 URI support" OFF
+# WITH_PKCS11_PROVIDER "Use the PKCS#11 provider for accessing pkcs11 objects" OFF
+# WITH_EXAMPLES "Build examples", ON
+# WITH_NACL "Build with libnacl (curve25519)", ON
+# WITH_SYMBOL_VERSIONING "Build with symbol versioning", ON
+# WITH_EXEC "Enable libssh to execute arbitrary commands from configuration files or options (match exec, proxy commands and OpenSSH-based proxy-jumps).", ON
+
+pkg_check=
