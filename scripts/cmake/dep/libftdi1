@@ -1,0 +1,34 @@
+#!/bin/bash
+
+PkgHome="https://www.intra2net.com/en/developer/libftdi/"
+
+BuildSteps=("${BuildForPython[@]}")
+[[ $BuildStep ]] && pkg_set_python "$BuildStep"
+
+ConfigureOpts+=(
+    -DDOCUMENTATION=OFF
+    -DPYTHON_BINDINGS=ON
+    -DPythonInterp_FIND_VERSION="$PythonV12"
+    -DPythonInterp_FIND_VERSION_COUNT=2
+    -DPythonInterp_FIND_VERSION_MAJOR="$PythonV1"
+    -DPythonInterp_FIND_VERSION_MINOR="$PythonV2"
+    -DFTDIPP=ON
+)
+
+pkg_pre_configure() {
+    # python3.13 error: distutils
+    # python/CMakeLists.txt
+    # execute_process (
+    #   COMMAND ${PYTHON_EXECUTABLE}
+    #   -c "from distutils import sysconfig; print( sysconfig.get_python_lib( plat_specific=True, prefix='${CMAKE_INSTALL_PREFIX}' ) )"
+    local f1=$OrigSrcDir/python/CMakeLists.txt
+    local s1="from distutils import sysconfig.*\""
+    local s2="import sysconfig as sc; print(sc.get_paths()['platlib'])\""
+    if pkg_create_orig "$f1"; then
+        sed -i -e 's|'"$s1"'|'"$s2"'|' "$f1"
+    fi
+}
+
+pkg_post_install() {
+    pkg_python_compileall "$LibDir2/python$PythonV12"
+}
