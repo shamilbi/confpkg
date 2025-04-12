@@ -1,0 +1,23 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    --bindir=/bin
+)
+pkg_check=1
+
+pkg_post_install() {
+    # Slackware
+    # Replace the fgrep/egrep scripts with less annoying versions:
+    # egrep, fgrep
+    cat >"$DestDir"/bin/egrep <<END
+#!/bin/sh
+exec grep -E "\$@"
+END
+    cat >"$DestDir"/bin/fgrep <<END
+#!/bin/sh
+exec grep -F "\$@"
+END
+    chmod 755 "$DestDir"/bin/{f,e}grep
+    # Make symlinks in /usr/bin:
+    ls -d "$DestDir"/bin/* | pkg_ln_d "$Prefix2"/bin
+}
