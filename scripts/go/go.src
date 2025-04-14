@@ -64,19 +64,16 @@ pkg_install() {
     # remove binary bootstrap (if it exists):
     #rm -rf $PKG/usr/lib$LIBDIRSUFFIX/go-bootstrap
     # Create the profile scripts for setting PATH and env variables:
-    mkdir -p "$Etc2"/profile.d
-    cat >"$Etc2"/profile.d/go.csh <<EOF
+    pkg_install_mff 0755 "$Etc2"/profile.d/go.csh <<EOF
 #!/bin/csh
 setenv GOROOT ${GoDir}
 #setenv PATH \${GOROOT}/bin:\${PATH}
 EOF
-    cat >"$Etc2"/profile.d/go.sh <<EOF
+    pkg_install_mff 0755 "$Etc2"/profile.d/go.sh <<EOF
 #!/bin/sh
 export GOROOT="${GoDir}"
 #export PATH="\${GOROOT}/bin:\${PATH}"
 EOF
-    chmod 0755 "$Etc2"/profile.d/go.csh
-    chmod 0755 "$Etc2"/profile.d/go.sh
 }
 
 pkg_install_doc() {
