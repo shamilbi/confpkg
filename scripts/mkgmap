@@ -8,7 +8,7 @@ pkg_install() {
     local destdir=$DestDir/opt/$Name
     pkg_cp_fd . "$destdir" || return 1
 
-    cat >"$destdir/$Name.sh" <<END
+    pkg_install_mff 755 "$destdir/$Name.sh" <<EOF
 #!/bin/bash
 
 dir=\$(dirname "\$(realpath "\$0")")
@@ -18,8 +18,6 @@ done
 export CLASSPATH
 
 java -jar "\$dir/$Name.jar" "\$@"
-END
-    chmod 755 "$destdir/$Name.sh"
-    #ln -sfnr "$destdir/$Name.sh" "$(mk_dir "$Prefix2/bin")/$Name"
+EOF
     ls -d "$destdir/$Name.sh" | pkg_ln_ff "$Prefix2/bin/$Name"
 }
