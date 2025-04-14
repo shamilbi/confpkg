@@ -27,6 +27,7 @@ ConfigureOpts+=(
     -Djavascript=enabled # auto, Javascript (MuJS backend)
 )
 [[ ! $PULSE ]] && ConfigureOpts+=(-Dpulse=disabled)
+[[ ! $AALIB ]] && ConfigureOpts+=(-Dcaca=disabled) # auto, CACA
 
 pkg_pre_configure() {
     # Slackware
