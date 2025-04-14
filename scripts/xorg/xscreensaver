@@ -57,12 +57,10 @@ pkg_post_install() {
         # No special perms needed with PAM:
         #chmod 755 $PKG/usr/bin/xscreensaver
 
-        #mkdir -p $PKG/etc/pam.d
-        #cat $CWD/xscreensaver.pam > $PKG/etc/pam.d/xscreensaver.new
-        cat >"$Etc2/pam.d/$Name" <<END
+        pkg_install_mff 644 "$Etc2/pam.d/$Name" <<EOF
 #%PAM-1.0
 
   auth       include      system-auth
-END
+EOF
     fi
 }
