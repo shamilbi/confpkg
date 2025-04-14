@@ -334,9 +334,8 @@ pkg_declare_arr_() {
 pkg_install_daemon_rc_() {
     if [[ $Daemon ]]; then
         local file=$Etc2/rc.d/rc.$(basename "$Daemon")
-        mkdir -p "$(dirname "$file")"
         # rc.chronyd
-        cat >"$file" <<EOF
+        pkg_install_mff 644 "$file" <<EOF
 #!/bin/bash
 
 $(pkg_declare_var_ daemon_ "$Daemon")
