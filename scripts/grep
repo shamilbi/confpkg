@@ -9,15 +9,14 @@ pkg_post_install() {
     # Slackware
     # Replace the fgrep/egrep scripts with less annoying versions:
     # egrep, fgrep
-    cat >"$DestDir"/bin/egrep <<END
+    pkg_install_mff 755 "$DestDir"/bin/egrep <<EOF
 #!/bin/sh
 exec grep -E "\$@"
-END
-    cat >"$DestDir"/bin/fgrep <<END
+EOF
+    pkg_install_mff 755 "$DestDir"/bin/fgrep <<EOF
 #!/bin/sh
 exec grep -F "\$@"
-END
-    chmod 755 "$DestDir"/bin/{f,e}grep
+EOF
     # Make symlinks in /usr/bin:
     ls -d "$DestDir"/bin/* | pkg_ln_d "$Prefix2"/bin
 }
