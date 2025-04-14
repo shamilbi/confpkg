@@ -4,5 +4,9 @@ ConfigureOpts+=(
     -Dshout2=disabled
 )
 [[ ! $PULSE ]] && ConfigureOpts+=(-Dpulse=disabled)
-[[ ! $AALIB ]] && ConfigureOpts+=(-Daalib=disabled) # aalib text console video sink plugin
+[[ ! $AALIB ]] &&
+    ConfigureOpts+=(
+        -Daalib=disabled # auto, aalib text console video sink plugin
+        -Dlibcaca=disabled # auto, libcaca text console video sink plugin
+    )
 :
