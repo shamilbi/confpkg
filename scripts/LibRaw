@@ -1,0 +1,12 @@
+#!/bin/bash
+
+PkgHome="https://www.libraw.org/"
+
+ConfigureOpts+=(
+    # Slackware
+    --enable-jasper
+    --enable-lcms
+
+    --enable-jpeg
+    --disable-examples
+)
