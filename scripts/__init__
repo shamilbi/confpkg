@@ -280,6 +280,13 @@ pkg_python_install() {
             for i in "${PythonInstallLibs0[@]}"; do
                 "${pipv_install[@]}" -I "$i" || exit 1 # force reinstall
             done
+
+            # install links - workaround re-installing existing libs
+            for i in "${PythonInstallLinks[@]}"; do
+                while IFS= read -r j; do
+                    ln -sfn "$j" "$PythonVenvDir/lib/python$PythonV12/site-packages"/
+                done < <(find "$PythonSitePackagesDir" -mindepth 1 -maxdepth 1 -name "$i")
+            done
         ) || return 1
 
         # save lib before install
