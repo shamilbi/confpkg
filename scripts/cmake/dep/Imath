@@ -1,0 +1,9 @@
+#!/bin/bash
+
+BuildSteps=("${BuildForPython[@]}")
+[[ $BuildStep ]] && pkg_set_python "$BuildStep"
+
+ConfigureOpts+=(
+    -DPYTHON=ON
+    -DPython3_EXECUTABLE="$Python"
+)
