@@ -1,0 +1,7 @@
+#!/bin/bash
+
+PkgHome="https://github.com/HDFGroup/hdf5"
+
+ConfigureOpts+=(
+    --enable-cxx
+)
