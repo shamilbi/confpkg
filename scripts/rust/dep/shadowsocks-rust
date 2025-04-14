@@ -35,8 +35,7 @@ pkg_post_install() {
     # example conf
     local d=${DestDir}${DaemonConfDir}
     mkdir -pm 700 "$(dirname "$d")" "$d" || return 1
-    local f=$d/example.json
-    cat >"$f" <<EOF
+    pkg_install_mff 600 "$d"/example.json <<EOF
 {
     "server": "127.0.0.1",
     "password": "xxxxxxxxxxxx",
@@ -48,5 +47,4 @@ pkg_post_install() {
     "timeout": 300
 }
 EOF
-    chmod 600 "$f"
 }
