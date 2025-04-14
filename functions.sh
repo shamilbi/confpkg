@@ -487,13 +487,23 @@ pkg_install_mfd() {
 pkg_install_mff() {
     # pkg_install_mff <mode> file1 file2
     # pkg_install_mff 644 file1.default /etc/default/file1
+    # pkg_install_mff 644 file2 <<EOF
+    # ...
+    # EOF
     local mode=$1 file1=$2 file2=$3
 
-    if [[ ! $mode || ! $file1 || ! $file2 ]]; then
-        pkg_log "empty arg: $*"
+    [[ ! $mode ]] && { pkg_log "empty mode: $*"; return 1; }
+
+    if (($# < 3)); then
+        # mode (stdin) file2
+        file2=$file1
+        file1=
+        [[ ! $file2 ]] && { pkg_log "empty file2: $* (file1=stdin)"; return 1; }
+    elif [[ ! $file1 || ! -f $file1 ]]; then
+        pkg_log "bad file1: $*"
         return 1
-    elif [[ ! -f $file1 ]]; then
-        pkg_log "file1 not exist: $file1"
+    elif [[ ! $file2 ]]; then
+        pkg_log "empty file2: $*"
         return 1
     fi
 
@@ -504,7 +514,16 @@ pkg_install_mff() {
             return 1
         }
     fi
-    install -pm "$mode" "$file1" "$file2"
+
+    if (($# < 3)); then
+        touch "$file2"
+        chmod "$mode" "$file2"
+        #pkg_log "cat stdin: $*"
+        # cat stdin
+        cat >"$file2"
+    else
+        install -pm "$mode" "$file1" "$file2"
+    fi
 }
 
 pkg_install_md() {
