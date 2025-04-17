@@ -1,0 +1,19 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://aomedia.googlesource.com/aom/"
+    "https://gitlab.com/webmproject/libaom/-/tags"
+)
+
+ConfigureOpts+=(
+    # Slackware
+    -DENABLE_NASM=1
+    -DENABLE_DOCS=0
+    -DENABLE_TESTS=0
+
+    -DCMAKE_INSTALL_LIBDIR="$LibName"
+)
+
+pkg_post_install() {
+    find "$LibDir2" -type f -name '*.a' -delete
+}
