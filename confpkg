@@ -422,7 +422,7 @@ pkg_post_install2_() {
     fi
 
     # /lib/pkgconfig --> /usr/lib
-    for i in lib "$LibName" usr/share; do
+    for i in lib "$LibName"; do
         dir=$DestDir/$i/pkgconfig
         if [[ -d $dir ]]; then
             echo "$dir -> $DestDir/usr/$LibName/ ..."
