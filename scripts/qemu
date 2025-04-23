@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PkgHome="https://github.com/qemu/qemu"
+
 # REQ: libfdt (dtc)
 
 UseBuildDir=1
