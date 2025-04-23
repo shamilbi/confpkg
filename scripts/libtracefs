@@ -1,0 +1,29 @@
+#!/bin/bash
+
+PkgHome="https://git.kernel.org/pub/scm/libs/libtrace/libtracefs.git/"
+
+# Slackware
+MakeEnv=(
+    prefix="$Prefix"
+    mandir="$ManDir"
+    htmldir="$DocDir"/html
+    V=1
+)
+MakeOpts=(all sqlhist)
+InstallEnv+=("${MakeEnv[@]}")
+InstallOpts+=(install_doc)
+
+CleanOpts=(clean)
+
+pkg_post_install() {
+    # Slackware
+    # sqlhist
+    pkg_install_mfd 755 bin/sqlhist "$Prefix2"/bin
+    # The HTML docs just duplicate the man pages, so don't ship them:
+    rm -rf "$DocDir2"/html
+    # Drop static library
+    find "$LibDir2" -name '*.a' -delete
+
+    # /usr/include/tracefs (ndctl)
+    #ln -sfnr "$IncludeDir2/$Name" "$IncludeDir2/tracefs"
+}
