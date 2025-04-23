@@ -213,9 +213,10 @@ pkg_patch_f3() {
         pkg_log "bad filename: $f"
         return 1
     }
-    if [[ ! -f $fn.tmp ]]; then
+    local f2=$OrigSrcDir/$fn.tmp
+    if [[ ! -f $f2 ]]; then
         pkg_patch_f "$SupportDir/$f" "$p" "$OrigSrcDir" --verbose "$@" || return 1
-        touch "$fn.tmp"
+        touch "$f2"
     fi
 }
 
