@@ -12,6 +12,7 @@ PkgsLddDir=$PkgsAdmDir/ldd
 
 X=1
 WAYLAND=1
+KDE=
 ALSA=1
 WEBKIT=
 DOC=1 # /usr/doc
@@ -22,6 +23,8 @@ PIPEWIRE=1
 JACK=
 AALIB=
 POSTGRESQL=
+IEEE1394= # dc1394, dv1394
+RTMP= # librtmp
 
 SELINUX=
 AUDIT=
