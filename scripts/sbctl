@@ -1,0 +1,13 @@
+#!/bin/bash
+
+PkgHome="https://github.com/Foxboron/sbctl"
+
+MakeEnv=(
+    PREFIX="$Prefix"
+    BINDIR="$Prefix"/sbin
+    LIBDIR="$LibDir"
+    DOCDIR="$DocDir"
+    MANDIR="$ManDir"
+)
+InstallEnv+=("${MakeEnv[@]}")
+CleanOpts=(clean)
