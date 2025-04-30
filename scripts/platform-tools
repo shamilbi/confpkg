@@ -1,0 +1,11 @@
+#!/bin/bash
+
+PkgHome="https://developer.android.com/studio/releases/platform-tools"
+
+unset pkg_configure pkg_make
+
+pkg_install() {
+    #local list=(fastboot adb e2fsdroid)
+    local list=(fastboot adb)
+    pkg_install_mfd 755 "${list[@]}" "$Prefix2/bin"
+}
