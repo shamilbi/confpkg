@@ -7,6 +7,7 @@ ConfigureOpts+=(
     #-DENABLE_QT5=ON
     #-DENABLE_XPDF_HEADERS=ON # not used by the project
     #-DENABLE_CMS=lcms2 # not used by the project
+    #-DENABLE_LCMS=ON # Use LCMS for color management, ON
     #-DENABLE_DCTDECODER=libjpeg # Use libjpeg for DCT streams.
         # Default: libjpeg
         # Possible values: libjpeg, unmaintained, none. will use libjpeg if available or fail if not.
@@ -22,7 +23,7 @@ ConfigureOpts+=(
     -DENABLE_UNSTABLE_API_ABI_HEADERS=ON
         # poppler-config.h
         # UTF.h (inkscape)
-    #-DENABLE_ZLIB=ON
+    #-DENABLE_ZLIB=ON # not found
 
     #-DENABLE_SPLASH=ON
     #-DENABLE_BOOST=OFF
