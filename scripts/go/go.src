@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PkgHome="https://go.dev/dl/"
+
 # git clone https://go.googlesource.com/go -b go$Version --depth 1 go-$Version
 
 SrcDir=$OrigSrcDir/src
