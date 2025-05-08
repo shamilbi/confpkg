@@ -1,0 +1,6 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    -Dpcsc=enabled # Build with PC/SC pass-through support
+    -Ddisable_tests=true # false, Disable building tests targets
+)

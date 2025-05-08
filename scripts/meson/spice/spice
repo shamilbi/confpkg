@@ -1,0 +1,23 @@
+#!/bin/bash
+
+PkgHome="https://gitlab.freedesktop.org/spice/spice/-/tags"
+
+ConfigureOpts+=(
+    #--enable-manual=no
+    #--disable-celt051
+    -Dtests=false # true, Build the test binaries
+    #-Dgstreamer="1.0" # ['1.0', '0.10', 'no'], Enable gstreamer support
+    #-Dsmartcard=enabled # Enable smartcard support
+    -Dmanual=false # true, Build SPICE manual (asciidoc error)
+)
+
+pkg_pre_configure() {
+    #[submodule "spice-common"]
+    #	path = subprojects/spice-common
+    #	url = ../spice-common.git
+    local d1=subprojects/spice-common
+    local url="https://gitlab.freedesktop.org/spice/spice-common"
+    if pkg_dir_empty "$d1"; then
+        git clone --depth 1 "$url" "$d1"
+    fi
+}
