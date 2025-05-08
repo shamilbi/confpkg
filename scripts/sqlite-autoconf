@@ -11,6 +11,12 @@ ConfigureOpts+=(
     --enable-fts5
     --enable-rtree
     --enable-session
+    --soname=legacy # SONAME for libsqlite3.so.
+        # "none", or not using this flag, sets no soname.
+        # "legacy" sets it to its historical value of libsqlite3.so.0.
+        # A value matching the glob "libsqlite3.*" sets it to that literal value.
+        # Any other value is assumed to be a suffix which gets applied to "libsqlite3.so.",
+        #   e.g. --soname=9.10 equates to "libsqlite3.so.9.10".
 
     --enable-readline
 )
