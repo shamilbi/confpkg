@@ -1,0 +1,5 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    -DBUILD_STATIC_LIBS=OFF
+)
