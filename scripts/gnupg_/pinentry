@@ -1,0 +1,23 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    # Slackware
+    --enable-pinentry-curses
+    --enable-fallback-curses
+    --enable-pinentry-emacs
+    #--enable-pinentry-gtk2
+    #--enable-pinentry-qt
+    --enable-pinentry-tty
+
+    # non Slackware
+    --disable-pinentry-gtk2 # -> gtk3+
+    --disable-pinentry-qt4 # -> qt5+
+)
+
+if [[ ! $X ]]; then
+    ConfigureOpts+=(
+        --without-x
+        --disable-pinentry-gtk
+        --disable-pinentry-qt
+    )
+fi

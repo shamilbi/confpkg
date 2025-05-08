@@ -1,0 +1,17 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    --enable-m-guard
+    --enable-noexecstack
+)
+pkg_check=
+
+pkg_post_install() {
+    local d=$DestDir/$LibName
+
+    # /usr/lib64/(links) -> /lib64/
+    find "$LibDir2" -maxdepth 1 -type l | pkg_cp_d "$d"
+
+    # /usr/lib64/* -> /lib64/
+    find "$LibDir2" -maxdepth 1 -type f | pkg_mv_ln "$d"
+}

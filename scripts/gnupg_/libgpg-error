@@ -1,0 +1,15 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    # Slackware
+    #--enable-static=no
+    --enable-install-gpg-error-config
+
+    --enable-static
+)
+
+pkg_post_install() {
+    # *.so.* --> /lib
+    #find "$LibDir2" -name '*.so.*' -o -name '*.la' | pkg_mv_ln "$DestDir/$LibName"
+    find "$LibDir2" -name '*.so.*' | pkg_mv_ln "$DestDir/$LibName"
+}

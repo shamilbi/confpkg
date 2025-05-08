@@ -1,0 +1,21 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    # Slackware
+    --enable-languages="cl cpp python qt5 qt6"
+    --disable-gpg-test
+
+    #--enable-languages="cl cpp python qt"
+)
+
+MakeEnv=(
+    PYTHON=python3
+    PYTHONS="${BuildForPython[*]}"
+)
+InstallEnv+=("${MakeEnv[@]}")
+
+pkg_post_install() {
+    pkg_reinstall_python lang/python
+
+    gzip -9 "$DocDir2"/ChangeLog*
+}

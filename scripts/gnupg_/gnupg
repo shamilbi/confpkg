@@ -1,0 +1,39 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    # Slackware
+    --program-prefix=""
+    --program-suffix=""
+    #--enable-gpg-is-gpg2
+)
+
+pkg_pre_install() {
+    # gpg.1 not found
+    local fn f1 f2
+    for fn in gpg.1 gpgv.1; do
+        f1=doc/"$fn"
+        f2=doc/"${fn%.*}${VersionArr[0]}.${fn##*.}" # gpg2.1
+        if [[ ! -f $f1 && -f $f2 ]]; then
+            ln -sfnr "$f2" "$f1"
+        fi
+    done
+}
+
+pkg_post_install() {
+    # Slackware
+    # WTF
+    rm -rf "$ManDir2"/man[a-z] # manh
+    # These names might still be needed:
+    local i iv
+    for i in gpg gpgv; do
+        iv="$i${VersionArr[0]}" # gpg2
+        (
+            cd "$Prefix2/bin" || exit 1
+            if [[ ! -e $i && -e $iv ]]; then
+                ln -sfn "$iv" "$i" # gpg2 -> gpg
+            elif [[ ! -e $iv && -e $i ]]; then
+                ln -sfn "$i" "$iv" # gpg -> gpg2
+            fi
+        )
+    done
+}
