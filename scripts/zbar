@@ -1,0 +1,13 @@
+#!/bin/bash
+
+PkgHome="https://github.com/mchehab/zbar"
+
+ConfigureOpts+=(
+    --with-python=python3
+    --without-java
+    --without-qt
+)
+
+pkg_pre_configure() {
+    pkg_autoreconf
+}
