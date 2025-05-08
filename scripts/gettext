@@ -1,0 +1,11 @@
+#!/bin/bash
+
+unset DOC
+
+ConfigureOpts+=(
+    # Slackware
+    --libexecdir="$LibDir"
+
+    --enable-relocatable
+)
+Make=(make)
