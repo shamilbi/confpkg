@@ -1,0 +1,31 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://botan.randombit.net/"
+    "https://github.com/randombit/botan"
+)
+
+pkg_set_python python3
+
+Configure="./configure.py"
+ConfigureOpts=(
+    # Slackware
+    --prefix="$Prefix"
+    --libdir="$LibName"
+    --mandir="$ManDir"
+    --docdir=doc
+    --disable-static
+    #--with-doxygen
+
+    --includedir=include
+)
+DOC=
+#InstallEnv=("DESTDIR=$DestDir")
+
+pkg_configure() {
+    "$Python" configure.py "${ConfigureOpts[@]}"
+}
+
+pkg_post_install() {
+    pkg_python_compileall
+}
