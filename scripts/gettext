@@ -9,3 +9,12 @@ ConfigureOpts+=(
     --enable-relocatable
 )
 Make=(make)
+
+pkg_post_install() {
+    # Slackware
+    # Upstream is very sure that they meant to move these, but it completely
+    # breaks autoreconf -vif, which is pretty much mandatory when utilizing
+    # the archaic autoconf system. Since they won't fix this, everyone feel
+    # free to continue the exodus to meson. :-)
+    ls -d "$ShareDir2"/gettext/m4/*.m4 | pkg_mv_ln "$ShareDir2"/aclocal
+}
