@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PkgHome="https://github.com/abseil/abseil-cpp/tags"
+
 ConfigureOpts+=(
     -DABSL_USE_EXTERNAL_GOOGLETEST=ON
 )
