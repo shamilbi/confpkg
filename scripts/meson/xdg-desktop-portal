@@ -1,0 +1,25 @@
+#!/bin/bash
+
+PkgHome="https://github.com/flatpak/xdg-desktop-portal/tags"
+
+ConfigureOpts+=(
+    # Slackware
+    -Dflatpak-interfaces=disabled
+    -Dtests=disabled # enabled, Enable the test suite
+    -Dgeoclue=disabled # auto, Enable Geoclue support. Needed for location portal
+    -Dsystemd=disabled # auto, Enable systemd support
+    -Ddocumentation=disabled
+    -Dsandboxed-image-validation=disabled
+    -Dsandboxed-sound-validation=disabled
+
+    #-Dinstalled-tests=false # false, Enable installation of some test cases
+)
+
+if (($(pkg_cmp_versions "$Version" "1.20") < 0)); then
+    # meson.build:1:0: ERROR: Unknown options: "docbook-docs, libportal, pytest"
+    ConfigureOpts+=(
+        -Dlibportal=disabled # auto, Enable libportal support. Needed for tests
+        -Ddocbook-docs=disabled # auto, Build documentation (requires xmlto)
+        -Dpytest=disabled # auto, Enable the pytest-based test suite
+    )
+fi
