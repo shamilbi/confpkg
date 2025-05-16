@@ -1,0 +1,62 @@
+#!/bin/bash
+
+PkgHome="https://www.gnu.org/software/screen/"
+
+ConfigureOpts+=(
+    # Slackware
+    --with-sys-screenrc=/etc/screenrc
+    --with-pty-mode=0620
+    --with-pty-group=5
+    --enable-telnet
+    --disable-socket-dir
+    --enable-use-locale
+    --enable-colors256
+    --enable-rxvt_osc
+)
+
+pkg_pre_configure() {
+    # Slackware
+    # Revert a change to /etc/screenrc introduced in screen-4.3.x that prevents
+    # the console from being properly cleared when detaching from a screen session:
+    pkg_patch_f3 60-revert-screenrc-change.diff.gz 1 || return 1
+    #
+    pkg_patch_f3 screen.texinfo.typofix.diff 1 || return 1
+    # Choose correct options depending on whether PAM is installed:
+    if [[ $PAM ]]; then
+        ConfigureOpts+=(--enable-pam)
+    else
+        ConfigureOpts+=(--disable-pam)
+    fi
+}
+
+pkg_pre_make() {
+    # Slackware
+    # Substitutions:
+    # It appears the change directly below is broken. We'll issue errata for
+    # it if a fix appears, but meanwhile we have a CVE to worry about.
+    # Tought choice.
+    local f1
+    for f1 in etc/etcscreenrc doc/*; do
+        sed -i -e 's|/usr/local/etc/screenrc|/etc/screenrc|' "$f1"
+    done
+    for f1 in doc/*; do
+        sed -i -e 's|/local/etc/screenrc|/etc/screenrc|' "$f1"
+    done
+}
+
+pkg_post_install() {
+    # Slackware
+    # Sorry, pal.  Not around here.
+    # screen-xxx: 4755 -> 0755
+    find "$Prefix2/bin" -type f -name 'screen-*' -exec chmod 0755 {} \;
+    # /etc/screenrc, /etc/skel/.screenrc
+    pkg_install_mff 644 etc/etcscreenrc "$Etc2"/screenrc
+    pkg_install_mff 644 etc/screenrc "$Etc2"/skel/.screenrc
+    # /etc/pam.d/screen
+    if [[ $PAM ]]; then
+        pkg_install_mff 644 "$SupportDir"/screen.pam "$Etc2"/pam.d/screen
+    fi
+
+    rm -f "$DocDir2"/NEWS*
+    :
+}
