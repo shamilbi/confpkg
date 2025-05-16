@@ -1,0 +1,31 @@
+#!/bin/bash
+
+PkgHome="https://github.com/flatpak/flatpak"
+
+# kernel: USER_NS=y
+# REQ: appstream, libostree, snowball (libstemmer)
+
+# expose dir to app
+# flatpak override -u --show
+
+# https://slackbuilds.org/uid_gid.txt
+user=flatpak
+group=flatpak
+userId=372
+groupId=372
+userHome=/dev/null
+userShell=/bin/false
+userComment=
+
+ConfigureOpts+=(
+    -Dtests=false
+    -Dgtkdoc=disabled # build API reference documentation with gtk-doc
+    -Dsystemd=disabled # build with systemd support
+    -Dsystem_bubblewrap="$(command -v bwrap)" # system bwrap executable, or empty string to build subproject
+    -Dsystem_fusermount="$(command -v fusermount3)" # system fusermount executable, or empty string to auto-select based on fuse version
+)
+
+pkg_pre_configure() {
+    pkg_check_group "$group" "$groupId" || return 1
+    pkg_check_user "$user" "$group" "$userId" "$userHome" "$userShell" "$userComment" || return 1
+}
