@@ -398,6 +398,10 @@ pkg_filter_doc() {
             SConstruct | SConscript | Kbuild | Kconfig | Jambase | Jamroot | PKGBUILD | WORKSPACE)
                 continue
                 ;;
+            ChangeLog.pre* | NEWS.pre*)
+                # gimp-3.x
+                continue
+                ;;
             *.html | *.txt | *.pdf | ChangeLog | ChangeLog.*)
                 # ChangeLog.md
                 bad=
