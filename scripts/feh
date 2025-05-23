@@ -1,0 +1,15 @@
+#!/bin/bash
+
+PkgHome="https://feh.finalrewind.org/"
+
+# REQ: imlib2
+
+MakeEnv=(
+    PREFIX="$Prefix"
+)
+InstallEnv+=(
+    "${MakeEnv[@]}"
+    man_dir="$ManDir2"
+    doc_dir="$DocDir2"
+    example_dir="$DocDir2"/examples
+)
