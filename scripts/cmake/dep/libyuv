@@ -1,0 +1,15 @@
+#!/bin/bash
+
+PkgHome="https://chromium.googlesource.com/libyuv/libyuv/"
+
+pkg_pre_configure() {
+    local f1=$OrigSrcDir/CMakeLists.txt
+    if pkg_create_orig "$f1"; then
+        # INSTALL ( TARGETS ${ly_lib_static} DESTINATION lib)
+        #   -> comment
+        sed -i -e 's,^INSTALL.*\${ly_lib_static},#\0,' "$f1"
+        # INSTALL ( TARGETS ${ly_lib_shared} LIBRARY DESTINATION lib ...)
+        #   -> lib64
+        sed -i -re 's,(DESTINATION)[ \t]+\<lib\>,\1 '"$LibName"',' "$f1"
+    fi
+}
