@@ -1,0 +1,9 @@
+#!/bin/bash
+
+PkgHome="https://sourceforge.net/projects/enlightenment/files/imlib2-src/"
+
+ConfigureOpts+=(
+    --enable-progs=no # Build demo programs [default=yes]
+)
+
+[[ $X ]] && ConfigureOpts+=(--with-x) || ConfigureOpts+=(--without-x)
