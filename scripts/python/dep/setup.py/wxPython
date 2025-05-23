@@ -1,0 +1,31 @@
+#!/bin/bash
+
+PkgHome="https://github.com/wxWidgets/Phoenix"
+
+pkg_configure=1
+
+InstallOpts+=("--skip-build")
+
+pkg_pre_configure() {
+    # dox
+    [[ ! $(find bin -type f -name 'doxygen-*' -print -quit) ]] &&
+        "$Python" build.py dox etg sip
+    return 0
+}
+
+pkg_make() {
+    "$Python" build.py build_py --use_syswx
+}
+
+pkg_post_install() {
+    local d=$DocDir2/docs
+    if [[ -d $d ]]; then
+        rm -rf "$d"
+    fi
+}
+
+pkg_distclean() {
+    [[ -d build ]] && rm -rf build
+    find wx -type f -name '*.so' -delete
+    #[[ $Python ]] && "$Python" setup.py "${CleanOpts[@]}"
+}
