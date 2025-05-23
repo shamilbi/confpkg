@@ -1,0 +1,16 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://github.com/groeck/lm-sensors"
+    "https://packages.debian.org/trixie/lm-sensors"
+)
+
+# Slackware
+MakeEnv=(
+    PREFIX="$Prefix"
+    LIBDIR="$LibDir"
+    BUILD_STATIC_LIB=
+)
+MakeOpts=(user)
+InstallEnv+=("${MakeEnv[@]}")
+InstallOpts=(user_install)
