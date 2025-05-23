@@ -1,0 +1,54 @@
+#!/bin/bash
+
+[[ ! $BuildSteps ]] && BuildSteps=("${BuildForPython[@]}")
+[[ $BuildStep ]] && pkg_set_python "$BuildStep" # python3.12
+
+unset -v pkg_configure pkg_check ConfigureOpts MakeOpts
+
+InstallOpts=(
+    install
+    --root="$DestDir"
+    --install-data="$ShareDir"
+)
+CleanOpts=(clean)
+CheckOpts=(test)
+
+pkg_make() {
+    pkg_set_rust_env
+    local cmd=(
+        env "${MakeEnv[@]}"
+        "$Python" setup.py build "${MakeOpts[@]}"
+    )
+    "${cmd[@]}"
+}
+
+pkg_install() {
+    local i
+
+    "$Python" setup.py "${InstallOpts[@]}" || return 1
+
+    # chmod 644 *.egg-info/*
+    while IFS= read -r i; do
+        find "$i" -type f -exec chmod 644 {} \;
+    done < <(find "$DestDir" -type d -name '*.egg-info')
+
+    # docs, demos
+    for i in docs demos; do
+        if [[ -d $i ]]; then
+            if [[ -f $i/index.rst ]]; then
+                mkdir -p "$DocDir2/$i/html"
+                sphinx-build -b html "$i" "$DocDir2/$i/html"
+            else
+                pkg_cp_fd "$i" "$DocDir2"
+            fi
+        fi
+    done
+}
+
+pkg_distclean() {
+    [[ -d build ]] && rm -rf build
+}
+
+pkg_check() {
+    "$Python" setup.py "${CheckOpts[@]}"
+}
