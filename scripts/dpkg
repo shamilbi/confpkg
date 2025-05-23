@@ -1,0 +1,14 @@
+#!/bin/bash
+
+PkgHome="https://codeberg.org/dpkg/dpkg/tags"
+
+pkg_configure_del2 shared static
+unset pkg_check
+
+pkg_install() {
+    local dir=$Prefix2/bin
+    pkg_install_mfd 755 src/{dpkg,dpkg-deb} "$dir" || return 1
+
+    local dir=$ManDir2/man1
+    pkg_install_mfd 755 man/{dpkg,dpkg-deb}.1 "$dir" || return 1
+}
