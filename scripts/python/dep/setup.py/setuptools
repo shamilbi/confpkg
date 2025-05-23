@@ -1,0 +1,8 @@
+#!/bin/bash
+
+pkg_post_install() {
+    # del empty dirs
+    find "$DocDir2" -depth -type d -empty -delete
+    # del *.exe
+    find "$DestDir" -type f -name '*.exe' -delete
+}
