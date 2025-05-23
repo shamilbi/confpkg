@@ -1,0 +1,100 @@
+#!/bin/bash
+
+PkgHome="https://www.python.org/downloads/"
+
+# DEP: < tkinter < tcl < libX11
+# /etc/fstab:   none /dev/shm tmpfs mode=1777 0 0
+    # shared memory semaphores
+
+python3="3.13" # python3 -> python${python3}
+
+ConfigureOpts+=(
+    # Slackware
+    --with-platlibdir="$LibName" # Python library directory name (default is "lib")
+    --enable-ipv6
+    --with-computed-gotos
+    --enable-optimizations
+    --with-dbmliborder=gdbm:ndbm
+    --with-system-expat
+    --with-system-ffi
+    --enable-loadable-sqlite-extensions
+    --without-ensurepip
+    --with-tzpath="$ShareDir/zoneinfo"
+
+    --disable-test-modules
+    --with-static-libpython=no
+)
+
+[[ -L $LibDir/libmpdec.so ]] && ConfigureOpts+=(--with-system-libmpdec)
+
+CheckOpts=(test)
+unset pkg_check DOC
+
+version=${VersionArr[0]}.${VersionArr[1]}
+
+pkg_pre_configure() {
+    # Slackware
+    # Fix python3 path in cgi.py.
+    f="Lib/cgi.py"
+    if pkg_create_orig "$f"; then
+        # python -> python3.12
+        #sed -i '1s|^#.*/usr/local/bin/python|#!/usr/bin/python3|' Lib/cgi.py
+        sed -i '1s|^#.*/usr/local/bin/python|#!/usr/bin/python'"$version"'|' "$f"
+    fi
+}
+
+pkg_post_make() {
+    # Documentation
+    if [[ $DOC && ! -d Documentation && $(command -v sphinx-build) ]]; then
+        sphinx-build -b text Doc Documentation
+    fi
+}
+
+pkg_post_install() {
+    # Slackware
+    # /usr/bin/python
+    # PEP says we can claim this link:
+    ln -sfnr "$Prefix2"/bin/python"$version" "$Prefix2"/bin/python
+    # Make sure we have a non-platform-specific site-packages directory:
+    mkdir -p "$Prefix2"/lib/python"$version"/site-packages
+    # We'll install the python-tools under site-packages.
+    local sitepk2
+    sitepk2=$(find "$LibDir2" -mindepth 2 -maxdepth 2 -type d -name 'site-packages' -print -quit)
+    pkg_cp_dd Tools "$sitepk2" # build, buildbot, freeze, msi, ...
+    # Remove DOS batch/exe files.
+    find "$DestDir" \( -name '*.exe' -o -name '*.bat' \) -delete
+    # Fix permissions on dynamic libraries.
+    find "$DestDir" -type f -perm 555 -exec chmod 755 '{}' \+
+    # Fix possible incorrect permissions.
+    (
+        cd "$DestDir" || exit 1
+        find . -type d -exec chmod 755 "{}" \+
+        find . -perm 640 -exec chmod 644 "{}" \+
+        find . -perm 750 -exec chmod 755 "{}" \+
+    )
+
+
+    if [[ $DOC ]]; then
+        # Demo Misc Documentation
+        pkg_cp_fd Demo Misc Documentation "$DocDir2"
+
+        # Slackware
+        # Tools
+        ln -sfnr "$sitepk2" "$DocDir2/Tools"
+    fi
+
+    # old versions
+    local i
+    if (($(pkg_cmp_versions "$Version" "$python3") == 0)); then
+        # OK
+        :
+    else
+        # remove certain files and links
+        for i in 2to3 idle3 msgfmt.py pydoc3 pygettext.py pynche python3 python3-config; do
+            rm -f "$Prefix2/bin/$i"
+        done
+        find "$ManDir2/man1" -type l -delete
+        find "$LibDir2/pkgconfig" -type l -delete
+        find "$LibDir2" -maxdepth 1 -name libpython3.so -delete
+    fi
+}
