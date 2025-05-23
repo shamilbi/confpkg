@@ -1,0 +1,13 @@
+#!/bin/bash
+
+PkgHome="https://apr.apache.org/download.cgi"
+
+ConfigureOpts+=(
+    # Slackware
+    --with-installbuilddir="$LibDir/$FullName/build-${VersionArr[0]}"
+    --with-devrandom=/dev/urandom
+
+    --includedir="/usr/include/apr-${VersionArr[0]}"
+)
+CheckOpts=(test)
+pkg_check=
