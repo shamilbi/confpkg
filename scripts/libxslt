@@ -1,0 +1,11 @@
+#!/bin/bash
+
+[[ ! $BuildSteps ]] && BuildSteps=("${BuildForPython[@]}")
+if [[ $BuildStep ]]; then
+    pkg_set_python "$BuildStep"
+    ConfigureOpts+=("--with-python=$Python")
+fi
+
+pkg_pre_configure() {
+    pkg_autoreconf
+}
