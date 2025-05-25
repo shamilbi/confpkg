@@ -1,0 +1,16 @@
+#!/bin/bash
+
+MakeEnv=(
+    PREFIX="$Prefix"
+    MANDIR="$ManDir"/man1
+)
+InstallEnv+=(
+    PREFIX="$Prefix2"
+    MANDIR="$ManDir2"/man1
+)
+
+pkg_post_install() {
+    # Slackware
+    # http://www.draisberghof.de/usb_modeswitch/device_reference.txt.gz
+    gzip -dc "$SupportDir"/device_reference.txt.gz >"$DocDir2"/device_reference.txt
+}
