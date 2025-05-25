@@ -1,0 +1,70 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://gitlab.com/sane-project/backends/-/tags"
+)
+
+group=scanner
+groupId=93
+
+group2=lp
+group2Id=7
+
+ConfigureOpts+=(
+    # Slackware
+    --localstatedir=/var/lib
+    --enable-locking
+    --with-lockdir=/var/lock/sane
+    --with-group=scanner
+    --with-usb
+    --without-api-spec
+
+    --without-systemd
+)
+
+pkg_pre_configure() {
+    pkg_check_group "$group" "$groupId" || return 1
+    pkg_check_group "$group2" "$group2Id" || return 1
+
+    local v=.tarball-version
+    [[ ! -f $v ]] && echo "$Version" >"$v"
+
+    # Slackware
+    # GCC 14 "fix":
+    pkg_add_cflags "-Wno-error=implicit-function-declaration"
+    # Put the SANE_CAP_ALWAYS_SETTABLE definition back until
+    # everything else catches up with the API change...
+    # NOTE: "everything" includes the frontends lol
+    pkg_patch_f3 sane-frontends-1.0.14-sane_cap_always_settable.diff.gz 1 || return 1
+}
+
+pkg_post_install() {
+    # Slackware
+    # Add the default udev rules.  Use group "lp" rather than "scanner" to avoid
+    # breaking CUPS access for multifunction printer/scanner devices (possibly
+    # the most common type of scanner these days)
+    #
+    # Use ACTION!="add|change" to avoid skipping these rules if coming from an
+    # initrd where udev was started.
+    local f1=$DestDir/lib/udev/rules.d/80-libsane.rules
+    pkg_install_mff 644 tools/udev/libsane.rules "$f1"
+    sed -i \
+        -e "s/GROUP=\"scanner\"/GROUP=\"lp\"/g" \
+        -e "s/MODE=\"0664\"/MODE=\"0660\"/g" \
+        -e "s/ACTION!=\"add\"/ACTION!=\"add|change\"/g" \
+        "$f1"
+    ## Install the pkgconfig file:
+    #pkg_install_mfd 644 tools/sane-backends.pc "$LibDir2/pkgconfig"
+    # Fix stupid permissions:
+    chmod 755 "$DestDir"/var
+    chmod 1777 "$DestDir"/var/lock
+    chown root:scanner "$DestDir"/var/lock/sane
+    chmod 775 "$DestDir"/var/lock/sane
+    # List additional backends in /etc/sane.d/dll.conf.
+    # I don't think it will hurt anything to do this, even
+    # if these backends turn out not to be available:
+    gzip -dc "$SupportDir"/dll.conf.additions.gz >>"$Etc2"/sane.d/dll.conf
+    # Do not include ancient ChangeLogs:
+    rm -rf "$DocDir2"/ChangeLogs
+    :
+}
