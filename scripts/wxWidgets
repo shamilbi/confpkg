@@ -1,0 +1,81 @@
+#!/bin/bash
+
+PkgHome="https://github.com/wxWidgets/wxWidgets/tags"
+
+UseBuildDir=1
+Configure=$OrigSrcDir/configure
+
+pkg_configure_del2 static
+
+ConfigureOpts+=(
+    --with-gtk=3
+    --enable-unicode
+    --with-opengl
+    --enable-geometry
+    --enable-graphics_ctx
+    --enable-sound
+    --enable-mediactrl
+    --enable-display
+    --enable-optimise
+    --enable-uiactionsim
+    --with-sdl
+    --disable-debugreport
+    --without-libjbig
+)
+
+pkg_pre_configure() {
+    local path url
+
+    # catch
+    # .gitmodules
+    #[submodule "3rdparty/catch"]
+    #    path = 3rdparty/catch
+    #    url = https://github.com/wxWidgets/Catch.git
+    #    branch = wx
+    path=$OrigSrcDir/3rdparty/catch
+    if pkg_dir_empty "$path"; then
+        url="https://github.com/wxWidgets/Catch.git"
+        echo "---------"
+        echo "git clone $url ..."
+        git clone "$url" -b wx "$path" --depth 1 || return 1
+    fi
+
+    # nanosvg
+    # .gitmodules
+    #[submodule "3rdparty/nanosvg"]
+    #    path = 3rdparty/nanosvg
+    #    url = https://github.com/wxWidgets/nanosvg
+    #    branch = wx
+    path=$OrigSrcDir/3rdparty/nanosvg
+    if pkg_dir_empty "$path"; then
+        url="https://github.com/wxWidgets/nanosvg"
+        echo "---------"
+        echo "git clone $url ..."
+        git clone "$url" -b wx "$path" --depth 1 || return 1
+    fi
+}
+
+pkg_make() {
+    local i
+    "${Make[@]}" "$@" || return 1
+    # 2.8.x
+    for i in contrib/src/gizmos contrib/src/stc; do
+        if [[ -d $i ]]; then
+            "${Make[@]}" -C $i "$@" || return 1
+        fi
+    done
+}
+
+pkg_install() {
+    pkg_make "${InstallEnv[@]}" install
+}
+
+pkg_post_install() {
+    (
+        cd "$Prefix2"/bin || exit 1
+        f=$(readlink wx-config)
+        if [[ ! -f $f ]]; then
+            ln -sfnr "$LibDir2/wx/config/$(basename "$f")" wx-config
+        fi
+    )
+}
