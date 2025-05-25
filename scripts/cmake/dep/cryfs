@@ -1,0 +1,29 @@
+#!/bin/bash
+
+PkgHome="https://github.com/cryfs/cryfs/tags"
+
+# REQ: boost, range-v3, spdlog
+
+# modprobe fuse
+# cryfs basedir mntdir
+# cryfs-unmount mntdir
+
+ConfigureOpts+=(
+    # Slackware
+    -DCMAKE_SKIP_RPATH=ON
+    -DBUILD_TESTING=OFF
+    -DBoost_INCLUDE_DIRS="$IncludeDir"/boost
+    -DBoost_USE_STATIC_LIBS=OFF
+    -DCRYFS_UPDATE_CHECKS=OFF
+)
+
+pkg_pre_configure() {
+    # Fix building with Boost 1.88
+    # https://github.com/cryfs/cryfs/pull/494/commits/926822a4e3778dac7362637b80aca584d217c753
+    pkg_patch_f3 926822a4e3778dac7362637b80aca584d217c753.diff 1 || return 1
+}
+
+pkg_post_install() {
+    pkg_install_mfd 755 "$BuildDir"/src/cryfs-cli/*.so "$LibDir2"
+    pkg_install_mfd 755 "$BuildDir"/src/cryfs-unmount/*.so "$LibDir2"
+}
