@@ -1,0 +1,15 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://ftp.gnu.org/gnu/bc/?C=M;O=D"
+    "https://packages.debian.org/bookworm/bc"
+)
+
+ConfigureOpts+=(
+    # Slackware
+    --with-readline
+)
+
+pkg_pre_configure() {
+    pkg_autoreconf
+}
