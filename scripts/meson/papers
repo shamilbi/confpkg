@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# REQ: exempi-2.0
+
+ConfigureOpts+=(
+    -Dtests=false # true, whether to build tests
+    -Ddocumentation=false # true, whether developer documentation reference is requested. Requires gi-docgen
+    -Dnautilus=false # true, whether Nautilus support is requested
+    -Dthumbnailer=false # true, whether Thumbnailer support is requested
+)
