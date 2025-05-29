@@ -20,4 +20,13 @@ pkg_pre_configure() {
     if pkg_dir_empty "$d1"; then
         git clone --depth 1 "$url" "$d1"
     fi
+
+    # meson.build
+    # version : run_command('build-aux/git-version-gen', meson.source_root() + '/.tarball-version', check : true).stdout().strip(),
+    #   /usr/lib64/pkgconfig/spice-server.pc
+    #   Version: UNKNOWN
+    local f1=meson.build
+    if pkg_create_orig "$f1"; then
+        sed -i -re 's/^( *version :) run_command.*,$/\1 '"'$Version'"',/' "$f1"
+    fi
 }
