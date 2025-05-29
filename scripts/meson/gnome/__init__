@@ -1,0 +1,6 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://gitlab.gnome.org/GNOME/$Name/-/tags"
+    "https://download.gnome.org/sources/$Name/?C=M&O=D"
+)
