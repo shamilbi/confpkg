@@ -1,0 +1,41 @@
+#!/bin/bash
+
+pkg_post_install() {
+    # Slackware
+    # Change hard links to symlinks:
+    # x-$version -> x
+    (
+        cd "$Prefix2"/bin || exit 1
+        ls -d *-* | pkg_ln_equals
+    )
+
+    # x-$version.1 -> x.1
+    (
+        cd "$ManDir2"/man1 || exit 1
+        for i in aclocal automake; do
+            ln -sfnr "$i"-* "$i".1
+        done
+    )
+
+    # doinst
+    pkg_read2var pkg_post_installpkg <<EOF2
+pkg_post_installpkg() {
+    # Slackware
+    # Update the /usr/info/dir info-database, so that we will see the new
+    # "automake" item in info root structure, if we type "info".
+    if [[ -x /usr/bin/install-info ]] ; then
+        install-info --info-dir=/usr/info /usr/info/automake.info.gz 2>/dev/null
+    elif grep -F "automake" usr/info/dir 1>/dev/null 2>/dev/null; then
+        GOOD=yes # It seems to be entered in the /usr/info/dir already
+    else # add the info to the dir file directly:
+        cat <<EOF >>usr/info/dir
+
+GNU admin
+* aclocal: (automake)Invoking aclocal.          Generating aclocal.m4
+* automake: (automake).         Making Makefile.in's
+EOF
+    fi
+}
+pkg_post_installpkg
+EOF2
+}
