@@ -1,0 +1,12 @@
+#!/bin/bash
+
+PkgHome="https://github.com/Beep6581/RawTherapee"
+
+# REQ: libiptcdata
+
+ConfigureOpts+=(
+    -DBUILD_SHARED=ON
+    -DLIBDIR="$LibDir"
+    -DBUILD_SHARED_LIBS=ON
+    -DWITH_SYSTEM_LIBRAW=ON # Build using system LibRaw library, OFF
+)
