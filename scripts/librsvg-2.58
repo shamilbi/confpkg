@@ -14,11 +14,3 @@ pkg_pre_configure() {
         pkg_autoreconf
     fi
 }
-
-pkg_read2var pkg_post_installpkg <<EOF
-pkg_post_installpkg() {
-    # Slackware
-    chroot . /usr/bin/update-gdk-pixbuf-loaders &>/dev/null
-}
-pkg_post_installpkg
-EOF
