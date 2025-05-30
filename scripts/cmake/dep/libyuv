@@ -13,3 +13,8 @@ pkg_pre_configure() {
         sed -i -re 's,(DESTINATION)[ \t]+\<lib\>,\1 '"$LibName"',' "$f1"
     fi
 }
+
+pkg_post_install() {
+    # -*.a
+    find "$LibDir2" -type f -name '*.a' -delete
+}
