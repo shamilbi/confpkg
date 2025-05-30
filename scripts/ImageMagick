@@ -3,6 +3,7 @@
 PkgHome="https://github.com/ImageMagick/ImageMagick"
 
 # REQ BY: zbar
+# avif REQ: libheif
 
 # /usr/doc/ImageMagick-7
 DocDir=$Prefix/doc/$Name-${VersionArr[0]}
