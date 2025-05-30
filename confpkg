@@ -490,6 +490,15 @@ fi
 EOF
     done < <(find "$ShareDir2"/icons -mindepth 1 -maxdepth 1 -type d 2>/dev/null)
 
+    # update-gdk-pixbuf-loaders
+    # /usr/lib64/gdk-pixbuf-2.0/2.10.0/loaders/
+    dir=$(ls -d "$LibDir2"/gdk-pixbuf-*/*/loaders 2>/dev/null | head -1)
+    if [[ -d $dir ]]; then
+        pkg_doinst_add <<EOF
+chroot . /usr/bin/update-gdk-pixbuf-loaders &>/dev/null
+EOF
+    fi
+
     if [[ ! $DOC && -d $DocDir2 ]]; then
         rm -rf "$DocDir2"
     fi
