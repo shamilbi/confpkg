@@ -1,0 +1,20 @@
+#!/bin/bash
+
+PkgHome="https://github.com/webmproject/libwebp/tags"
+
+pkg_set_python python3
+
+ConfigureOpts+=(
+    # Slackware
+    --disable-silent-rules
+    --enable-everything
+    --enable-swap-16bit-csp
+
+    #--enable-libwebpmux
+    #--enable-libwebpdemux
+    #--enable-libwebpdecoder
+)
+
+pkg_post_install() {
+    pkg_reinstall_python swig
+}
