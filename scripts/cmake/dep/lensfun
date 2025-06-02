@@ -1,0 +1,16 @@
+#!/bin/bash
+
+PkgHome="https://github.com/lensfun/lensfun"
+
+ConfigureOpts+=(
+    # Slackware
+    -DBUILD_LENSTOOL=ON
+    -DBUILD_FOR_SSE=ON
+    -DBUILD_FOR_SSE2=ON
+    -DBUILD_TESTS=OFF
+    -DINSTALL_HELPER_SCRIPTS=ON
+)
+
+pkg_post_install() {
+    pkg_reinstall_python apps
+}
