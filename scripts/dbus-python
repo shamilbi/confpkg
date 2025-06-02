@@ -1,0 +1,5 @@
+#!/bin/bash
+
+[[ ! $BuildSteps ]] && BuildSteps=("${BuildForPython[@]}")
+[[ $BuildStep ]] && pkg_set_python "$BuildStep"
+:
