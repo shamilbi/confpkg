@@ -1,0 +1,18 @@
+#!/bin/bash
+
+PkgHome="https://mirrors.edge.kernel.org/pub/software/utils/dtc/"
+
+# REQ BY: qemu
+
+ConfigureOpts+=(
+    -Dstatic-build=false # Build static binaries
+        # doesn't work
+    -Dtests=false # true, Build tests
+    #-Dpython=disabled # auto, Build pylibfdt Python library
+        # swig
+)
+
+pkg_post_install() {
+    # del *.a
+    find "$LibDir2" -type f -name '*.a' -delete
+}
