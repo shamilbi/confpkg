@@ -1,0 +1,30 @@
+#!/bin/bash
+
+PkgHome="https://github.com/OpenPrinting/system-config-printer/tags"
+
+pkg_set_python python3
+
+unset ProtectDirs
+
+ConfigureOpts+=(
+    # Slackware
+    --with-udevdir=/lib/udev
+    --with-udev-rules
+    --with-systemdsystemunitdir=no
+    #--program-prefix=
+    #--program-suffix=
+)
+
+MakeEnv=(
+    dbusdir="$ShareDir/dbus-1/system.d"
+)
+InstallEnv+=("${MakeEnv[@]}")
+
+pkg_post_install() {
+    pkg_reinstall_python .
+
+    pkg_python_compileall "$ShareDir2/$Name"
+
+    # /etc/xdg/autostart/* -> *.new
+    find "$Etc2/xdg" -type f ! -name '*.new' -exec mv {} {}.new \;
+}
