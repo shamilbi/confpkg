@@ -1,0 +1,10 @@
+#!/bin/bash
+
+PkgHome="https://github.com/jqlang/jq"
+
+# REQ: ruby (enable-docs), oniguruma
+
+ConfigureOpts+=(
+    --disable-valgrind
+    --enable-docs=no
+)
