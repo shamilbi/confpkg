@@ -1,0 +1,9 @@
+#!/bin/bash
+
+PkgHome="https://github.com/storaged-project/libbytesize"
+
+pkg_set_python python3
+
+pkg_post_install() {
+    pkg_python_compileall "$LibDir2"
+}
