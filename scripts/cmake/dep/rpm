@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PkgHome="https://rpm.org/download.html"
+
 # REQ: rpm-sequoia (pgp)
 
 UseClang=
