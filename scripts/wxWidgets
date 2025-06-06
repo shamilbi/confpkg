@@ -9,7 +9,7 @@ pkg_configure_del2 static
 
 ConfigureOpts+=(
     --with-gtk=3
-    --enable-unicode
+    #--enable-unicode
     --with-opengl
     --enable-geometry
     --enable-graphics_ctx
@@ -22,6 +22,12 @@ ConfigureOpts+=(
     --disable-debugreport
     --without-libjbig
 )
+if (($(pkg_cmp_versions "$Version" "3.3") < 0)); then
+    ConfigureOpts+=(--enable-unicode)
+else
+    # -scintilla
+    ConfigureOpts+=(--enable-stc=no) # use wxStyledTextCtrl library
+fi
 
 pkg_pre_configure() {
     local path url
