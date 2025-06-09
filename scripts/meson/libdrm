@@ -1,0 +1,9 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    #Slackware
+    -Dudev=true # Enable support for using udev instead of mknod
+    -Dintel=enabled # Enable support for Intel's KMS API
+
+    -Dtests=false # true, Build test programs
+)
