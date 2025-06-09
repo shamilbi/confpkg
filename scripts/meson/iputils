@@ -1,0 +1,38 @@
+#!/bin/bash
+
+PkgHome="https://github.com/iputils/iputils/tags"
+
+pkg_pre_configure() {
+    local from to fn f1
+
+    # xsltproc: cannot process http://docbook.sourceforge.net/release/xsl-ns/current/manpages/docbook.xsl
+    # solution 1:
+    from='http://docbook.sourceforge.net/release/xsl-ns/'
+    to='http://docbook.sourceforge.net/release/xsl/'
+    for fn in meson.build custom-html.xsl custom-man.xsl; do
+        f1=doc/$fn
+        if pkg_create_orig "$f1"; then
+            sed -i -e 's,'"$from"','"$to"',' "$f1"
+        fi
+    done
+    # solution 2:
+    # /etc/xml/catalog:
+    # <!--
+    #   build iputils-20240905 error:
+    #   Message: WARNING: xsltproc: cannot process http://docbook.sourceforge.net/release/xsl-ns/current/manpages/docbook.xsl
+    # -->
+    # <rewriteURI uriStartString="http://docbook.sourceforge.net/release/xsl-ns/current" rewritePrefix="/usr/share/xml/docbook/xsl-stylesheets-1.79.2"/>
+}
+
+pkg_post_install() {
+    # Slackware
+    ls -d "$Prefix2"/bin/arping | pkg_mv_d "$DestDir"/sbin
+    ls -d "$Prefix2"/bin/clockdiff | pkg_mv_d "$Prefix2"/sbin
+    local f1=$Prefix2/bin/ping
+    chmod 4711 "$f1"
+    ls -d "$f1" | pkg_mv_d "$DestDir"/bin
+    ln -sfnr "$DestDir"/bin/ping "$DestDir"/bin/ping6
+    ln -sfnr "$Prefix2"/bin/tracepath "$Prefix2"/bin/tracepath6
+    ln -sfnr "$ManDir2"/man8/ping.8 "$ManDir2"/man8/ping6.8
+    ln -sfnr "$ManDir2"/man8/tracepath.8 "$ManDir2"/man8/tracepath6.8
+}
