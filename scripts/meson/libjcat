@@ -1,0 +1,7 @@
+#!/bin/bash
+
+PkgHome="https://github.com/hughsie/libjcat"
+
+ConfigureOpts+=(
+    -Dtests=false # true, enable tests
+)
