@@ -1,0 +1,7 @@
+#!/bin/bash
+
+PkgHome="https://www.nongnu.org/m17n/"
+
+ConfigureOpts+=(
+    --disable-gui
+)
