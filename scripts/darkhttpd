@@ -1,0 +1,7 @@
+#!/bin/bash
+
+PkgHome="https://github.com/emikulic/darkhttpd"
+
+pkg_install() {
+    pkg_install_mfd 755 "$Name" "$Prefix2"/bin
+}
