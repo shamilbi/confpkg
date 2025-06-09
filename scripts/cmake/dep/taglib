@@ -1,0 +1,12 @@
+#!/bin/bash
+
+PkgHome="https://github.com/taglib/taglib"
+
+ConfigureOpts+=(
+    # Slackware
+    -DWITH_MP4=ON
+    -DWITH_ASF=ON
+
+    -DENABLE_STATIC_RUNTIME=OFF
+)
+pkg_check=
