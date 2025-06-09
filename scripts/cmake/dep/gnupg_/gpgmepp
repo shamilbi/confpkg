@@ -1,0 +1,6 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    -DCMAKE_INSTALL_LIBDIR="$LibName" # /usr/lib64 -> lib64
+        # DESTINATION "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/pkgconfig")
+)

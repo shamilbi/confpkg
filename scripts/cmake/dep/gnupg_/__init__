@@ -1,0 +1,3 @@
+#!/bin/bash
+
+PkgHome=("https://gnupg.org/download/index.html")
