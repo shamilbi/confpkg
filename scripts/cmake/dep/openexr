@@ -1,0 +1,30 @@
+#!/bin/bash
+
+PkgHome="https://github.com/AcademySoftwareFoundation/openexr"
+
+name2=OpenEXR-${VersionArr[0]}.${VersionArr[1]}
+
+ConfigureOpts+=(
+    # This is a variable here for use in controlling where include files are 
+    # installed. Care must be taken when changing this, as many things
+    # probably assume this is OpenEXR
+    -DOPENEXR_OUTPUT_SUBDIR="$name2" # Destination sub-folder of the include path for install
+)
+
+pkg_pre_configure() {
+    # OpenEXR.pc.in
+    local f1=$OrigSrcDir/cmake/OpenEXR.pc.in
+    if pkg_create_orig "$f1"; then
+        # OpenEXR_includedir=${includedir}/OpenEXR
+        sed -i -r -e 's,^(OpenEXR_includedir=.*)/.*,\1/'"$name2"',' "$f1"
+    fi
+}
+
+pkg_post_install() {
+    # /usr/include/OpenEXR -> OpenEXR-2
+    local d1=$IncludeDir2/OpenEXR
+    local d2=$IncludeDir2/$name2
+    if [[ ! -d $d1 && -d $d2 ]]; then
+        ln -sfnr "$d2" "$d1"
+    fi
+}
