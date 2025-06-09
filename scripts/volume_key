@@ -1,0 +1,22 @@
+#!/bin/bash
+
+PkgHome="https://pagure.io/volume_key"
+
+BuildSteps=("${BuildForPython[@]}")
+[[ $BuildStep ]] && pkg_set_python "$BuildStep"
+
+ConfigureOpts+=(
+    --with-python=no
+    --with-python3
+    --disable-nls # do not use Native Language Support
+)
+
+pkg_pre_configure() {
+    # configure:
+    # for ac_prog in python3.6 python3.5 python3 python
+    local f=configure
+    if [[ ! -f $f ]]; then
+        pkg_autoreconf || return 1
+    fi
+    sed -i -r -e 's,for ac_prog in python3.*,for ac_prog in '"$BuildStep"',' "$f"
+}
