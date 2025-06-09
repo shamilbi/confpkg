@@ -1,0 +1,16 @@
+#!/bin/bash
+
+PkgHome="https://github.com/ostreedev/ostree/tags"
+
+pkg_pre_configure() {
+    local -A dirs_
+    dirs_["libglnx"]="https://github.com/GNOME/libglnx"
+    dirs_["bsdiff"]="https://github.com/mendsley/bsdiff"
+    local i
+    for i in "${!dirs_[@]}"; do
+        if pkg_dir_empty "$i"; then
+            echo "clone ${dirs_[$i]} ..."
+            git clone --depth 1 "${dirs_[$i]}" "$i" || return 1
+        fi
+    done
+}
