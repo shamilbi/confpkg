@@ -1,0 +1,7 @@
+#!/bin/bash
+
+PkgHome="https://github.com/google/go-containerregistry/tags"
+
+GoBuildBins=(
+    crane
+)
