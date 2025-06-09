@@ -1,0 +1,23 @@
+#!/bin/bash
+
+PkgHome="https://sourceforge.net/projects/gnuplot/files/gnuplot/"
+
+ConfigureOpts+=(
+    # Slackware
+    --with-gd
+    #--with-caca
+    #--with-qt=qt5
+    --with-qt=qt6
+    --without-libcerf
+    --with-texdir="$ShareDir"/texmf-dist/tex/latex/gnuplot
+    --datadir="$ShareDir"/gnuplot
+    --with-readline=builtin
+)
+[[ $AALIB ]] && ConfigureOpts+=(--with-caca) || ConfigureOpts+=(--with-caca=no)
+
+pkg_pre_install() {
+    # No emacs found - cannot create texinfo file
+    if [[ $(command -v emacs) ]]; then
+        InstallOpts+=(install-info)
+    fi
+}
