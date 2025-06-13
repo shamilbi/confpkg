@@ -1,0 +1,32 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    --enable-cifsacl # Create get/set cifsacl binary [default=yes]
+    --disable-systemd # Enable systemd specific behavior for mount.cifs [default=yes]
+)
+
+# Slackware
+# Choose correct options depending on whether PAM is installed:
+if [[ $PAM ]]; then
+    ConfigureOpts+=(
+        --enable-pam # Create cifscreds PAM module [default=yes]
+        --with-pamdir="/$LibName/security" # Where to install the PAM module [default=$(libdir)/security]
+    )
+else
+    ConfigureOpts+=(--enable-pam=no)
+fi
+
+pkg_pre_configure() {
+    # Slackware
+    pkg_autoreconf
+}
+
+pkg_pre_install() {
+    if pkg_create_orig Makefile; then
+        # (cd $(ROOTSBINDIR) && ln -sf mount.cifs mount.smb3)
+        sed -r -i -e 's,cd (\$\(ROOTSBINDIR\)),cd $(DESTDIR)\1,' Makefile
+
+        # (cd $(man8dir) && ln -sf mount.cifs.8 mount.smb3.8)
+        sed -r -i -e 's,cd (\$\(man8dir\)),cd $(DESTDIR)\1,' Makefile
+    fi
+}
