@@ -1,0 +1,11 @@
+#!/bin/bash
+
+Daemon=$Prefix/sbin/chronyd
+DaemonOpts=(-r -s)
+DaemonPidfile=/var/run/chrony/chronyd.pid # /etc/chrony.conf
+
+pkg_post_install() {
+    pkg_install_mfd 644 examples/* "$DocDir2"
+    find examples -maxdepth 1 -type f -name 'chrony.conf.*' |
+        pkg_install_md 644 "$Etc2"
+}
