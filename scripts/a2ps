@@ -1,0 +1,48 @@
+#!/bin/bash
+
+PkgHome="https://ftp.gnu.org/gnu/a2ps/?C=M;O=D"
+
+ConfigureOpts+=(
+    #--with-medium=A4 # not found
+    #--with-encoding=latin1
+        # specify the default encoding (ascii, latin1, latin2... latin6, hp etc.)
+        # [default=latin1]
+    --with-lispdir="$ShareDir"/emacs/site-lisp # override the default lisp directory
+)
+pkg_check=
+
+pkg_pre_configure() {
+    # Slackware
+    # GCC15 workaround:
+    # parseppd.y:157:1: error: conflicting types for 'yyprint'; have 'void(FILE *, int,  YYSTYPE)'
+    pkg_add_cflags "-std=gnu17"
+    # a2ps.diff.gz
+    # -  /usr/local/share/ghostscript/fonts;
+    # +  /usr/local/share/ghostscript/fonts \
+    # +  /usr/share/ghostscript/fonts ;
+    local f1=configure
+    if pkg_create_orig "$f1"; then
+        local p1 p2 s1 s2
+        p1='/usr/local/share/ghostscript/fonts'
+        p2='/usr/share/ghostscript/fonts'
+        s1="$p1;"
+        s2="$p1 "'\\\n'"$p2;"
+        sed -i -e "s,$s1,$s2," "$f1" || return 1
+    fi
+    # a2ps.a2ps_cfg.in.diff.gz
+    # -LibraryPath: @libpath@
+    # +LibraryPath: @libpath@:/usr/share/fonts/Type1
+    f1=etc/a2ps_cfg.in
+    if pkg_create_orig "$f1"; then
+        local s1 s2
+        s1='^LibraryPath: @libpath@$'
+        s2='LibraryPath: @libpath@:/usr/share/fonts/Type1'
+        sed -i -e "s,$s1,$s2," "$f1" || return 1
+    fi
+}
+
+pkg_post_install() {
+    # ^### -> #, ^## -> #
+    local f1=$Etc2/a2ps.cfg
+    sed -i -re 's,^###?([^#]),#\1,' "$f1"
+}
