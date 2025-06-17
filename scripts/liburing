@@ -1,0 +1,19 @@
+#!/bin/bash
+
+PkgHome="https://github.com/axboe/liburing"
+
+ConfigureOpts=(
+    # Slackware
+    --prefix="$Prefix"
+    --libdir="$LibDir"
+    --libdevdir="$LibDir"
+    --includedir="$IncludeDir"
+    --mandir="$ManDir"
+    --datadir="$ShareDir"
+)
+
+pkg_post_install() {
+    # Slackware
+    # Don't ship static library:
+    find "$LibDir2" -type f -name '*.a' -delete
+}
