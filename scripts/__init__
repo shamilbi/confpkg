@@ -32,16 +32,13 @@ pkg_set_prefix() {
     # bad portable
 CFLAGS="-O2"
 case "$Arch" in
-    #i586)
-    #    CFLAGS+=" -march=i586 -mtune=i686"
-    #    ;;
     i686)
         #CFLAGS+=" -march=i686"
-        CFLAGS+="-O2 -march=pentium4 -mtune=generic"
+        CFLAGS+=" -march=pentium4 -mtune=generic"
         ;;
     x86_64)
-        #CFLAGS+=" -fPIC -march=x86-64"
-        CFLAGS+=" -O2 -march=x86-64 -mtune=generic -fPIC"
+        #CFLAGS+=" -march=x86-64 -fPIC"
+        CFLAGS+=" -march=x86-64 -mtune=generic -fPIC"
         ;;
     i?86)
         Arch=i586
@@ -56,6 +53,8 @@ esac
 if [[ "$Arch" = "armv7hl" ]]; then
     CFLAGS="-O3 -march=armv7-a -mfpu=vfpv3-d16"
 fi
+# GCC15 workaround:
+CFLAGS+=" -std=gnu17"
 export CFLAGS
 export CXXFLAGS="$CFLAGS"
 
