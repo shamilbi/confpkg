@@ -26,23 +26,17 @@ pkg_set_prefix() {
     pkg_configure_replace --libdir "$LibDir"
 }
 
-#CFLAGS="-march=native -O2"
-    # gcc -march=native -E -v - </dev/null 2>&1 | grep cc1
-    # gcc -mtune=native -E -v - </dev/null 2>&1 | grep cc1
-    # bad portable
-CFLAGS="-O2"
+CFlags=("-O2")
 case "$Arch" in
     i686)
-        #CFLAGS+=" -march=i686"
-        CFLAGS+=" -march=pentium4 -mtune=generic"
+        CFlags+=("-march=pentium4" "-mtune=generic")
         ;;
     x86_64)
-        #CFLAGS+=" -march=x86-64 -fPIC"
-        CFLAGS+=" -march=x86-64 -mtune=generic -fPIC"
+        CFlags+=("-march=x86-64" "-mtune=generic" "-fPIC")
         ;;
     i?86)
         Arch=i586
-        CFLAGS+=" -march=i586 -mtune=i686"
+        CFlags+=("-march=i586" "-mtune=i686")
         ;;
     arm*)
         readelf /usr/bin/file -A |\
@@ -51,11 +45,11 @@ case "$Arch" in
         ;;
 esac
 if [[ "$Arch" = "armv7hl" ]]; then
-    CFLAGS="-O3 -march=armv7-a -mfpu=vfpv3-d16"
+    CFlags=("-O3" "-march=armv7-a" "-mfpu=vfpv3-d16")
 fi
 # GCC15 workaround:
-CFLAGS+=" -std=gnu17"
-export CFLAGS
+CFlags+=("-std=gnu17")
+export CFLAGS="${CFlags[@]}"
 export CXXFLAGS="$CFLAGS"
 
 pkg_set_prefix "$Prefix"
@@ -96,15 +90,19 @@ CleanOpts=(distclean)
 unset ProtectFiles
 unset Daemon DaemonOpts DaemonUser DaemonPidfile
 
-pkg_configure_del() {
+pkg_arr_del() {
+    # pkg_arr_del ConfigureOpts "$@"
+    local -n var_=$1 # name of an array
+    shift 1
+
     local arr i v found
     arr=()
-    for i in "${ConfigureOpts[@]}"; do
+    for i in "${var_[@]}"; do
         found=
         for v; do
             [[ ! $v ]] && continue
             case $i in
-                $v=*|$v)       # --with-xxx=yes, -DXXX=ON, --with-xxx
+                $v=* | $v) # --with-xxx=yes, -DXXX=ON, --with-xxx
                     found=1
                     break
                     ;;
@@ -113,7 +111,11 @@ pkg_configure_del() {
         [[ $found ]] && continue
         arr+=("$i")
     done
-    ConfigureOpts=("${arr[@]}")
+    var_=("${arr[@]}")
+}
+
+pkg_configure_del() {
+    pkg_arr_del ConfigureOpts "$@"
 }
 
 pkg_configure_del2() {
@@ -407,9 +409,21 @@ pkg_python_install() {
 }
 
 pkg_add_cflags() {
-    CFLAGS+=" $*"
-    CXXFLAGS=$CFLAGS
-    export CFLAGS CXXFLAGS
+    CFlags+=("$@")
+    export CFLAGS="${CFlags[@]}"
+    export CXXFLAGS="$CFLAGS"
+}
+
+pkg_set_cflags() {
+    CFlags=("$@")
+    export CFLAGS="${CFlags[@]}"
+    export CXXFLAGS="$CFLAGS"
+}
+
+pkg_del_cflags() {
+    pkg_arr_del CFlags "$@"
+    export CFLAGS="${CFlags[@]}"
+    export CXXFLAGS="$CFLAGS"
 }
 
 pkg_find_opt_dir() {
