@@ -3,6 +3,9 @@
 UseBuildDir=1
 UseClang=1
 
+# error: invalid argument '-std=gnu17' not allowed with 'C++'
+pkg_del_cflags '-std=gnu17'
+
 ConfigureOpts=(
     -DCMAKE_BUILD_TYPE=Release
     -DBUILD_SHARED_LIBS=ON
@@ -52,9 +55,9 @@ pkg_configure() {
 }
 
 pkg_add_cflags() {
-    CFLAGS+=" $*"
-    CXXFLAGS=$CFLAGS
-    export CFLAGS CXXFLAGS
+    CFlags+=("$@")
+    export CFLAGS="${CFlags[@]}"
+    export CXXFLAGS="$CFLAGS"
     ConfigureOpts+=(
         "-DCMAKE_C_FLAGS=$CFLAGS"
         "-DCMAKE_CXX_FLAGS=$CFLAGS"
