@@ -5,8 +5,7 @@ MakeEnv=(
     PREFIX="$Prefix"
     MAKE_NB_JOBS="$(nproc)"
     OPENBLAS_LIBRARY_DIR="$LibDir"
-    # Use GENERIC CPU target:
-    TARGET=GENERIC
+    #TARGET=GENERIC
     DYNAMIC_ARCH=1
     NO_STATIC=1
     USE_THREAD=1
@@ -18,6 +17,23 @@ MakeEnv=(
     NO_AFFINITY=1
     BUILD_RELAPACK=1
 )
+
+# Slackware
+if [[ $Arch = "i686" ]]; then
+    # Use NORTHWOOD CPU target as the default to avoid SSE3 and AVX.
+    # We also use DYNAMIC_ARCH=1, so you can select a different CPU at runtime:
+    # export OPENBLAS_CORETYPE=Prescott
+    MakeEnv+=(TARGET=NORTHWOOD)
+elif [[ $Arch = "x86_64" ]]; then
+    # Use OPTERON CPU target as the default to avoid SSE3 and AVX.
+    # We also use DYNAMIC_ARCH=1, so you can select a different CPU at runtime:
+    # export OPENBLAS_CORETYPE=Prescott
+    MakeEnv+=(TARGET=OPTERON)
+else
+    # Use GENERIC CPU target as the default:
+    MakeEnv+=(TARGET=GENERIC)
+fi
+
 InstallEnv+=("${MakeEnv[@]}")
 
 pkg_post_install() {
