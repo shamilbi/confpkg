@@ -1,0 +1,6 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://ftp.gnu.org/gnu/${Name,,}/?C=M;O=D" # GNU
+    "https://packages.debian.org/bookworm/${Name,,}" # Debian
+)
