@@ -1,0 +1,18 @@
+#!/bin/bash
+
+pkg_post_install() {
+    # Slackware
+    # Fix shebangs:
+    sed -i "s|#\!/usr/bin/env perl|#\!/usr/bin/perl|g" "$Prefix2"/bin/*
+    sed -i "s|#\!/usr/bin/env bash|#\!/bin/bash|g" "$Prefix2"/bin/*
+    # Don't ship duplicate documentation:
+    rm -f "$DocDir2"/*.{pdf,texi}
+    # Garbage collection (not production quality):
+    find "$DestDir" -type f -name 'env_parallel*' -delete
+
+    # sem -> parallel
+    ls -d "$Prefix2"/bin/parallel | pkg_ln_equals
+    # NEWS.bz2
+    [[ -f $DocDir2/NEWS ]] && bzip2 "$DocDir2/NEWS"
+    :
+}

@@ -1,0 +1,47 @@
+#!/bin/bash
+
+# Slackware
+pkg_set_prefix ''
+
+ConfigureOpts+=(
+    # Slackware
+    --enable-linux-multiformat
+)
+
+pkg_pre_configure() {
+    # Slackware
+    ## GCC15 workaround:
+    ## sa.c:1509:42: error: passing argument 4 of ‘qsort’ from incompatible pointer type [-Wincompatible-pointer-types]
+    #pkg_add_cflags "-std=gnu17"
+    #acct.logdir.fhs.diff.gz
+    # -#    define WTMP_FILE "/var/log/account/wtmp"
+    # +#    define WTMP_FILE "/var/log/wtmp"
+    local f1=configure.ac
+    if pkg_create_orig "$f1"; then
+        sed -i -e 's,/var/log/account/,/var/log/,' "$f1"
+    fi
+    pkg_autoreconf
+}
+
+pkg_post_install() {
+    local d
+
+    # Slackware
+    # The sysvinit package already installs a "last" program, so
+    # rename this one:
+    d=$DestDir/bin
+    mv "$d"/last "$d"/last-acct
+    # I know this man page still says "last" in it, but presumably
+    # anyone who uses "man last-acct" knows enough that this will
+    # not spook them:
+    d=$ManDir2/man1
+    mv "$d"/last.1 "$d"/last-acct.1
+    # Put some binaries in the location where they have traditionally
+    # been installed:
+    ls -d "$DestDir"/bin/{ac,last-acct,lastcomm} | pkg_mv_d "$DestDir"/usr/bin
+    ls -d "$DestDir"/sbin/sa | pkg_mv_d "$DestDir"/usr/bin
+    ls -d "$DestDir"/sbin/dump* | pkg_mv_d "$DestDir"/usr/sbin
+    # A couple of manpages are not automatically installed:
+    # not found
+    #pkg_install_mfd 644 debian/manpage/*.8 "$ManDir2"/man8
+}

@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# Slackware package: floppy
+
+#ConfigureOpts+=(
+#    --with-x=no # use the X Window System (floppyd)
+#)
+
+pkg_pre_configure() {
+    # Slackware
+    # mtools.conf.diff.gz
+    local f1=mtools.conf
+    if pkg_create_orig "$f1"; then
+        local opts=(
+            -e 's,^SAMPLE,#SAMPLE,'
+                # #SAMPLE FILE
+            -e '/Linux floppy/,+2 s,^# drive a:,drive a:,'
+                # drive a: file="/dev/fd0" exclusive
+            -e '/Linux floppy/,+2 s,^# drive b:,drive b:,'
+                # drive b: file="/dev/fd1" exclusive
+        )
+        sed -i "${opts[@]}" "$f1"
+    fi
+}
+
+pkg_post_install() {
+    # Slackware
+    pkg_install_mfd 644 mtools.conf "$Etc2"
+    # These are obsolete and/or cruft:
+    local files=(MAKEFLOPPIES lz mcheck mcomp mxtar tgz uz)
+    local i
+    for i in "${files[@]}"; do
+        rm -f "$Prefix2"/bin/"$i"
+    done
+    rm -f "$ManDir2"/man1/makefloppies.1
+
+    # X (floppyd)
+    if [[ ! -f $Prefix2/bin/floppyd ]]; then
+        rm -f "$ManDir2"/man1/floppyd*
+    fi
+}

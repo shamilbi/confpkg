@@ -1,7 +1,5 @@
 #!/bin/bash
 
-PkgHome="https://ftp.gnu.org/gnu/a2ps/?C=M;O=D"
-
 ConfigureOpts+=(
     #--with-medium=A4 # not found
     #--with-encoding=latin1
@@ -13,9 +11,9 @@ pkg_check=
 
 pkg_pre_configure() {
     # Slackware
-    # GCC15 workaround:
-    # parseppd.y:157:1: error: conflicting types for 'yyprint'; have 'void(FILE *, int,  YYSTYPE)'
-    pkg_add_cflags "-std=gnu17"
+    ## GCC15 workaround:
+    ## parseppd.y:157:1: error: conflicting types for 'yyprint'; have 'void(FILE *, int,  YYSTYPE)'
+    #pkg_add_cflags "-std=gnu17"
     # a2ps.diff.gz
     # -  /usr/local/share/ghostscript/fonts;
     # +  /usr/local/share/ghostscript/fonts \

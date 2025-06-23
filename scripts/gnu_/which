@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PkgHome="https://ftp.gnu.org/gnu/which/?C=M;O=D"
+PkgHome[1]="https://packages.debian.org/bookworm/gnu-which"
 
 ConfigureOpts+=(
     --bindir=/bin

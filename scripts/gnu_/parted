@@ -1,0 +1,12 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    # Slackware
+    --enable-device-mapper
+    --with-readline
+)
+
+pkg_pre_configure() {
+    # Slackware
+    pkg_add_cflags "-fgnu89-inline"
+}

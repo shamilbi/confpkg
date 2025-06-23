@@ -1,0 +1,29 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    # Slackware
+    --bindir=/bin
+    --enable-mt # Enable building of mt program
+    --with-rmt=/sbin/rmt # Use FILE as the default `rmt' program. Do not build included copy of `rmt'.
+)
+InstallEnv+=(
+    # Slackware
+    INSTALL="install -p"
+)
+
+#pkg_pre_configure() {
+#    # Slackware
+#    # GCC15 workaround:
+#    # copyout.c:646:12: error: too many arguments to function ‘xstat’; expected 0, have 2
+#    pkg_add_cflags "-std=gnu17"
+#}
+
+pkg_post_install() {
+    # Slackware
+    # Do not clash with the 'mt' which is part of tar:
+    mv "$DestDir"/bin/mt{,-GNU}
+    mv "$ManDir2"/man1/mt{,-GNU}.1
+
+    # del empty dirs
+    find "$DestDir" -depth -type d -empty -delete
+}
