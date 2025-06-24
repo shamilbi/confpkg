@@ -1,7 +1,5 @@
 #!/bin/bash
 
-PkgHome="https://gitlab.freedesktop.org/spice/spice/-/tags"
-
 ConfigureOpts+=(
     #--enable-manual=no
     #--disable-celt051
