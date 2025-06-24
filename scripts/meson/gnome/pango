@@ -1,0 +1,9 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    # Slackware
+    -Ddocumentation=false
+    -Dman-pages=true
+
+    -Dintrospection=enabled # Build the introspection data (requires gobject-introspection)
+)

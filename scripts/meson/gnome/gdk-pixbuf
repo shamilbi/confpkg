@@ -1,0 +1,27 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    # Slackware
+    -Dgtk_doc=false
+    -Dtests=false
+    -Dinstalled_tests=false
+    -Dothers=enabled
+)
+
+pkg_post_install() {
+    # Slackware
+    # We need to have separate 32-bit and 64-bit binaries
+    # for places where we have two copies of the GTK+ package installed.
+    # (we might have x86_64 and i486 packages on the same system, for example.)
+    host="$ARCH-slackware-linux"
+    case "$Arch" in
+        s390x*|x86_64*)
+            pkg_mv_ln_ff "$Prefix2"/bin/gdk-pixbuf-query-loaders{,-64}
+            ;;
+        *)
+            pkg_mv_ln_ff "$Prefix2"/bin/gdk-pixbuf-query-loaders{,-32}
+            ;;
+    esac
+    # Install wrappers for the binaries:
+    pkg_install_mfd 755  "$SupportDir"/update-gdk-pixbuf-loaders "$Prefix2"/bin
+}

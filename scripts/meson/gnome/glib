@@ -1,0 +1,33 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    # Slackware
+    -Dselinux=disabled
+    -Dglib_debug=disabled
+    -Dman-pages=enabled
+    -Ddocumentation=false
+    -Dinstalled_tests=false
+)
+
+pkg_pre_configure() {
+    if (($(pkg_cmp_versions "$Version" "2.82.3") < 0)); then
+        # Slackware
+        pkg_patch_f3 d02c95c91a3d2636089fe9b64798fb6f69babb6b.patch 1 || return 1
+    fi
+}
+
+pkg_post_install() {
+    # Slackware
+    # Install profile scripts:
+    pkg_install_mfd 755 "$SupportDir"/libglib2.{csh,sh} "$Etc2"/profile.d
+}
+
+pkg_read2var pkg_post_installpkg <<EOF
+pkg_post_installpkg() {
+    # Slackware
+    # Try to run these.  If they fail, no biggie.
+    #chroot . /usr/bin/glib-compile-schemas /usr/share/glib-2.0/schemas/ &>/dev/null
+    chroot . /usr/bin/gio-querymodules "$LibDir"/gio/modules/ &>/dev/null
+}
+pkg_post_installpkg
+EOF

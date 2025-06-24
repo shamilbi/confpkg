@@ -1,0 +1,9 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    -Dtests=disabled
+)
+
+pkg_post_install() {
+    ls -d "$LibDir2/$Name"*.so* | pkg_mv_ln "$DestDir/$LibName"
+}

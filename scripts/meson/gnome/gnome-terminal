@@ -1,0 +1,7 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    -Ddocs=false # true, Enable documentation
+    -Dnautilus_extension=false # true, Provide integration for nautilus
+    -Dsearch_provider=false # true, Provide search integration for gnome-shell
+)

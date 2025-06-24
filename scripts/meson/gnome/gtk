@@ -1,0 +1,34 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    # Slackware
+    -Dman-pages=true
+    -Dbuild-demos=true
+    -Ddocumentation=false
+    -Dbroadway-backend=true
+    -Dbuild-examples=false
+    -Dbuild-tests=false
+    -Dwayland-backend=true
+    -Dintrospection=enabled
+
+    -Dbuild-testsuite=false
+)
+
+pkg_read2var pkg_post_installpkg <<EOF
+pkg_post_installpkg() {
+    # Slackware
+    find usr/share/icons -maxdepth 2 -type f -name 'icon-theme.cache' -delete &>/dev/null
+    #chroot . /usr/bin/glib-compile-schemas /usr/share/glib-2.0/schemas/ &>/dev/null
+    local d1 d2 ver
+    ver="${VersionArr[0]}"
+    # usr/lib64/gtk-4.0
+    d1=\$(find "${LibDir:1}" -mindepth 1 -maxdepth 1 -type d -name "gtk-\$ver.*" -print -quit)
+    # usr/lib64/gtk-4.0/4.0.0
+    [[ -d \$d1 ]] && d2=\$(find "\$d1" -mindepth 1 -maxdepth 1 -type d -name "\$ver.*" -print -quit)
+    if [[ -d \$d2 ]]; then
+        chroot . /usr/bin/gio-querymodules "\$d2"/media &>/dev/null
+        chroot . /usr/bin/gio-querymodules "\$d2"/printbackends &>/dev/null
+    fi
+}
+pkg_post_installpkg
+EOF

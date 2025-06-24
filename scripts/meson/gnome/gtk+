@@ -1,0 +1,11 @@
+#!/bin/bash
+
+PkgHome="https://gitlab.gnome.org/GNOME/gtk/-/tags"
+
+ConfigureOpts+=(
+    -Dbroadway_backend=true
+    -Dman=true
+    -Ddemos=false
+    -Dexamples=false
+    -Dtests=false
+)

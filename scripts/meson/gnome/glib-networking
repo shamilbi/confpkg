@@ -1,0 +1,11 @@
+#!/bin/bash
+
+pkg_read2var pkg_post_installpkg <<EOF
+pkg_post_installpkg() {
+    # Slackware
+    if [ -x /usr/bin/gio-querymodules ]; then
+        chroot . /usr/bin/gio-querymodules "$LibDir"/gio/modules/ &>/dev/null
+    fi
+}
+pkg_post_installpkg
+EOF

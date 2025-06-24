@@ -1,0 +1,8 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    -Dlogind-provider=elogind # ['systemd', 'elogind'], Which logind library to use
+    -Dsystemd-journal=false # true, Use journald support
+    -Dsystemdsystemunitdir=no # Directory for systemd service files, or 'no' to disable
+    -Dsystemduserunitdir=no # Directory for systemd user service files, or 'no' to disable
+)

@@ -1,0 +1,60 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    # Slackware
+    -Dman=true
+    #-Ddemos=true
+    #-Dgtk_doc=true
+    -Dbroadway_backend=true
+    -Dexamples=false
+    -Dtests=false
+    -Dinstalled_tests=false
+
+    -Ddemos=false
+)
+[[ $WAYLAND ]] && ConfigureOpts+=(-Dwayland_backend=true)
+
+version=${VersionArr[0]}.0 # 3.0
+
+pkg_pre_configure() {
+    # Slackware
+    pkg_add_cflags "-DG_ENABLE_DEBUG" "-DG_DISABLE_CAST_CHECKS"
+}
+
+pkg_post_install() {
+    # Slackware
+    # Install a "starter" gtkrc
+    echo 'gtk-theme-name="Adwaita"' >"$Etc2/gtk-$version/gtkrc"
+    # We need to have separate 32-bit and 64-bit binaries for places where we have
+    # two copies of the GTK+ package installed (we might have x86_64 and i586
+    # packages on the same system, for example.)
+    local f1=$Prefix2/bin/gtk-query-immodules-$version
+    if [[ $LibSuffix = "64" ]]; then
+        mv "$f1"{,-64}
+        ln -sfnr "$f1"-64 "$f1"
+    else
+        mv "$f1"{,-32}
+        ln -sfnr "$f1"-32 "$f1"
+    fi
+    # Install wrappers for the binaries:
+    pkg_install_mfd 755 "$SupportDir/update-gtk-immodules-$version" "$Prefix2"/bin
+}
+
+pkg_read2var pkg_post_installpkg <<EOF
+pkg_post_installpkg() {
+    # Slackware
+    find usr/share/icons -maxdepth 2 -type f -name 'icon-theme.cache' -delete &>/dev/null
+    # Run these if we are on an installed system.  Otherwise they will be
+    # handled on first boot.
+    local exe="usr/bin/update-gtk-immodules-$version"
+    [[ -x \$exe ]] && "\$exe"
+    #local dir=usr/share/glib-2.0/schemas
+    #exe=usr/bin/glib-compile-schemas
+    #[[ -d \$dir && -x \$exe ]] && "\$exe" "\$dir" &>/dev/null
+    # In case this is the first run installing the standalone gdk-pixbuf,
+    # we will run this a second time to fix machines that will not reboot.
+    #chroot . /usr/bin/update-gdk-pixbuf-loaders &>/dev/null
+    :
+}
+pkg_post_installpkg
+EOF

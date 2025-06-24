@@ -1,0 +1,6 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    -Dinstalled_tests=false
+)
+export LDFLAGS="-L$LibDir -lncurses"

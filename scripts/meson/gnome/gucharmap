@@ -1,0 +1,10 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    #-Ducd_path="$SrcDir/data"
+    -Ducd_path="$ShareDir/unicode"
+        # processing /usr/share/unicode/NamesList.txt...
+        # /usr/share/unicode contains unicode data for version 16.0.0 but version 15.1.0 is required
+        # at gucharmap-15.1.5/gucharmap/gen-guch-unicode-tables.pl line 582, <$nameslist> line 2.
+    -Ddocs=false
+)

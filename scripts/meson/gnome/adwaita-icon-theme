@@ -1,0 +1,12 @@
+#!/bin/bash
+
+pkg_post_install() {
+    # Slackware
+    # It's a bad idea to ship these in the packages.  If they aren't kept
+    # updated, there will be missing icons.  Let the user create them if
+    # they care to.
+    find "$DestDir" -name icon-theme.cache -delete
+    find "$DestDir" -name .icon-theme.cache -delete
+    find "$DestDir" -name .placeholder -delete
+    find "$DestDir" -name .empty -delete
+}

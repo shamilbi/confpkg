@@ -1,0 +1,9 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    # Slackware
+    -Ddocbook_docs=disabled     # Build DocBook documentation (requires xmlto)
+    -Dgtk_doc=false             # Enable generating the API reference (depends on gi-docgen)
+    -Dtests=false
+    -Dman=false                 # Enable generating the manual page (depends on xsltproc)
+)

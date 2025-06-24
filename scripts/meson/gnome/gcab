@@ -1,0 +1,6 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    -Ddocs=false    # enable developer documentation
+    -Dtests=false
+)

@@ -1,0 +1,14 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    # Slackware
+    -Ddnssd=true
+    -Dgoa=false # build with goa volume monitor
+    -Dgoogle=false # build with google backend
+    -Dlogind=true
+    -Dman=true
+    -Dnfs=false
+    -Dsystemduserunitdir=no
+    -Dtmpfilesdir=no
+    -Donedrive=false # true, build with OneDrive backend
+)

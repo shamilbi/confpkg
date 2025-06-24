@@ -1,0 +1,15 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    -Ddocumentation=disabled # Build the API reference (requires gi-docgen)
+    -Dtests=false # true, Build the tests
+)
+
+pkg_post_install() {
+    # /usr/include/$Name-1.2.3/$Name -> /usr/include/$Name
+    local d=$(find "$IncludeDir2" -maxdepth 1 -type d -name "$Name-*" -print -quit)
+    [[ $d ]] && ln -sfnr "$d/$Name" "$IncludeDir2"
+
+    #find "$DestDir" -type d -name installed-tests -exec rm -rf "{}" \;
+    :
+}

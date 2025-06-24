@@ -1,0 +1,24 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    -Dnautilus=false
+    -Dkeyring=disabled
+    -Dgspell=disabled
+    -Dsystemduserunitdir=no
+    #-Dbrowser_plugin=true
+    -Dps=enabled
+    -Dgtk_doc=false
+    -Duser_doc=false
+)
+
+pkg_post_install() {
+    local d=$ShareDir2/applications
+    local fn=org.gnome.Evince.desktop
+    if [[ -f $d/$fn ]]; then
+        ln -sfn $fn $d/evince.desktop
+    fi
+    local fn=org.gnome.Evince-previewer.desktop
+    if [[ -f $d/$fn ]]; then
+        ln -sfn $fn $d/evince-previewer.desktop
+    fi
+}
