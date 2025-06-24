@@ -9,4 +9,6 @@ ConfigureOpts+=(
     -Dgi-docgen=disabled
     -Dcheck-update=no
     -Dheadless-tests=disabled
+
+    -Denable-default-bin=enabled # auto, Install unversioned symlinks pointing to versioned executables (on UNIX) or unversioned duplicates (on Windows)
 )
