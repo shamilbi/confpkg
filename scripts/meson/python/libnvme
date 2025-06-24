@@ -1,0 +1,9 @@
+#!/bin/bash
+
+pkg_pre_configure() {
+    # python3 = import('python').find_installation('python3')
+    local f1=libnvme/meson.build
+    local s1="\\(import('python')\\.find_installation\\)(.*)"
+    local s2="\\1('$BuildStep')"
+    sed -i -e "s,$s1,$s2," "$f1"
+}

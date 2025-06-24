@@ -1,0 +1,10 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    -Dpython="$Python"
+    -Dtests=false # true, build unit tests
+)
+
+pkg_post_install() {
+    pkg_python_compileall "$LibDir2"
+}
