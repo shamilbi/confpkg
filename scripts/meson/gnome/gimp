@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PkgHome="https://download.gimp.org/gimp/?C=M&O=D"
+PkgHome[1]="https://download.gimp.org/gimp/?C=M&O=D"
 
 ConfigureOpts+=(
     # Slackware
