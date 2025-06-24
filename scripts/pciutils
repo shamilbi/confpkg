@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# Use pci.ids from hwdata package
+
+unset pkg_configure pkg_check
+
+MakeEnv=(
+    # Slackware
+    PREFIX="$Prefix"
+    SBINDIR=/sbin
+    #LIBDIR="$LibDir"
+    MANDIR="$ManDir"
+    IDSDIR="$ShareDir"/hwdata
+    PCI_IDS=pci.ids
+    PCI_COMPRESSED_IDS=0
+    SHARED=yes
+
+    LIBDIR=/"$LibName"
+    ZLIB=no # Support for compressed pci.ids (yes/no, default: detect)
+        # update-pciids.sh: PCI_COMPRESSED_IDS=0
+)
+InstallEnv+=("${MakeEnv[@]}")
+InstallOpts=(
+    # Slackware
+    install
+    install-lib
+)
+
+pkg_post_install() {
+    # Slackware
+    # Add a symlink to the old location:
+    # /sbin/lspci
+    ls -d "$Prefix2"/bin/lspci | pkg_ln_d "$DestDir"/sbin
+    # /usr/sbin/update-pciids
+    ls -d "$DestDir"/sbin/update-pciids | pkg_mv_d "$Prefix2"/sbin
+    # Use pci.ids from hwdata package
+    rm -f "$ShareDir2"/hwdata/pci.ids
+    # Remove empty directories:
+    rmdir "$ShareDir2"/hwdata "$ShareDir2"
+
+    # /usr/lib64/libpci.*
+    ls -d "$DestDir/$LibName"/libpci.* | pkg_ln_d "$LibDir2"
+}
