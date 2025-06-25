@@ -1,0 +1,34 @@
+#!/bin/bash
+
+PkgHome="https://git.kernel.org/pub/scm/utils/cryptsetup/cryptsetup.git/"
+
+ConfigureOpts+=(
+    # Slackware
+    --enable-cryptsetup-reencrypt
+    --enable-libargon2
+    --disable-asciidoc
+)
+
+pkg_post_install() {
+    # Slackware
+    # Move the cryptsetup binary to $PKG/sbin:
+    echo "$Prefix2/sbin/$Name"| pkg_mv_ln "$DestDir/sbin"
+    # Add the rc script:
+    pkg_install_mfd 755 "$SupportDir"/rc.luks "$Etc2/rc.d"
+    ## Convert pdf files to text. We do not package bloated PDFs.
+    #if [[ $(command -v pdftotext) ]]; then
+    #    local f1
+    #    while f1=$(pkg_read_exist); do
+    #        pdftotext "$f1" "${f1%.*}.txt"
+    #    done < <(find docs -maxdepth 1 -type f -name '*.pdf')
+    #fi
+    pkg_install_mfd 644 docs/*.txt "$DocDir2"
+    # ReleaseNotes
+    pkg_install_mfd 644 docs/v"$Version"-ReleaseNotes "$DocDir2"
+
+    # for tomb
+    ls -d "$DestDir/sbin/$Name" | pkg_ln_d "$Prefix2/bin"
+
+    # pdf
+    pkg_install_mfd 644 docs/*.pdf "$DocDir2"
+}
