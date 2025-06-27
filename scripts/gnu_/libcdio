@@ -1,6 +1,5 @@
 #!/bin/bash
 
-PkgHome[1]="https://packages.debian.org/bookworm/libcdio-dev"
 PkgHome+=(
     "https://github.com/libcdio/libcdio/tags"
 )

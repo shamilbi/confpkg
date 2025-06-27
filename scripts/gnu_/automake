@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PkgHome[1]="https://packages.debian.org/stable/automake"
+
 pkg_post_install() {
     # Slackware
     # Change hard links to symlinks:
