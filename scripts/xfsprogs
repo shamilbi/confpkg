@@ -1,0 +1,65 @@
+#!/bin/bash
+
+PkgHome="https://git.kernel.org/pub/scm/fs/xfs/xfsprogs-dev.git/"
+
+# REQ: inih, icu
+
+cronDir=$ShareDir/xfsprogs
+
+ConfigureOpts+=(
+    # Slackware
+    --libdir=/"$LibName"
+    --libexecdir="$LibDir"
+    --sbindir=/sbin
+    --bindir="$Prefix"/sbin
+    --enable-shared=yes
+    --enable-gettext=yes
+
+    --with-crond-dir="$cronDir"
+)
+pkg_check=
+Make=(make)
+InstallEnv=(
+    # Slackware
+    DIST_ROOT="$DestDir"
+
+    PKG_USER=root
+    PKG_GROUP=root
+    CROND_DIR="$cronDir"
+)
+InstallOpts=(
+    # Slackware
+    install
+    install-dev
+)
+unset ProtectDirs
+
+pkg_pre_configure() {
+    if (($(pkg_cmp_versions "$Version" "6.13.0") >= 0)); then
+        # Slackware
+        # Fix long vs. off_t mismatch:
+            # -static long filesize(int fd);
+            # +static off_t filesize(int fd);
+        local f1=mkfs/proto.c
+        if pkg_create_orig "$f1"; then
+            local s1='^(static) long (filesize\(int fd\);)'
+            local s2='\1 off_t \2'
+            sed -i -r -e "s,$s1,$s2," "$f1" || return 1
+        fi
+    fi
+    # Slackware
+    # https://zhangboyi.gitlab.io/post/2020-09-14-resolve-dso-missing-from-command-line-error/
+    export LDFLAGS="-Wl,--copy-dt-needed-entries"
+}
+
+pkg_post_install() {
+    # Slackware
+    # The install location for many binaries changed with the update to 3.1.1,
+    # but it seems like the wrong place to put most of this stuff:
+    find "$DestDir"/sbin -type f -name 'xfs_*' ! -name 'xfs_repair' |
+        pkg_mv_d "$Prefix2"/sbin
+    # Make /usr/lib/libhandle.so a symlink to /lib/libhandle.so.1:
+    find "$DestDir/$LibName" -maxdepth 1 -type l | pkg_ln_d "$LibDir2"
+    # Fix shared library perms:
+    find "$DestDir/$LibName" -type f -name 'lib*.so.*' -exec chmod 755 {} \;
+}
