@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# included in shaderc
+
+ConfigureOpts+=(
+    -DCMAKE_INSTALL_LIBDIR="$LibName"
+    -DALLOW_EXTERNAL_SPIRV_TOOLS=ON # /usr/lib64/libSPIRV-Tools.a
+)

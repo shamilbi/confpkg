@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# included in shaderc
+
+ConfigureOpts+=(
+    #-DSPIRV_SKIP_TESTS=yes
+    -DSPIRV_TOOLS_BUILD_STATIC=ON # ON, glslang
+    -DSPIRV_TOOLS_LIBRARY_TYPE=SHARED # SHARED or STATIC.
+    -DSPIRV-Headers_SOURCE_DIR="$Prefix"
+)
+
+pkg_pre_configure() {
+    #pkg_configure_opt_dir SPIRV-Headers -DSPIRV-Headers_SOURCE_DIR || return 1
+
+    # fix SPIRV-Tools.pc
+    # libdir=${prefix}/@CMAKE_INSTALL_LIBDIR@
+    # includedir=${prefix}/@CMAKE_INSTALL_INCLUDEDIR@
+    dir=$OrigSrcDir/cmake
+    local f
+    for f in SPIRV-Tools.pc.in SPIRV-Tools-shared.pc.in; do
+        f=$dir/$f
+        sed -i -r -e 's,^(libdir)=.*,\1='"$LibDir"',' "$f"
+        sed -i -r -e 's,^(includedir)=.*,\1='"$IncludeDir"',' "$f"
+    done
+}
