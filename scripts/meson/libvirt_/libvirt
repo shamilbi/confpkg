@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PkgHome="https://gitlab.com/libvirt/libvirt/-/tags"
+#PkgHome="https://gitlab.com/libvirt/libvirt/-/tags"
 
 ConfigureOpts+=(
     -Dexpensive_tests=disabled

@@ -1,0 +1,17 @@
+#!/bin/bash
+
+#PkgHome="https://gitlab.com/libvirt/libvirt-dbus"
+
+read -r -d '' pkg_post_installpkg <<EOF
+pkg_post_installpkg() {
+    local user="libvirtdbus"
+    if [[ ! \$(getent group "\$user") ]]; then
+        groupadd -r "\$user"
+    fi
+    if [[ ! \$(getent passwd "\$user") ]]; then
+        useradd -r -g "\$user" -d / -s /sbin/nologin -c "Libvirt D-Bus bridge" "\$user"
+    fi
+}
+EOF
+
+:
