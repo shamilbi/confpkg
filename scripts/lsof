@@ -1,0 +1,44 @@
+#!/bin/bash
+
+pkg_configure() {
+    # Slackware
+    echo n | ./Configure linux
+
+    #./Configure -n linux
+}
+
+pkg_install() {
+    # Slackware
+    # No, NOT suid.
+    #pkg_install_mfd 755 -o root -g bin lsof "$Prefix2/bin" || return 1
+    pkg_install_mfd 755 lsof "$Prefix2/bin" || return 1
+
+    # lsof.8
+    if [[ -f Lsof.8 && ! -f lsof.8 ]]; then
+        # Slackware
+        # Grab the version number:
+        # When copying the manpage, eliminate the line requiring the "version" file to
+        # be present, and sed a placeholder for the version into place:
+        cat Lsof.8 | grep -v "^.so ./version$" | sed 's|\\\*(VN|%VERSION%|g' >lsof.8
+        # Get the revision number:
+        local LSOFVER=$(cat version | cut -f 3 -d ' ')
+        # Make the replacement:
+        sed -i "s/%VERSION%/$LSOFVER/g" lsof.8
+    fi
+    pkg_install_mfd 644 lsof.8 "$ManDir2/man8" || return 1
+}
+
+pkg_install_doc() {
+    local files=(
+        COPYING
+        ChangeLog
+        Customize
+        README.md
+        00DIST
+    )
+    pkg_install_mfd 644 "${files[@]}" "$DocDir2"
+}
+
+pkg_distclean() {
+    ./Configure -clean
+}
