@@ -1,0 +1,19 @@
+#!/bin/bash
+
+PkgHome="https://github.com/vcrhonek/hwdata"
+
+CleanOpts=(clean)
+
+pkg_install_doc() {
+    pkg_install_mfd 644 COPYING LICENSE README hwdata.spec "$DocDir2"
+}
+
+pkg_post_install() {
+    # Slackware
+    # link: /usr/share/hwdata/* -> /usr/share/
+    # usb.ids -> hwdata/usb.ids
+    ln -sfnr "$ShareDir2/$Name"/* "$ShareDir2"
+    # /usr/lib64/modprobe.d/* --> $DocDir
+    ls -d "$LibDir2"/modprobe.d/* | pkg_mv_d "$DocDir2"
+    find "$LibDir2" -depth -type d -empty -delete
+}
