@@ -1,30 +1,91 @@
 #!/bin/bash
 
+# Slackware
+#xorg_rootless=1
+
+xorg_rootless=
+
 ConfigureOpts+=(
-    --with-log-dir=/var/log
-    --with-xkb-output=/var/lib/xkb
-    --with-fontrootdir="$FontsDir"
+    # Slackware
     --enable-xorg
-    --enable-install-setuid
-    --disable-systemd-logind
+    #--enable-dmx # not found
+    #--enable-xvfb # Build Xvfb server (default: yes)
+    #--enable-xnest # Build Xnest server (default: auto)
+    #--enable-glamor # Build glamor dix module (default: auto)
+    #--enable-kdrive # Build kdrive servers (default: no)
+    #--enable-xephyr # Build the kdrive Xephyr server (default: auto)
+    --with-pic # --enable-pic[=PKGS] try to use only PIC/non-PIC objects [default=use both]
+    --with-int10=x86emu # int10 backend: vm86, x86emu or stub
+    #--with-module-dir="$LibDir"/xorg/modules # Directory where modules are installed (default: $libdir/xorg/modules)
+    #--with-os-name="Slackware 15.1"
+    #--with-os-vendor="Slackware Linux Project"
+    --with-xkb-path="$ShareDir"/X11/xkb
+    --with-xkb-output=/var/lib/xkb # Path to XKB output dir (default: ${datadir}/X11/xkb/compiled)
+    --enable-config-udev # Build udev support (default: auto)
+    --disable-config-hal # Build HAL support (default: auto)
+    --enable-year2038 # support timestamps after 2038
+
+    --with-log-dir=/var/log # Directory where log files are kept (default: $localstatedir/log)
+    --with-fontrootdir="$FontsDir" # Path to root directory for font files
 )
-#    --enable-dri2 \
-#    --enable-glx-tls \
-#    --enable-glamor \
-#    --enable-xvfb \
-#    --enable-xfbdev \
-#    --enable-dmx \
 
-[[ $WAYLAND ]] && ConfigureOpts+=(--enable-xwayland) \
-    || ConfigureOpts+=(--disable-xwayland)
+# Slackware
+if [[ $WAYLAND ]]; then
+    ConfigureOpts+=(--enable-xwayland)
+else
+    ConfigureOpts+=(--disable-xwayland)
+fi
 
-MakeEnv=("xorgconfddir=$Etc/X11/xorg.conf.d")
+if [[ $xorg_rootless ]]; then
+    # Slackware
+    # We will build Xorg so that it runs rootless if it can do so. The Xorg.wrap
+    # setuid wrapper will be set to "auto" by default in /etc/X11/Xwrapper.config,
+    # which will only run Xorg as root for non-KMS legacy drivers that require Xorg
+    # to be running as root in order to draw to the screen. It's possible that some
+    # drivers could still run into issues with this, such as missing keyboard or
+    # mouse (elogind should provide these), or problems after suspend. If you do
+    # have problems, let us know on LQ. You can also edit /etc/X11/Xwrapper.config
+    # to make Xorg run as root:
+    # needs_root_rights = yes
+    ConfigureOpts+=(
+        --enable-suid-wrapper # Build suid-root wrapper for legacy driver support on rootless xserver systems (default: no)
+        --disable-install-setuid # Install Xorg server as owned by root with setuid bit (default: auto)
+        --enable-systemd-logind # Build systemd-logind support (default: auto)
+    )
+else
+    ConfigureOpts+=(
+        --enable-install-setuid
+        --disable-systemd-logind
+    )
+fi
+
+MakeEnv=(
+    xorgconfddir="$Etc"/X11/xorg.conf.d
+)
 InstallEnv+=("${MakeEnv[@]}")
 
-pkg_post_install()
-{
+pkg_pre_configure() {
+    # Slackware
+    # Default font paths to be used by the X server:
+    # relative to /usr/share/fonts
+    local relpath=(
+        misc local TTF OTF Type1 CID
+        75dpi/:unscaled
+        100dpi/:unscaled
+        75dpi 100dpi cyrillic
+    )
+    local i fontpath
+    for i in "${relpath[@]}"; do
+        fontpath+=",$FontsDir/$i"
+    done
+    fontpath=${fontpath:1} # -first comma
+    ConfigureOpts+=(
+        --with-default-font-path="${fontpath}"
+    )
+    pkg_autoreconf
+}
+
+pkg_post_install() {
     # /usr/lib/modules --> xorg/modules
     ln -sfn xorg/modules "$LibDir2/modules"
-
-#    chmod u+s $Prefix2/bin/Xorg
 }
