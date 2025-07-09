@@ -1,0 +1,97 @@
+#!/bin/bash
+
+# libuuid,libblkid - in util-linux
+
+UseBuildDir=1
+Configure=$OrigSrcDir/configure
+
+ConfigureOpts+=(
+    # Slackware
+    --enable-elf-shlibs
+    --disable-libblkid
+    --disable-libuuid
+    --disable-uuidd
+
+    --sbindir=/sbin
+    --libdir="/$LibName"
+    #--libexecdir="/$LibName"
+    --enable-symlink-install
+)
+
+pkg_check=
+
+InstallOpts=(install install-libs)
+
+pkg_post_install() {
+    local f
+
+    # libblockdev build error: undefined reference to `com_err'
+    # https://github.com/storaged-project/libblockdev/issues/957
+    # del *.a
+    find "$DestDir/$LibName" -type f -name '*.a' -delete
+
+    # /lib64/pkgconfig -> /usr/lib64/
+    ls -d "$DestDir/$LibName"/pkgconfig | pkg_mv_d "$LibDir2"
+
+    # link: /lib64/*.so -> /usr/lib64/
+    find "$DestDir/$LibName" -type l -name '*.so' | pkg_ln_d "$LibDir2"
+    find "$DestDir/$LibName" -type l -name '*.so' -delete
+
+    # Since fsck is now part of util-linux, let's prefer that version:
+    # fsck -> fsck-e2fsprogs
+    f=$DestDir/sbin/fsck
+    [[ -f $f ]] && mv "$f" "$f-e2fsprogs"
+    # fsck.8 -> fsck-e2fsprogs.8
+    f=$ManDir2/man8/fsck.8
+    [[ -f $f ]] && mv "$f" "${f%.*}-e2fsprogs.${f##*.}"
+
+    # Get rid of systemd cron.d cruft:
+    rm -rf "$Etc2"/cron.d
+
+    (
+        cd "$DestDir/sbin" || exit 1
+
+        # findfs is intentionally left out here - we use the one in util-linux-ng
+        rm -f findfs
+
+        rm -f mkfs.ext* e2label # del links
+        ln -sfn mke2fs mkfs.ext2
+        ln -sfn mke2fs mkfs.ext3
+        ln -sfn mke2fs mkfs.ext4
+        ln -sfn mke2fs mkfs.ext4dev
+        ln -sfn tune2fs e2label
+
+        rm -f fsck.ext* # del links
+        pkg_install_mff 0755 fsck.ext2 <<EOF
+#!/bin/bash
+exec /sbin/e2fsck -C 0 \$*
+EOF
+        # Why won't symlinks work here?  --RW
+        # Because $0 will always be "fsck.ext2" in that case.  --PJV
+        # rworkman is correct, so ignore the previous two comments  :)  --PJV
+        cp -a fsck.ext2 fsck.ext3
+        cp -a fsck.ext2 fsck.ext4
+        cp -a fsck.ext2 fsck.ext4dev
+
+        # link: mke2fs -> mkfs.ext4dev
+        ln -sfnr mke2fs mkfs.ext4dev
+    )
+
+    (
+        cd "$ManDir2"/man5 || exit 1
+        ln -sf ext4.5 ext2.5
+        ln -sf ext4.5 ext3.5
+    )
+
+    (
+        cd "$ManDir2"/man8 || exit 1
+        ln -sfn e2fsck.8 fsck.ext2.8
+        ln -sfn e2fsck.8 fsck.ext3.8
+        ln -sfn e2fsck.8 fsck.ext4.8
+        ln -sfn e2fsck.8 fsck.ext4dev.8
+        ln -sfn mke2fs.8 mkfs.ext2.8
+        ln -sfn mke2fs.8 mkfs.ext3.8
+        ln -sfn mke2fs.8 mkfs.ext4.8
+        ln -sfn mke2fs.8 mkfs.ext4dev.8
+    )
+}
