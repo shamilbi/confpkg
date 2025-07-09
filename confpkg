@@ -499,6 +499,15 @@ chroot . /usr/bin/update-gdk-pixbuf-loaders &>/dev/null
 EOF
     fi
 
+    # update-mime-database
+    if [[ -d $ShareDir2/mime ]]; then
+        pkg_doinst_add <<EOF
+if [[ -x /usr/bin/update-mime-database ]]; then
+    /usr/bin/update-mime-database ."$ShareDir"/mime &>/dev/null
+fi
+EOF
+    fi
+
     if [[ ! $DOC && -d $DocDir2 ]]; then
         rm -rf "$DocDir2"
     fi
