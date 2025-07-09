@@ -1,0 +1,24 @@
+#!/bin/bash
+
+PkgHome="https://gitlab.com/gnutls/gnutls/"
+
+ConfigureOpts+=(
+    # Slackware
+    --disable-rpath
+    --with-included-libtasn1
+    --with-brotli
+    --with-idn
+    --with-zstd
+    --enable-openssl-compatibility
+
+    --disable-doc
+    --enable-libdane=no
+)
+MakeEnv+=(
+    imagesdir="$DocDir"
+)
+InstallEnv+=("${MakeEnv[@]}")
+
+pkg_pre_install() {
+    sed -i -e 's,ginstall -c,ginstall -C,' doc/manpages/Makefile
+}
