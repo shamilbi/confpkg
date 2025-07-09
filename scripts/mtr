@@ -1,0 +1,10 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    --without-gtk
+)
+
+pkg_post_install()
+{
+    chmod -s $Prefix2/sbin/mtr
+}
