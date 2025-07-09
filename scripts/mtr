@@ -1,10 +1,11 @@
 #!/bin/bash
 
 ConfigureOpts+=(
+    # Slackware
     --without-gtk
 )
 
-pkg_post_install()
-{
+pkg_post_install() {
+    # Slackware
     chmod -s $Prefix2/sbin/mtr
 }
