@@ -1,0 +1,8 @@
+#!/bin/bash
+
+PkgHome="https://djvu.sourceforge.net/"
+
+pkg_post_install() {
+    # Slackware
+    pkg_install_mfd 644 desktopfiles/djvulibre-mime.xml "$ShareDir2"/mime/packages
+}
