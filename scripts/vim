@@ -6,33 +6,81 @@ pkg_configure_del2 shared static
 
 ConfigureOpts+=(
     # Slackware
-    --enable-multibyte
-    --enable-cscope
-    --with-features=huge
-    --disable-canberra
+    #--enable-luainterp=$LUAINTERP # Include Lua interpreter, default=no, [no/yes/dynamic]
+    #--enable-perlinterp=$PERLINTERP # Include Perl interpreter, default=no, [no/yes/dynamic]
+    #--enable-pythoninterp=no # Include Python interpreter, default=no, [no/yes/dynamic]
+    #--enable-python3interp=dynamic # Include Python3 interpreter, default=no, [no/yes/dynamic]
+    #--enable-rubyinterp${RUBYDYNAMIC} # Include Ruby interpreter, default=no, [no/yes/dynamic]
+    #--enable-tclinterp=dynamic # Include Tcl interpreter, default=no, [no/yes/dynamic]
+    --disable-canberra # Do not use libcanberra
+    --enable-multibyte # Include multibyte editing support
+    --enable-cscope # Include cscope interface
+    --with-features=huge # [tiny, normal, huge], default: huge
+    --with-wayland=no
+    #--with-x=no
+    #--with-compiledby="<volkerdi@slackware.com>"
 
     --disable-gtktest
     --disable-netbeans # Disable NetBeans integration support
 )
 
 # vim --version: +xterm_clipboard ("+y)
-[[ $X ]] && ConfigureOpts+=(--with-x --enable-gui=gtk3)
+[[ $X ]] &&
+    ConfigureOpts+=(
+        --with-x # use the X Window System
+        --enable-gui=gtk3 # X11 GUI, default=auto [auto/no/gtk2/gnome2/gtk3/motif/haiku/photon/carbon]
+    )
 
 Make=(make)
 pkg_check=
-ProtectFiles=("$ShareDir/vim/vimrc")
+ProtectFiles=("$ShareDir"/vim/vimrc)
 
 pkg_post_install() {
-    # eview, evim
-    ln -sf vim "$Prefix2/bin/eview"
-    ln -sf vim "$Prefix2/bin/evim"
-    cp -a runtime/vimrc_example.vim "$ShareDir2/vim/vimrc"
+    # Slackware
+    pkg_install_mff 644 runtime/vimrc_example.vim "$ShareDir2"/vim/vimrc
+    # Move the vim.desktop into the docs directory. There's really not much use
+    # for this .desktop file. It's easy enough to just open a terminal and run
+    # vim in it without this.
+    mv "$ShareDir2"/applications/vim.desktop "$DocDir2"
+    # Don't make backups in /var/spool/cron/*, which fixes "crontab -e":
+    cat >>"$ShareDir2/vim/vimrc" <<EOF
 
-    # man
+" Make vim work with the 'crontab -e' command
+set backupskip+=/var/spool/cron/*,/run/cron/*
+EOF
+    # Legacy binary links:
+    local names=(rview rvim view eview evim)
     local i
-    for i in ex rview rvim view; do
-        ln -sfn vim.1 "$ManDir2/man1/$i.1"
+    for i in "${names[@]}"; do
+        ln -sfn vim "$Prefix2"/bin/"$i"
+        ln -sfn vim.1 "$ManDir2"/man1/"$i".1
     done
+    # These should not be shipped:
+    rm -f "$Prefix2"/bin/{ex,vi}
+    # /usr/share/vim/vimXX/defaults.vim.custom
+    i=$(find "$ShareDir2"/vim -mindepth 1 -maxdepth 1 -type d -name 'vim*' -print -quit)
+    i=${i: ${#DestDir}+1} # usr/share/vim/vimXX
+    pkg_read2var pkg_post_installpkg <<EOF
+pkg_post_installpkg() {
+    # Slackware
+    # Responding to a report that in some cases the file
+    # /usr/share/vim/vim90/defaults.vim must be edited in order to change settings
+    # (some settings in the file will otherwise override those in
+    # /usr/share/vim/vimrc), we will support a file in the same directory named
+    # defaults.vim.custom. If this file exists, then it will replace the shipped
+    # version of defaults.vim. The original file will be preserved as
+    # defaults.vim.orig.
+    local dir="$i"
+    if [[ -r \$dir/defaults.vim.custom ]]; then
+        cp -a "\$dir"/defaults.vim "\$dir"/defaults.vim.orig
+        cp -a "\$dir"/defaults.vim.custom "\$dir"/defaults.vim
+    fi
+}
+pkg_post_installpkg
+EOF
+
+    # -ex.1
+    find "$ManDir2" -type l -name 'ex.1' -delete
 
     # textwidth
     # autocmd FileType text setlocal textwidth=78
