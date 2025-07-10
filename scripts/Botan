@@ -27,5 +27,5 @@ pkg_configure() {
 }
 
 pkg_post_install() {
-    pkg_python_compileall
+    pkg_python_compileall "$DestDir"
 }
