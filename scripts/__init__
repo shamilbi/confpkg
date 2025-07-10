@@ -441,17 +441,17 @@ pkg_find_opt_dir() {
 }
 
 pkg_python_compileall() {
-    local dir=$1 python=$2
-    [[ ! $python ]] && python=$Python
-    [[ ! $dir ]] && dir=$DestDir
-    if [[ ! -d $dir || ! -x $python ]]; then
-        pkg_echo "${FUNCNAME[0]}: bad dir ($dir) or python ($python)"
+    # pkg_python_compileall <dir> <options>
+    local dir=$1
+    shift 1
+    if [[ ! -d $dir || ! -x $Python ]]; then
+        pkg_echo "${FUNCNAME[0]}: bad dir ($dir) or python ($Python)"
         return 1
     fi
     if [[ $(find "$dir" -type f -name '*.py' -print -quit) ]]; then
         (
             cd "$dir" || exit 1
-            "$python" -m compileall .
+            "$Python" -m compileall . "$@"
         ) || return 1
     fi
 }
