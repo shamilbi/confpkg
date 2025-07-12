@@ -34,10 +34,6 @@ case "$Arch" in
     x86_64)
         CFlags+=("-march=x86-64" "-mtune=generic" "-fPIC")
         ;;
-    i?86)
-        Arch=i586
-        CFlags+=("-march=i586" "-mtune=i686")
-        ;;
     arm*)
         readelf /usr/bin/file -A |\
             grep -Eq "Tag_CPU.*[4,5]" \
