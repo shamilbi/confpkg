@@ -30,6 +30,12 @@ SELINUX=
 AUDIT=
 
 Arch=$(uname -m)
+case $Arch in
+    i?86)
+        # Slackware
+        Arch=i686
+        ;;
+esac
 Host="$Arch-slackware-linux"
 
 LibSuffix=
