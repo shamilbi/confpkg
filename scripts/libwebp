@@ -9,11 +9,15 @@ ConfigureOpts+=(
     --disable-silent-rules
     --enable-everything
     --enable-swap-16bit-csp
-
-    #--enable-libwebpmux
-    #--enable-libwebpdemux
-    #--enable-libwebpdecoder
 )
+
+# Slackware
+if [[ $Arch = "i686" ]]; then
+    ConfigureOpts+=(
+        --disable-avx2
+        --disable-sse4.1
+    )
+fi
 
 pkg_post_install() {
     pkg_reinstall_python swig
