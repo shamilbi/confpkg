@@ -1,0 +1,14 @@
+#!/bin/bash
+
+PkgHome="https://github.com/ClusterLabs/libqb"
+
+pkg_post_install() {
+    # $Name.pc:
+    # Version: UNKNOWN
+    # Version: 2.0.8-yank
+    sed -i -r -e 's,^(Version:) .*,\1 '"$Version"',' "$LibDir2"/pkgconfig/"$Name".pc
+
+    find "$DestDir" -type f -name 'doxygen2man*' -delete
+    rm -rf "$ManDir2"/man3
+    find "$DestDir" -depth -type d -empty -delete
+}
