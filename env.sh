@@ -97,3 +97,9 @@ PATH=$PATH:/usr/sbin:/sbin
 export PATH
 
 UserCacheDir=~/.cache/confpkg
+
+#xdg-open "${PkgSearchURL}${Name}"
+#xdg-open "https://stract.com/search?q=$Name" &
+#xdg-open "https://html.duckduckgo.com/html?q=$Name" &
+#xdg-open "https://www.startpage.com/sp/search?query=$Name" &
+PkgSearchURL="https://www.startpage.com/sp/search?query="
