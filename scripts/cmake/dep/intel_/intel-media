@@ -1,0 +1,12 @@
+#!/bin/bash
+
+PkgHome="https://github.com/intel/media-driver"
+
+# REQ: intel-gmmlib
+
+pkg_pre_configure() {
+    # clang
+    # media_softlet/linux/common/os/xe/mos_bufmgr_xe.c:1091:52: error:
+    #   variable length arrays in C++ are a Clang extension [-Werror,-Wvla-cxx-extension]
+    pkg_add_cflags "-Wno-error=vla-cxx-extension"
+}
