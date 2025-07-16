@@ -1067,7 +1067,9 @@ main() {
             elif [[ $Name ]]; then
                 # https://stract.com/search?q=libreoffice
                 #xdg-open "https://stract.com/search?q=$Name"
-                xdg-open "https://html.duckduckgo.com/html?q=$Name" &
+                #xdg-open "https://html.duckduckgo.com/html?q=$Name" &
+                #xdg-open "https://www.startpage.com/sp/search?query=$Name" &
+                xdg-open "${PkgSearchURL}${Name}" &
             fi
             ;;
         edit)
