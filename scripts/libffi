@@ -1,0 +1,10 @@
+#!/bin/bash
+
+PkgHome="https://github.com/libffi/libffi"
+
+ConfigureOpts+=(
+    # Slackware
+    --disable-exec-static-tramp
+
+    --disable-docs
+)
