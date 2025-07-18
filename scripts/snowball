@@ -1,0 +1,20 @@
+#!/bin/bash
+
+PkgHome="https://github.com/snowballstem/snowball"
+
+CleanOpts=(clean)
+
+pkg_pre_configure() {
+    local makefile=GNUmakefile
+    Make+=(-f "$makefile")
+    # CFLAGS=-O2 -W -Wall -Wmissing-prototypes -Wmissing-declarations
+    #   add -fPIC
+    if pkg_create_orig "$makefile"; then
+        sed -i -r -e 's,^(CFLAGS=.*),\1 -fPIC,' "$makefile"
+    fi
+}
+
+pkg_install() {
+    pkg_install_mfd 644 include/libstemmer.h "$IncludeDir2"
+    pkg_install_mfd 644 libstemmer.a "$LibDir2"
+}
