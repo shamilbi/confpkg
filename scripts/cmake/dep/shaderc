@@ -1,6 +1,11 @@
 #!/bin/bash
 
-PkgHome="https://github.com/google/shaderc"
+PkgHome=(
+    "https://github.com/google/shaderc/tags"
+    "https://github.com/KhronosGroup/SPIRV-Tools/tags"
+    "https://github.com/KhronosGroup/SPIRV-Headers/tags"
+    "https://github.com/KhronosGroup/glslang/tags"
+)
 
 # REQ: $OrigSrcDir/../{SPIRV-Tools-*,SPIRV-Headers-*,glslang-*}
 
