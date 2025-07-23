@@ -1,0 +1,6 @@
+#!/bin/bash
+
+pkg_post_install() {
+    rm -rf "$DocDir2/$Name" &>/dev/null
+    :
+}
