@@ -1,0 +1,11 @@
+#!/bin/bash
+
+PythonInstallLibs=(
+    cryptography
+    argon2-cffi
+    pycryptodomex
+    bcrypt
+    scrypt
+    m2crypto
+    asn1crypto
+)
