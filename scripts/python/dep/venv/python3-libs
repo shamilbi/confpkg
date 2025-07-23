@@ -1,0 +1,53 @@
+#!/bin/bash
+
+PythonVenvSystem=
+
+PythonInstallLibs=(
+    wheel
+    build
+    setuptools-rust
+    flit-core           # argon2-cffi
+    poetry-core         # dnspython
+    hatchling
+    hatch-vcs
+    hatch-fancy-pypi-readme # urllib3
+    urllib3             # conan
+    python-dateutil     # conan
+    pyparsing
+    "cython<3.1"
+    "lxml<6"
+    psutil              # glances
+    requests            # conan
+    pyyaml              # conan
+    pyxdg
+    pytz
+    tzdata              # pandas
+    pycairo             # libblockdev
+    pygobject           # libblockdev
+    mako
+    sip
+    six                 # wxPython
+    pyasn1_modules      # tpm2-pkcs11
+    pkgconfig           # tpm2-pytss
+    pygments            # gnu global
+    calver              # setuptools: use_calver
+    pefile              # fwupd
+    platformdirs        # pdm
+    tomlkit             # pdm
+    toml                # safety
+    jinja2              # fwupd, conan
+    #versioneer          # pandas
+    ply                 # mesa (build)
+    docutils            # sphinx, rst2pdf
+    packaging           # meson, ninja
+    typing-extensions
+)
+
+pkg_post_install() {
+    # pytz, tzdata
+    local dir
+    while IFS= read -r dir; do
+        rm -rf "$dir"
+        ln -sfn "$Prefix/share/zoneinfo" "$dir"
+    done < <(find "$DestDir" -type d -name zoneinfo)
+}
