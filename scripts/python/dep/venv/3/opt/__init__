@@ -1,0 +1,5 @@
+#!/bin/bash
+
+pkg_install() {
+    pkg_python_install "/opt/${Name,,}" # Glances -> glances, Sphinx -> sphinx
+}
