@@ -1,0 +1,25 @@
+#!/bin/bash
+
+PkgHome="https://github.com/mesonbuild/meson"
+
+PythonVenvSystem=
+#PythonNoBuildIsolation=1
+PythonInstallLibs0=(
+    packaging # already in python-libs
+)
+PythonInstallLibs=(
+    meson-python    # pandas
+)
+
+#InstallOpts=(
+#    install
+#    "--root=$DestDir"
+#    "--install-data=$Prefix"
+#)
+
+pkg_post_install() {
+    local f=$Prefix2/bin/wraptool
+    if [[ -f $f ]]; then
+        rm -f "$f"
+    fi
+}
