@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# compile $PythonVenvDir/ then copy to /usr
+
+unset BuildSteps # pkg_python_install (BuildForPython)
+unset pkg_configure pkg_make PythonInstallLibs PythonInstallLibs0
+PythonVenvSystem=1
+
+# Slackware
+# Allow build to use CMake 4.x:
+export CMAKE_POLICY_VERSION_MINIMUM=3.5
+
+pkg_install() {
+    pkg_python_install
+    #: # python-protobuf-5.29.0: exit 1 without errors
+}
+
+pkg_distclean() {
+    if [[ -d $PythonVenvDir ]]; then
+        rm -rf "$PythonVenvDir" || return 1
+    fi
+}
