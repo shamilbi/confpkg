@@ -1,0 +1,24 @@
+#!/bin/bash
+
+InstallOpts=(
+    install
+    "--root=$DestDir"
+    "--install-data=$Prefix"
+)
+
+#pkg_install() {
+#    pkg_python_install "/opt/$Name"
+#}
+
+pkg_post_install() {
+    local d=$ShareDir2/doc/glances
+    if [[ -d $d ]]; then
+        pkg_cp_dd "$d" "$DocDir2" && rm -rf "$d"
+
+        local d2=$DocDir2/docs
+        if [[ -d $d2 ]]; then
+            rm -rf "$d2"
+            # size=14M
+        fi
+    fi
+}
