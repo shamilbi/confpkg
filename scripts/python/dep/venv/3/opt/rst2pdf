@@ -1,0 +1,3 @@
+#!/bin/bash
+
+PythonInstallBins=(rst2pdf)
