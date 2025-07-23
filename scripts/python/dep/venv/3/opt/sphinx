@@ -1,0 +1,6 @@
+#!/bin/bash
+
+PythonNoBuildIsolation=1
+PythonInstallLibs2=(
+    sphinx_rtd_theme # btrfs-progs (docs)
+)
