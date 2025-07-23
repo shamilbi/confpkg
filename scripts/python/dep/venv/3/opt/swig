@@ -1,0 +1,8 @@
+#!/bin/bash
+
+pkg_post_install() {
+    (
+        cd "$Prefix2"/bin || exit 1
+        ls -d swig[0-9]* | pkg_ln_equals
+    )
+}
