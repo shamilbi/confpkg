@@ -1,0 +1,11 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://www.visidata.org/"
+    "https://github.com/saulpw/visidata/tags"
+)
+
+pkg_pre_install() {
+    # setup.py: file not found
+    touch "requirements.txt"
+}
