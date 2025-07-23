@@ -1,0 +1,8 @@
+#!/bin/bash
+
+PkgHome="https://github.com/borgbackup/borg"
+
+export BORG_OPENSSL_PREFIX=$Prefix
+PythonInstallLibs=(msgpack pyfuse3)
+PythonVenvSystem=
+#PythonNoBuildIsolation=1
