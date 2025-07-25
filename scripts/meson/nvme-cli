@@ -1,0 +1,13 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    # Slackware
+    -Ddocs=man
+)
+
+pkg_post_install() {
+    # Slackware
+    # Remove dracut and systemd libdir files:
+    rm -rf "$Prefix2"/lib/{dracut,systemd,udev}
+    rmdir "$Prefix2"/lib
+}
