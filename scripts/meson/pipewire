@@ -1,0 +1,48 @@
+#!/bin/bash
+
+PkgHome="https://gitlab.freedesktop.org/pipewire/pipewire"
+
+# REQ: rst2man (python docutils)
+# subproject/wireplumber is fetched from
+#   https://gitlab.freedesktop.org/pipewire/wireplumber.git
+
+ConfigureOpts+=(
+    # Slackware
+    -Dudevrulesdir=/lib/udev/rules.d
+    #-Dman=enabled # disabled, Manual pages
+    -Dffmpeg=enabled # disabled, Enable ffmpeg spa plugin integration
+    -Dvulkan=enabled # disabled, Enable vulkan spa plugin integration
+    #-Djack=disabled
+    #-Dpipewire-jack=disabled
+    -Dsession-managers=[] # [wireplumber], Session managers to build (can be [] for none or an absolute path)
+
+    -Dexamples=disabled # enabled, Build examples
+    -Dtests=disabled # enabled, Build tests
+    -Dsystemd=disabled
+)
+[[ ! $PULSE ]] && ConfigureOpts+=(-Dlibpulse=disabled)
+[[ ! $JACK ]] && ConfigureOpts+=(-Djack=disabled -Dpipewire-jack=disabled)
+
+pkg_post_install() {
+    # Slackware
+    # Create system config file override directory:
+    mkdir -p "$Etc2/$Name"
+    # Add sample configuation files:
+    pkg_install_mfd 644 "$SupportDir"/*.desktop.sample "$Etc2/xdg/autostart"
+    pkg_install_mfd 755 "$SupportDir"/pipewire*.sh "$Prefix2/sbin"
+
+    rm -f "$Etc2/xdg/autostart"/*media-session*
+}
+
+pkg_read2var pkg_post_installpkg <<EOF
+pkg_post_installpkg() {
+    # Slackware
+    # Toss redundant sample files:
+    local d=etc/xdg/autostart
+    local file
+    for file in pipewire.desktop pipewire-pulse.desktop; do
+        cmp -s "\$d/\$file" "\$d/\$file.sample" && rm -f "\$d/\$file.sample"
+    done
+}
+pkg_post_installpkg
+EOF
