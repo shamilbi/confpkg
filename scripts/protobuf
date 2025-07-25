@@ -1,0 +1,13 @@
+#!/bin/bash
+
+PkgHome="https://github.com/protocolbuffers/protobuf"
+
+if [[ -d $OrigSrcDir ]]; then
+    if [[ -f $OrigSrcDir/setup.py ]]; then
+        pkg_find_script_ "$Name.python"
+        pkg_include_script_
+    elif [[ -f $OrigSrcDir/CMakeLists.txt ]]; then
+        pkg_find_script_ "$Name.cmake.sh"
+        pkg_include_script_
+    fi
+fi
