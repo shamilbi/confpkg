@@ -1,0 +1,29 @@
+#!/bin/bash
+
+PkgHome="https://github.com/jurplel/qView"
+
+InstallEnv+=("INSTALL_ROOT=$DestDir")
+
+pkg_pre_configure() {
+    local f="qView.pro"
+    if pkg_create_orig "$f"; then
+        # PREFIX = /usr/local
+        sed -i -r -e 's,(^ *PREFIX *=) */usr/local$,\1 '"$Prefix"',' "$f" || return 1
+
+        # license.path = $$PREFIX/share/licenses/qview/
+        sed -i -r -e 's,(^license.path *=).*,\1 '"$DocDir"',' "$f" || return 1
+    fi
+
+    # choose a make
+    local make=(
+        qmake6
+        qmake-qt5
+    )
+    local i
+    for i in "${make[@]}"; do
+        if [[ $(command -v "$i") ]]; then
+            "$i" || return 1
+            break
+        fi
+    done
+}
