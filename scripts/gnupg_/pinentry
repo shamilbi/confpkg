@@ -12,6 +12,7 @@ ConfigureOpts+=(
     # non Slackware
     --disable-pinentry-gtk2 # -> gtk3+
     --disable-pinentry-qt4 # -> qt5+
+    --disable-pinentry-qt5 # Don't use qt5 even if it is available
 )
 
 if [[ ! $X ]]; then
