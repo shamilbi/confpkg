@@ -1,0 +1,3 @@
+#!/bin/bash
+
+SrcDir=$OrigSrcDir/Project/GNU/Library
