@@ -1,0 +1,16 @@
+#!/bin/bash
+
+PkgHome="https://www.nongnu.org/oath-toolkit/"
+
+ConfigureOpts+=(
+    --disable-xmltest
+)
+
+if [[ $PAM ]]; then
+    ConfigureOpts+=(
+        --enable-pam
+        --with-pam-dir="/$LibName/security"
+    )
+else
+    ConfigureOpts+=(--disable-pam)
+fi
