@@ -1,0 +1,6 @@
+#!/bin/bash
+
+pkg_python_post_install() {
+    local dir=$(find "$PythonVenvDir"/lib -type d -name site-packages -print -quit)
+    [[ -d $dir ]] && pkg_cp_fd "$dir"/pip* "$PythonSitePackagesDir2"
+}
