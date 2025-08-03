@@ -29,7 +29,7 @@ PythonInstallLibs=(
     six                 # wxPython
     pyasn1_modules      # tpm2-pkcs11
     pkgconfig           # tpm2-pytss
-    pygments            # gnu global
+    #pygments            # gnu global, textual
     calver              # setuptools: use_calver
     pefile              # fwupd
     platformdirs        # pdm
