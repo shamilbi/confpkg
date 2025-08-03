@@ -1,0 +1,19 @@
+#!/bin/bash
+
+PythonInstallLibs=(
+    linkify-it-py
+    markdown-it-py
+    mdit-py-plugins
+    mdurl
+    rich
+    uc-micro-py
+)
+
+pkg_post_install() {
+    # v5.1.0
+    # **/.mypy_cache/*, **/.DS_Store/*
+    local i
+    for i in .mypy_cache .DS_Store; do
+        find "$DestDir" -depth -type d -name "$i" -exec rm -rf {} \;
+    done
+}
