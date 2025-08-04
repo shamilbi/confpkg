@@ -1,7 +1,5 @@
 #!/bin/bash
 
-PkgHome="https://gitlab.freedesktop.org/poppler/poppler"
-
 ConfigureOpts+=(
     # Slackware
     #-DENABLE_QT5=ON
