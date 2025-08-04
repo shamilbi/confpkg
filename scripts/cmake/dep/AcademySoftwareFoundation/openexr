@@ -1,7 +1,5 @@
 #!/bin/bash
 
-PkgHome="https://github.com/AcademySoftwareFoundation/openexr"
-
 name2=OpenEXR-${VersionArr[0]}.${VersionArr[1]}
 
 ConfigureOpts+=(
