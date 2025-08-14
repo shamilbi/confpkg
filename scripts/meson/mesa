@@ -14,19 +14,15 @@ PkgHome="https://gitlab.freedesktop.org/mesa/mesa"
 ConfigureOpts+=(
     # Slackware
     -Dplatforms=x11,wayland
-    -Dgallium-opencl=icd
-    -Dgallium-nine=true
     -Dgallium-rusticl=true
     -Dgallium-extra-hud=true
     -Drust_std=2021
-    -Dosmesa=true
     -Dvulkan-drivers=amd,intel,intel_hasvk,swrast,virtio,nouveau
     -Dvulkan-layers=device-select,intel-nullhw,overlay
     -Dvideo-codecs=h264dec,h264enc,h265dec,h265enc,vc1dec,av1dec,av1enc,vp9dec
     -Dglvnd=enabled
     -Dllvm=enabled
     -Dshared-llvm=enabled
-    -Dshared-glapi=enabled
     -Degl=enabled
     -Dgles1=enabled
     -Dgles2=enabled
@@ -47,6 +43,18 @@ ConfigureOpts+=(
     # If this is set to auto all drivers applicable to the target OS/architecture
     # will be built
 )
+
+# meson.build:4:0: ERROR: Unknown options: "gallium-opencl", "gallium-nine", "osmesa"
+# DEPRECATION: Option 'shared-glapi' is deprecated
+if (($(pkg_cmp_versions "$Version" "25.2") < 0)); then
+    ConfigureOpts+=(
+        # Slackware
+        -Dgallium-opencl=icd
+        -Dgallium-nine=true
+        -Dosmesa=true
+        -Dshared-glapi=enabled
+    )
+fi
 
 # Slackware
 # Only supported on x86_64:
