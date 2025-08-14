@@ -193,18 +193,17 @@ pkg_set_rust_env() {
 pkg_set_python() {
     Python=$(command -v "$1") || return 1
     Python=$(readlink -f "$Python")
-    export PYTHON="$Python"
+
+    export PYTHON=$Python
+    export PYTHONARCHDIR=$($Python -c 'import sysconfig as sc; print(sc.get_paths()["platlib"])')
 
     # /usr/include/python3.12
-    #PythonIncludeDir=$($Python -c 'from distutils.sysconfig import get_python_inc; print(get_python_inc())')
     PythonIncludeDir=$($Python -c 'import sysconfig as sc; print(sc.get_paths()["include"])')
 
     # /usr/lib/python3.12/site-packages
-    #PythonSitePackagesDir=$PythonLibDir/site-packages
     PythonSitePackagesDir=$($Python -c 'import sysconfig as sc; print(sc.get_paths()["purelib"])')
 
     # /usr/lib/python3.12
-    #PythonLibDir=$PythonPrefix/$LibName/python$PythonV12
     PythonLibDir=${PythonSitePackagesDir%/*}
 
     PythonV1=$("$Python" -c 'import sys; print(sys.version_info[0])')
