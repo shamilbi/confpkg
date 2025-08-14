@@ -2,6 +2,9 @@
 
 # REQ: pyparsing
 
+# The C++ compiler does not support C++11 (e.g.  std::unique_ptr)
+pkg_del_cflags '-std=gnu17'
+
 ConfigureOpts=(
     # Slackware
     "--prefix=$Prefix"
@@ -32,4 +35,8 @@ pkg_configure() {
 
 pkg_post_install() {
     find "$ShareDir2" -depth -type d -name Help -exec rm -rf {} \;
+}
+
+pkg_distclean() {
+    find -type f -name CMakeCache.txt -delete
 }
