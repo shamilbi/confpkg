@@ -1,0 +1,7 @@
+#!/bin/bash
+
+PkgHome="https://github.com/google/highway"
+
+ConfigureOpts+=(
+    -DBUILD_TESTING=OFF
+)
