@@ -1,0 +1,12 @@
+#!/bin/bash
+
+PkgHome="https://github.com/ninja-build/ninja"
+
+PythonNoBuildIsolation=1
+PythonInstallLibs0=(
+    packaging # already in python-libs
+    pathspec # already in python-libs (hatchling)
+)
+PythonInstallLibs=(
+    scikit_build_core
+)
