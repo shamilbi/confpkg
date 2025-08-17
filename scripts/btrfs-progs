@@ -1,0 +1,52 @@
+#!/bin/bash
+
+PkgHome="https://www.kernel.org/pub/linux/kernel/people/kdave/btrfs-progs/"
+
+# REQ: sphinx_rtd_theme (docs)
+
+ConfigureOpts+=(
+    # Slackware
+    --bindir=/sbin
+)
+MakeEnv=(
+    prefix="$Prefix"
+    bindir=/sbin
+    libdir="$LibDir"
+    mandir="$ManDir"
+)
+InstallEnv+=("${MakeEnv[@]}")
+CleanOpts=(clean)
+CheckOpts=(test)
+
+pkg_pre_configure() {
+    # Slackware
+    # Make sure ownerships and permissions are sane:
+    find . -perm 666 -exec chmod 644 {} \+
+    find . -perm 664 -exec chmod 644 {} \+
+    find . -perm 600 -exec chmod 644 {} \+
+    find . -perm 444 -exec chmod 644 {} \+
+    find . -perm 400 -exec chmod 644 {} \+
+    find . -perm 440 -exec chmod 644 {} \+
+    find . -perm 777 -exec chmod 755 {} \+
+    find . -perm 775 -exec chmod 755 {} \+
+    find . -perm 511 -exec chmod 755 {} \+
+    find . -perm 711 -exec chmod 755 {} \+
+    find . -perm 555 -exec chmod 755 {} \+
+
+    pkg_autoreconf
+}
+
+pkg_post_install() {
+    # Slackware
+    # Install the bash-completion file manually:
+    pkg_install_mff 644 btrfs-completion "$ShareDir2"/bash-completion/completions/btrfs
+    # /sbin/fsck.btrfs
+    local file=$DestDir/sbin/fsck.btrfs
+    if [[ ! -e $file ]]; then
+        # /sbin/fsck.btrfs --> /bin/true
+        # According to https://btrfs.wiki.kernel.org/index.php/FAQ#When_will_Btrfs_have_a_fsck_like_tool.3F
+        # it is safe and recommended to make fsck.btrfs a no-op by linking it to /bin/true:
+        ln -sfn /bin/true "$file"
+    fi
+
+}
