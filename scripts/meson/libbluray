@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# recompile: ffmpeg, mpv, Handbreak
+
+PkgHome="https://code.videolan.org/videolan/libbluray"
+
+ConfigureOpts+=(
+    -Dbdj_jar=disabled # auto, Build the BD-J JAR file (requires Java)
+    -Djava9=false # true, Build with Java 9+ (drop support for Java >= 1.7.0)
+    -Dembed_udfread=false # true, When building libudfread as subproject, don\'t install library or headers
+        # /usr/lib64/libudfread.so.X (for mpv)
+)
+
+pkg_post_install() {
+    find "$LibDir2" -type f -name '*.a' -delete
+}
