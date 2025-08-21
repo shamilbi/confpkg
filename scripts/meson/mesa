@@ -31,7 +31,6 @@ ConfigureOpts+=(
     -Dlibunwind=disabled
     -Dmicrosoft-clc=disabled
     -Dvalgrind=enabled
-    -Dintel-clc=enabled
 
     #"-Dgallium-drivers=$GALLIUM_DRIVERS"
     -Dgallium-drivers=auto
@@ -43,6 +42,14 @@ ConfigureOpts+=(
     # If this is set to auto all drivers applicable to the target OS/architecture
     # will be built
 )
+
+# meson.build:4:0: ERROR: Unknown option: "intel-clc".
+if (($(pkg_cmp_versions "$Version" "25.2.1") < 0)); then
+    ConfigureOpts+=(
+        # Slackware
+        -Dintel-clc=enabled
+    )
+fi
 
 # meson.build:4:0: ERROR: Unknown options: "gallium-opencl", "gallium-nine", "osmesa"
 # DEPRECATION: Option 'shared-glapi' is deprecated
