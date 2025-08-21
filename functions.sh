@@ -707,8 +707,9 @@ pkg_cmp_versions() {
     # pkg_cmp_versions '5.0.1' '6.1' # -1
     local ver1=$1 ver2=$2 # 5.0.1, 6.1
 
-    IFS=".-" read -r -a ver1 <<<"$ver1" # [5, 0, 1]
-    IFS=".-" read -r -a ver2 <<<"$ver2" # [6, 1]
+    # ncurses-6.5_20250809-x86_64-1
+    IFS=".-_" read -r -a ver1 <<<"$ver1" # [5, 0, 1]
+    IFS=".-_" read -r -a ver2 <<<"$ver2" # [6, 1]
 
     local max
     if ((${#ver1[*]} < ${#ver2[*]})); then
