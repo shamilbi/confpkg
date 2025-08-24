@@ -14,8 +14,8 @@ PythonInstallLibs=(
     urllib3             # conan
     python-dateutil     # conan
     pyparsing
-    "cython<3.1"
-    "lxml<6"
+    "cython<4"
+    lxml
     psutil              # glances
     requests            # conan
     pyyaml              # conan
