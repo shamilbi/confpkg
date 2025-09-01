@@ -8,11 +8,15 @@ ConfigureOpts+=(
     -Dbroadway-backend=true
     -Dbuild-examples=false
     -Dbuild-tests=false
-    -Dwayland-backend=true
+    #-Dwayland-backend=true
     -Dintrospection=enabled
+    -Dmedia-gstreamer=enabled
+    -Dprint-cups=enabled
+    -Dcolord=enabled
 
     -Dbuild-testsuite=false
 )
+[[ $WAYLAND ]] && ConfigureOpts+=(-Dwayland-backend=true)
 
 pkg_read2var pkg_post_installpkg <<EOF
 pkg_post_installpkg() {
