@@ -1,0 +1,7 @@
+#!/bin/bash
+
+PkgHome="https://github.com/Yubico/libfido2"
+
+ConfigureOpts+=(
+    -DBUILD_STATIC_LIBS=OFF # Build a static library, ON
+)
