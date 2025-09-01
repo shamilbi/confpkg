@@ -1,0 +1,23 @@
+#!/bin/bash
+
+PkgHome="https://pcre.org/"
+
+ConfigureOpts+=(
+    # Slackware
+    --disable-silent-rules
+    --enable-pcre2-16
+    --enable-pcre2-32
+    --enable-jit
+    --enable-pcre2grep-libz # link pcre2grep with libz to handle .gz files
+    --enable-pcre2grep-libbz2 # link pcre2grep with libbz2 to handle .bz2 files
+    --enable-pcre2test-libreadline # link pcre2test with libreadline
+)
+
+pkg_post_install() {
+    # Slackware
+    # Move libraries, as they might be needed before /usr is available:
+    ls -d "$LibDir2"/lib*.so* | pkg_mv_ln "$DestDir/$LibName"
+
+    rm -rf "$DocDir2"/html
+    :
+}
