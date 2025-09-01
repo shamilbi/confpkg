@@ -1,0 +1,35 @@
+#!/bin/bash
+
+PkgHome="https://git.kernel.org/pub/scm/utils/mdadm/mdadm.git/"
+
+pkg_check=
+
+# Slackware
+MakeEnv=(
+    CXFLAGS="$CFLAGS"
+    MANDIR="$ManDir"
+)
+InstallEnv+=("${MakeEnv[@]}")
+CleanOpts=(clean)
+
+pkg_pre_make() {
+    # Slackware
+    # Treating all warnings as errors causes the build to fail.
+    # platform-intel.c: In function ‘imsm_platform_test’:
+    # platform-intel.h:28:37: error:
+    #   initializer-string for array of ‘unsigned char’ truncates NUL terminator
+    #   but destination lacks ‘nonstring’ attribute (5 chars into 4 available)
+    #   [-Werror=unterminated-string-initialization]
+    sed -i "s,-Werror,," Makefile
+}
+
+pkg_post_install() {
+    # Slackware
+    local f1
+    for f1 in . documentation; do
+        f1=$f1/"$Name".conf-example
+        if [[ -f $f1 ]]; then
+            pkg_install_mff 644 "$f1" "$Etc2/$Name.conf"
+        fi
+    done
+}
