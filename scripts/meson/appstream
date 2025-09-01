@@ -1,0 +1,9 @@
+#!/bin/bash
+
+PkgHome="https://github.com/ximion/appstream"
+
+ConfigureOpts+=(
+    -Dsystemd=false # Build with systemd support
+    -Dapidocs=false # true, Build API documentation
+    -Dinstall-docs=false # true, Install documentation for API and specification
+)
