@@ -31,5 +31,6 @@ pkg_post_install() {
     )
 
     rm -rf "$DocDir2"/html
+    rm -rf "$DestDir"/run
     :
 }
