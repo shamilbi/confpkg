@@ -1,0 +1,21 @@
+#!/bin/bash
+
+PkgHome="https://www.nftables.org/"
+
+pkg_set_python python3
+
+ConfigureOpts+=(
+    # Slackware
+    --with-xtables
+    #--disable-python
+    --with-json
+    --with-cli=readline
+
+    --with-python-bin="$Python"
+    #--enable-python
+)
+unset ProtectDirs
+
+pkg_post_install() {
+    pkg_reinstall_python py
+}
