@@ -1,0 +1,11 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    # Slackware
+    -DEXIV2_ENABLE_CURL=ON
+    -DEXIV2_ENABLE_VIDEO=ON
+    -DEXIV2_ENABLE_WEBREADY==ON
+    -DEXIV2_ENABLE_XMP=ON
+    -DEXIV2_BUILD_SAMPLES=OFF
+    -DEXIV2_ENABLE_NLS=ON # /usr/share/locale/*
+)
