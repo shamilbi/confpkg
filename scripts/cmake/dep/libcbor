@@ -1,0 +1,6 @@
+#!/bin/bash
+
+pkg_pre_configure() {
+    # subdirs(examples)
+    sed -i -re 's,^(subdirs\(examples\)),# \1,' "$SrcDir"/CMakeLists.txt
+}
