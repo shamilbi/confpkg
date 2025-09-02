@@ -2,6 +2,8 @@
 
 PkgHome[1]="https://download.gimp.org/gimp/?C=M&O=D"
 
+# REQ: openexr-3.2.x, mypaint-brushes-2.x
+
 ConfigureOpts+=(
     # Slackware
     --localstatedir=/var/lib
