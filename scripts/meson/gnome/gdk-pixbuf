@@ -6,6 +6,7 @@ ConfigureOpts+=(
     -Dtests=false
     -Dinstalled_tests=false
     -Dothers=enabled
+    -Dglycin=disabled
 )
 
 pkg_post_install() {
