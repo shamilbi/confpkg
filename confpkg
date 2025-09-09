@@ -167,6 +167,8 @@ pkg_del_la() {
     while IFS= read -r file; do
         [[ "$(pkg_filetype "$file")" = "la" ]] && rm -f "$file"
     done < <(find "$dir" -type f -name '*.la')
+    # del broken links
+    find "$dir" -xtype l -name '*.la' -delete
 }
 
 pkg_ldd_destdir_() {
