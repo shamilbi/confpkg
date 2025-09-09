@@ -1,0 +1,18 @@
+#!/bin/bash
+
+PkgHome="https://sourceforge.net/projects/libtirpc/files/libtirpc/"
+
+# Slackware
+gssapi=1
+[[ $gssapi ]] && ConfigureOpts+=(--enable-gssapi) || ConfigureOpts+=(--disable-gssapi)
+
+pkg_post_install() {
+    # Slackware
+    # Move library to /lib${LIBDIRSUFFIX} as it might be needed to mount /usr:
+    find "$LibDir2" -maxdepth 1 -name "$Name*" | pkg_mv_ln "$DestDir/$LibName"
+    # Don't use .3t man page suffix:
+    local f1
+    while IFS= read -r f1; do
+        mv "$f1" "${f1%.*}.3"
+    done < <(find "$ManDir2/man3" -type f -name '*.3t')
+}
