@@ -12,5 +12,7 @@ ConfigureOpts+=(
 )
 
 pkg_post_install() {
+    # Slackware
+    # Don't package the static library:
     find "$LibDir2" -type f -name '*.a' -delete
 }
