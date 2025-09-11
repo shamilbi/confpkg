@@ -476,9 +476,10 @@ EOF
     # glib-compile-schemas
     dir=$(ls -d "$ShareDir2"/glib-*/schemas 2>/dev/null | head -1)
     if [[ -d $dir ]]; then
+        dir=${dir: ${#DestDir}+1} # /usr/... -> usr/...
         pkg_doinst_add <<EOF
 #chroot . /usr/bin/glib-compile-schemas /usr/share/glib-2.0/schemas/ &>/dev/null
-chroot . /usr/bin/glib-compile-schemas "${dir:${#DestDir}}"/ &>/dev/null
+chroot . /usr/bin/glib-compile-schemas "$dir"/ &>/dev/null
 EOF
     fi
 
@@ -502,11 +503,22 @@ EOF
     fi
 
     # update-mime-database
-    if [[ -d $ShareDir2/mime ]]; then
+    dir=$ShareDir2/mime
+    if [[ -d $dir ]]; then
+        dir=${dir: ${#DestDir}+1} # /usr/... -> usr/...
         pkg_doinst_add <<EOF
 if [[ -x /usr/bin/update-mime-database ]]; then
-    /usr/bin/update-mime-database ."$ShareDir"/mime &>/dev/null
+    /usr/bin/update-mime-database "$dir" &>/dev/null
 fi
+EOF
+    fi
+
+    # gio-querymodules
+    dir=$LibDir2/gio/modules
+    if [[ -d $dir ]]; then
+        dir=${dir: ${#DestDir}+1} # /usr/... -> usr/...
+        pkg_doinst_add <<EOF
+chroot . /usr/bin/gio-querymodules "$dir"/ &>/dev/null
 EOF
     fi
 
