@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# REQ BY: ibus
+
+PkgHome="https://www.unicode.org/Public/emoji/?C=M;O=D"
+
+pkg_install() {
+    chmod 755 . || return 1
+    pkg_cp_fd . "$ShareDir2/unicode/emoji"
+}

@@ -1,0 +1,22 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://www.unicode.org/Public/zipped/?C=M;O=D"
+)
+
+unset pkg_configure pkg_make
+
+pkg_install() {
+    chmod 755 . || return 1
+    pkg_cp_fd . "$ShareDir2/unicode"
+
+    # Compatibility symlinks that allow most things to find this:
+    ln -sfn . "$ShareDir2"/unicode/ucd
+    ln -sfn unicode "$ShareDir2"/unicode-character-database
+    ln -sfn unicode "$ShareDir2"/unicode-data
+    ln -sfn unicode "$ShareDir2"/unidata
+}
+
+pkg_install_doc() {
+    :
+}
