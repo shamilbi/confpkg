@@ -9,12 +9,17 @@ ConfigureOpts+=(
     -Dglycin=disabled
 )
 
+pkg_pre_configure() {
+    # Slackware
+    # Fix BMP loader. We'll likely end up having to take glycin, but not yet.
+    pkg_patch_f3 218.patch 0 || return 1
+}
+
 pkg_post_install() {
     # Slackware
     # We need to have separate 32-bit and 64-bit binaries
     # for places where we have two copies of the GTK+ package installed.
     # (we might have x86_64 and i486 packages on the same system, for example.)
-    host="$ARCH-slackware-linux"
     case "$Arch" in
         s390x*|x86_64*)
             pkg_mv_ln_ff "$Prefix2"/bin/gdk-pixbuf-query-loaders{,-64}
