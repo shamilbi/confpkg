@@ -1,0 +1,13 @@
+#!/bin/bash
+
+PkgHome="https://github.com/JuliaStrings/utf8proc"
+
+#MakeEnv=(
+#    "prefix=$Prefix"
+#    "libdir=$LibDir"
+#)
+#InstallEnv+=("${MakeEnv[@]}")
+#
+#pkg_post_install() {
+#    rm -f "$LibDir2"/*.a || true
+#}
