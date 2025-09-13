@@ -22,8 +22,8 @@ PythonInstallLibs=(
     pyxdg
     pytz
     tzdata              # pandas
-    pycairo             # libblockdev
-    pygobject           # libblockdev
+    #pycairo             # libblockdev
+    #pygobject           # libblockdev
     mako
     sip
     six                 # wxPython
