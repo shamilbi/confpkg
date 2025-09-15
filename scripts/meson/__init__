@@ -10,6 +10,8 @@ ConfigureOpts=(
     --backend=ninja
 )
 
+pkg_del_cflags '-std=gnu17'
+
 pkg_configure() {
     local d=$SrcDir/_tmp
     mkdir -pm 700 "$d"
