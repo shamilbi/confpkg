@@ -43,8 +43,12 @@ esac
 if [[ "$Arch" = "armv7hl" ]]; then
     CFlags=("-O3" "-march=armv7-a" "-mfpu=vfpv3-d16")
 fi
+
+# Slackware
 # GCC15 workaround:
-CFlags+=("-std=gnu17")
+GccFlags=(-std=gnu17)
+CFlags+=("${GccFlags[@]}")
+
 export CFLAGS="${CFlags[@]}"
 export CXXFLAGS="$CFLAGS"
 
