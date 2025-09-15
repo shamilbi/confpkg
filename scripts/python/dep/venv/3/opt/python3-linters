@@ -1,0 +1,13 @@
+#!/bin/bash
+
+PythonInstallLibs=(
+    black
+    isort
+    pylint
+)
+PythonInstallBins=(
+    black
+    isort
+    pylint
+)
+PythonNoBuildIsolation=1
