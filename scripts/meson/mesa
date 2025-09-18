@@ -2,11 +2,6 @@
 
 PkgHome="https://gitlab.freedesktop.org/mesa/mesa"
 
-#GALLIUM_DRIVERS="nouveau,r300,r600,svga,radeonsi,swrast,virgl,iris,crocus,zink"
-#GALLIUM_DRIVERS=nouveau,r300,r600,svga,radeonsi,swrast,virgl,i915,iris,crocus,zink,d3d12
-#GALLIUM_DRIVERS="nouveau,r300,r600,svga,radeonsi,softpipe,llvmpipe,virgl,i915,iris,crocus,zink,d3d12"
-#CODECS=${CODECS:-h264dec,h264enc,h265dec,h265enc,vc1dec,av1dec,av1enc,vp9dec}
-
 # v24.2.0
 # src/intel/vulkan/grl/meson.build:60:2: ERROR:
 # Problem encountered: Python (3.x) ply module required to build GRL kernels.
@@ -17,8 +12,13 @@ ConfigureOpts+=(
     -Dgallium-rusticl=true
     -Dgallium-extra-hud=true
     -Drust_std=2021
+    # # Be sure this list is up-to-date:
+    # GALLIUM_DRIVERS="nouveau,r300,r600,svga,radeonsi,softpipe,llvmpipe,virgl,i915,iris,crocus,zink,d3d12"
+    #-Dgallium-drivers=$GALLIUM_DRIVERS
     -Dvulkan-drivers=amd,intel,intel_hasvk,swrast,virtio,nouveau
     -Dvulkan-layers=device-select,intel-nullhw,overlay
+    # CODECS=${CODECS:-h264dec,h264enc,h265dec,h265enc,vc1dec,av1dec,av1enc,vp9dec}
+    #-Dvideo-codecs="$CODECS"
     -Dvideo-codecs=h264dec,h264enc,h265dec,h265enc,vc1dec,av1dec,av1enc,vp9dec
     -Dglvnd=enabled
     -Dllvm=enabled
@@ -32,15 +32,16 @@ ConfigureOpts+=(
     -Dmicrosoft-clc=disabled
     -Dvalgrind=enabled
 
-    #"-Dgallium-drivers=$GALLIUM_DRIVERS"
     -Dgallium-drivers=auto
-    # auto,
-    # choices : [ 'auto', 'kmsro', 'radeonsi', 'r300', 'r600', 'nouveau', 'freedreno',
-    #             'swrast', 'v3d', 'vc4', 'etnaviv', 'tegra', 'i915', 'svga', 'virgl',
-    #               'panfrost', 'iris', 'lima', 'zink', 'd3d12', 'asahi', 'crocus' ],
-    # List of gallium drivers to build.
-    # If this is set to auto all drivers applicable to the target OS/architecture
-    # will be built
+        # value : ['auto'],
+        # choices : [
+        #     'all', 'auto', 'asahi', 'crocus', 'd3d12', 'etnaviv', 'freedreno',
+        #     'i915', 'iris', 'lima', 'llvmpipe', 'nouveau', 'panfrost', 'r300',
+        #     'r600', 'radeonsi', 'softpipe', 'svga', 'tegra', 'v3d', 'vc4',
+        #     'virgl', 'zink', ],
+        # List of gallium drivers to build. If this is set to auto
+        # all drivers applicable to the target OS/architecture
+        # will be built.
 )
 
 # meson.build:4:0: ERROR: Unknown option: "intel-clc".
@@ -95,6 +96,9 @@ pkg_pre_configure() {
         if (($(pkg_cmp_versions "$Version" "24.2.1") >= 0)); then
             pkg_patch_f3 30710.diff 1 || return 1
         fi
+    fi
+    if (($(pkg_cmp_versions "$Version" "25.2.3") < 0)); then
+        pkg_patch_f3 37234.patch 1 || return 1
     fi
 }
 
