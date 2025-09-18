@@ -8,4 +8,6 @@ pkg_install() {
     pkg_install_mfd 750 "$Name/$Name" "$Prefix2/sbin"
     pkg_install_mff 644 "$Name/example-$Name.toml" "$Etc2/$Name/$Name.toml"
     pkg_install_mfd 644 "$Name"/example-*.txt "$DocDir2"
+
+    pkg_install_mfd 755 "$SupportDir"/rc.dnscrypt-proxy "$Etc2"/rc.d
 }
