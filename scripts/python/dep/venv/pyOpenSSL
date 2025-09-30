@@ -8,4 +8,5 @@ PythonInstallLibs=(
     scrypt
     m2crypto
     asn1crypto
+    python-pkcs11
 )
