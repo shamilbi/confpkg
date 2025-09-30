@@ -3,6 +3,7 @@
 ConfigureOpts+=(
     # Slackware
     -Dgtk_doc=false
+    -Ddocumentation=false
     -Dtests=false
     -Dinstalled_tests=false
     -Dothers=enabled
