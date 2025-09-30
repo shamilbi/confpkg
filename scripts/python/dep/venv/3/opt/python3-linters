@@ -4,10 +4,14 @@ PythonInstallLibs=(
     black
     isort
     pylint
+    mypy
+    ruff
 )
 PythonInstallBins=(
     black
     isort
     pylint
+    mypy
+    ruff
 )
 PythonNoBuildIsolation=1
