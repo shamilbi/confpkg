@@ -1,0 +1,12 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    --with-gobject=yes
+)
+
+pkg_pre_configure() {
+    local f=configure.ac
+    # FREETYPE_DEPS="freetype2 >= 12.0.6"
+    sed -i -r -e 's,^(FREETYPE_DEPS)=.*,\1="freetype2",' $f
+    pkg_autoreconf
+}
