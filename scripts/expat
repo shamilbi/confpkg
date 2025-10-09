@@ -1,0 +1,5 @@
+#!/bin/bash
+
+PkgHome="https://github.com/libexpat/libexpat/tags"
+
+pkg_configure_del2 static
