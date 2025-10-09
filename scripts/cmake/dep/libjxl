@@ -1,0 +1,42 @@
+#!/bin/bash
+
+PkgHome="https://github.com/libjxl/libjxl/tags"
+
+ConfigureOpts+=(
+    -DBUILD_TESTING=OFF
+    -DJPEGXL_FORCE_SYSTEM_BROTLI=true
+    -DJPEGXL_FORCE_SYSTEM_HWY=true
+    -DJPEGXL_STATIC=false
+    -DJPEGXL_ENABLE_BENCHMARK=false
+    -DJPEGXL_ENABLE_EXAMPLES=false
+    -DJPEGXL_VERSION="$Version" # if .git/ not exist
+)
+
+pkg_pre_configure() {
+    local i deps f2
+
+    # download_github third_party/*
+    deps=$OrigSrcDir/deps.sh
+    if [[ -x $deps  ]]; then
+        if pkg_create_orig "$deps"; then
+            # THIRD_PARTY_LIBJPEG_TURBO
+            # varname="${varname/[\/-]/_}"
+            # varname="${varname//[\/-]/_}"
+            sed -i -r -e 's,^( +)(varname="\$\{varname)/([^/].*),\1\2//\3,' "$deps"
+
+            # exclude some libs
+            for i in brotli highway zlib libpng; do
+                sed -i -r -e 's,^( +)(download_github .*'"$i"')$,\1#\2,' "$deps"
+            done
+        fi
+        # launch deps
+        f2=$OrigSrcDir/third_party/skcms/skcms.h
+        if [[ ! -f $f2 ]]; then
+            "$deps"
+        fi
+    fi
+}
+
+pkg_post_install() {
+    find "$LibDir2" -type f -name '*.a' -delete
+}
