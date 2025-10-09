@@ -1,0 +1,78 @@
+#!/bin/bash
+
+PkgHome="https://github.com/boostorg/boost/tags"
+
+BuildSteps=("${BuildForPython[@]}")
+[[ $BuildStep ]] && pkg_set_python "$BuildStep"
+
+pkg_check=
+
+b2_opts=(
+    # Slackware
+    --layout=system
+    --build-dir=tmp-build-directory
+    --build-type=minimal
+    toolset=gcc
+    variant=release
+    debug-symbols=off
+    link=shared
+    threading=multi
+    runtime-link=shared
+    python="$PythonV12"
+    cflags="$CFLAGS"
+    cxxflags="$CXXFLAGS"
+)
+
+pkg_pre_configure() {
+    # Slackware
+    # [PATCH] Add include for add_const:
+    local f1=$OrigSrcDir/boost/range/detail/any_iterator_interface.hpp
+    local s1='^#include .*iterator_categories.hpp>$'
+    local s2='#include <boost/type_traits/add_const.hpp>'
+    if pkg_create_orig "$f1"; then
+        sed -i -e "/$s1/a\
+$s2" "$f1"
+    fi
+}
+
+pkg_make() {
+    local opts
+
+    # Slackware
+    # First build bjam, the boost build system:
+    opts=(
+        # Slackware
+        --with-toolset=gcc
+        --with-icu
+        --with-python="$Python"
+    )
+    ./bootstrap.sh "${opts[@]}" || return 1
+    # Next, we build boost using bjam:
+    opts=(
+        # Slackware
+        -j"$(nproc)"
+        --prefix="$Prefix"
+        --libdir="$LibDir"
+        "${b2_opts[@]}"
+        stage
+    )
+    ./b2 "${opts[@]}" || return 1
+}
+
+pkg_install() {
+    # Slackware
+    # And then install boost:
+    local opts=(
+        # Slackware
+        -j"$(nproc)"
+        --prefix="$Prefix2"
+        --libdir="$LibDir2"
+        "${b2_opts[@]}"
+        install
+    )
+    ./b2 "${opts[@]}" || return 1
+}
+
+pkg_distclean() {
+    ./b2 --clean
+}
