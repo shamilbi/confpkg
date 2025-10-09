@@ -1,0 +1,11 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    -Dglycin-loaders=true # Build loaders
+    -Dloaders="glycin-heif,glycin-image-rs,glycin-jpeg2000,glycin-jxl,glycin-svg"
+        # List of loaders to build. Only has an effect if "glycin-loaders" is enabled
+        # choices:
+        # ['glycin-heif', 'glycin-image-rs', 'glycin-jpeg2000', 'glycin-jxl', 'glycin-raw', 'glycin-svg'],
+        # value:
+        # ['glycin-heif', 'glycin-image-rs', 'glycin-jxl', 'glycin-svg'],
+)
