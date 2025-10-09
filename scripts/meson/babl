@@ -1,0 +1,38 @@
+#!/bin/bash
+
+PkgHome="https://download.gimp.org/pub/babl/?C=M&O=D"
+
+ConfigureOpts+=(
+    # Slackware
+    -Dgi-docgen=disabled
+
+    # don't use gi-docgen
+    -Dwith-docs=false # [auto, true, false], build documentation
+)
+
+pkg_pre_configure() {
+    #if git_bin.found() and run_command(
+    #if not import('fs').is_file('git-version.h') and git_bin.found() and run_command(
+    local search='git_bin.found\(\) and run_command'
+    local replace="not import('fs').is_file('git-version.h') and"
+    local f="meson.build"
+    if pkg_create_orig "$f"; then
+        sed -i -r -e 's,^if ('"$search"'),if '"$replace"' \1,' "$f"
+    fi
+}
+
+pkg_post_install() {
+    # v0.1.100
+    # /usr/lib64/pkgconfig/babl-0.1.pc -> babl.pc
+    local dir=$LibDir2/pkgconfig
+    local f1=$dir/babl.pc
+    if [[ ! -f $f1 ]]; then
+        local f2=$(find "$dir" -type f -name 'babl-*.pc' -print -quit)
+        if [[ $f2 && -f $f2 ]]; then
+            ln -sfnr "$f2" "$f1"
+        else
+            echo "file not found: $f1"
+            return 1
+        fi
+    fi
+}
