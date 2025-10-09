@@ -6,4 +6,5 @@ BuildSteps=("${BuildForPython[@]}")
 ConfigureOpts+=(
     -DPYTHON=ON
     -DPython3_EXECUTABLE="$Python"
+    -DBoost_PYTHON_VERSION="$PythonV12"
 )
