@@ -6,6 +6,7 @@ PythonInstallLibs=(
     pylint
     mypy
     ruff
+    flake8
 )
 PythonInstallBins=(
     black
@@ -13,5 +14,8 @@ PythonInstallBins=(
     pylint
     mypy
     ruff
+    flake8
+    pycodestyle
+    pyflakes
 )
 PythonNoBuildIsolation=1
