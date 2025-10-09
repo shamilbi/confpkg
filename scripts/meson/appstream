@@ -1,9 +1,15 @@
 #!/bin/bash
 
-PkgHome="https://github.com/ximion/appstream"
+PkgHome="https://github.com/ximion/appstream/tags"
 
 ConfigureOpts+=(
-    -Dsystemd=false # Build with systemd support
+    # Slackware
     -Dapidocs=false # true, Build API documentation
+    -Dcompose=true
+    -Dqt=true
+    -Dstemming=false
+    -Dsystemd=false # Build with systemd support
+    -Dvapi=true
+
     -Dinstall-docs=false # true, Install documentation for API and specification
 )
