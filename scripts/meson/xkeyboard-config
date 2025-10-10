@@ -1,0 +1,43 @@
+#!/bin/bash
+
+PkgHome="https://www.x.org/releases/individual/?C=M;O=D"
+
+unset ProtectDirs
+
+ConfigureOpts+=(
+    # Slackware
+    -Dcompat-rules=true # true, create compatibility rules [default=true]
+    -Dxorg-rules-symlinks=true # false, create "xorg" symlinks to the "base" rules files [default=false]
+)
+
+pkg_post_install() {
+    # Slackware
+    # link /usr/share/xkeyboard-config-2 -> /etc/X11/xkb
+    local dir=$ShareDir2/xkeyboard-config-${VersionArr[0]}
+    echo "$dir" | pkg_ln_ff "$Etc2"/X11/xkb
+
+    # link /usr/share/xkeyboard-config-2 -> /usr/share/X11/xkb
+    echo "$dir" | pkg_ln_ff "$ShareDir2"/X11/xkb
+}
+
+pkg_read2var pkg_post_installpkg <<EOF
+pkg_post_installpkg() {
+    local dir=etc/X11/xkb
+    if [[ ! -L \$dir && -d \$dir ]]; then
+        # old package
+        mv "\$dir" "\$dir.tmp"
+        # link /usr/share/xkeyboard-config-2 -> /etc/X11/xkb
+        ln -sfnr usr/share/xkeyboard-config-"${VersionArr[0]}" "\$dir"
+    fi
+
+    ## Slackware
+    ## This has to assume the use of upgradepkg to work.
+    ## Ever wondered why we install new packages twice?
+    ## Here's an example:
+    #if [[ -d etc/X11/xkb/symbols/pc ]]; then
+    #    mv etc/X11/xkb etc/X11/xkb.old.bak.\$\$
+    #    mkdir -p etc/X11/xkb/rules etc/X11/xkb
+    #fi
+}
+pkg_post_installpkg
+EOF
