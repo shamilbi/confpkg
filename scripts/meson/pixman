@@ -1,0 +1,11 @@
+#!/bin/bash
+
+pkg_post_install() {
+    # link /usr/include/pixman-1 -> pixman
+    if [[ ! -d $IncludeDir2/$Name ]]; then
+        ls -d "$IncludeDir2/$Name"-* | pkg_ln_ff "$IncludeDir2/$Name"
+    fi
+
+    # link /usr/include/pixman/*.h -> ../
+    ls -d "$IncludeDir2/$Name"/*.h | pkg_ln_d "$IncludeDir2"
+}
