@@ -1,0 +1,9 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    -Dbuild-documentation=false
+    -Dbuild-examples=false
+    -Dbuild-tests=false
+)
+#option('boost-shared', type: 'boolean',
+#  value: false, description: 'Use shared version of boost')
