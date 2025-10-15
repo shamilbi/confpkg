@@ -2,16 +2,16 @@
 
 PythonInstallLibs=(
     black
-    isort
-    pylint
+    #isort # version conflict
+    #pylint
     mypy
     ruff
     flake8
 )
 PythonInstallBins=(
     black
-    isort
-    pylint
+    #isort
+    #pylint
     mypy
     ruff
     flake8
