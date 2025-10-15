@@ -56,6 +56,9 @@ pkg_post_install() {
         [[ "$(patchelf --print-rpath "$f1")" ]] &&
             patchelf --remove-rpath "$f1"
     done < <(find "$LibDir2" -type f -name '*.so*')
+
+    # del bulk dirs
+    rm -rf "$DocDir2"/{www,images,index.html,Install-*.txt}
 }
 
 pkg_del_la() {
