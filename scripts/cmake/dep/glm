@@ -1,0 +1,16 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://github.com/g-truc/glm"
+    "https://glm.g-truc.net/"
+)
+
+ConfigureOpts+=(
+    -DGLM_ENABLE_CXX_11=ON
+    -DGLM_BUILD_TESTS=OFF
+)
+
+pkg_post_install() {
+    pkg_install_mfd 644 "$OrigSrcDir"/*.md "$DocDir2"
+    find "$IncludeDir2" -type f -name '*.txt' -delete
+}
