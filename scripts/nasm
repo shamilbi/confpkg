@@ -1,0 +1,5 @@
+#!/bin/bash
+
+PkgHome="https://github.com/netwide-assembler/nasm/tags"
+
+pkg_check=
