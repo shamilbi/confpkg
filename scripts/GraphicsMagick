@@ -1,0 +1,11 @@
+#!/bin/bash
+
+PkgHome="https://sourceforge.net/projects/graphicsmagick/files/graphicsmagick/"
+
+[[ $X ]] && ConfigureOpts+=(--with-x) || ConfigureOpts+=(--without-x)
+ConfigureOpts+=(--with-modules)
+
+pkg_post_install() {
+    rm -f "$DocDir2"/ChangeLog.* # old files
+    rm -rf "$DocDir2"/www
+}
