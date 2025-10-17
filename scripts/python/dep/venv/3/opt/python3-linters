@@ -5,7 +5,7 @@ PythonInstallLibs=(
     #isort # version conflict
     #pylint
     mypy
-    ruff
+    #ruff
     flake8
 )
 PythonInstallBins=(
@@ -13,7 +13,7 @@ PythonInstallBins=(
     #isort
     #pylint
     mypy
-    ruff
+    #ruff
     flake8
     pycodestyle
     pyflakes
