@@ -35,6 +35,12 @@ ConfigureOpts+=(
 pkg_pre_configure() {
     pkg_check_group "$group" "$groupId" || return 1
     pkg_check_user "$user" "$group" "$userId" "$userHome" "$userShell" "$userComment" || return 1
+
+    # disable color output
+    local f1=$OrigSrcDir/CMakeLists.txt
+    if pkg_create_orig "$f1"; then
+        sed -i -e 's,^include(ColourMessage),#\0,' "$f1"
+    fi
 }
 
 pkg_post_install() {
