@@ -2,18 +2,12 @@
 
 PythonInstallLibs=(
     black
-    #isort # version conflict
-    #pylint
     mypy
-    #ruff
     flake8
 )
 PythonInstallBins=(
     black
-    #isort
-    #pylint
     mypy
-    #ruff
     flake8
     pycodestyle
     pyflakes
