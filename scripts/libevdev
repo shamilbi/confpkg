@@ -1,0 +1,7 @@
+#!/bin/bash
+
+PkgHome="https://gitlab.freedesktop.org/libevdev/libevdev/-/tags"
+
+ConfigureOpts+=(
+    --enable-static
+)
