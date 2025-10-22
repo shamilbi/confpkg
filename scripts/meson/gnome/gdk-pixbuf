@@ -13,7 +13,11 @@ ConfigureOpts+=(
 pkg_pre_configure() {
     # Slackware
     # Fix BMP loader. We'll likely end up having to take glycin, but not yet.
-    pkg_patch_f3 218.patch 0 || return 1
+    if (($(pkg_cmp_versions "$Version" "2.44.4") < 0)); then
+        pkg_patch_f3 218.patch 0 || return 1
+    else
+        pkg_patch_f3 218-2.patch 0 || return 1
+    fi
 }
 
 pkg_post_install() {
