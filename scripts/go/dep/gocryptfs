@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PkgHome="https://github.com/rfjakob/gocryptfs/tags"
+
 pkg_make() {
     if [[ ! -f VERSION ]]; then
         echo "v$Version" >VERSION
