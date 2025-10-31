@@ -32,7 +32,7 @@ PythonInstallLibs=(
     pefile              # fwupd
     platformdirs        # pdm
     tomlkit             # pdm
-    toml                # safety
+    #toml                # safety
     jinja2              # fwupd, conan
     #versioneer          # pandas
     #ply                 # mesa: for intel vulkan ray-tracing
