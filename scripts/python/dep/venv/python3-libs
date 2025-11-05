@@ -16,7 +16,7 @@ PythonInstallLibs=(
     pyparsing
     "cython<4"
     lxml
-    psutil              # glances
+    #psutil              # glances
     requests            # conan
     pyyaml              # conan
     pyxdg
