@@ -1,15 +1,5 @@
 #!/bin/bash
 
-InstallOpts=(
-    install
-    "--root=$DestDir"
-    "--install-data=$Prefix"
-)
-
-#pkg_install() {
-#    pkg_python_install "/opt/$Name"
-#}
-
 pkg_post_install() {
     local d=$ShareDir2/doc/glances
     if [[ -d $d ]]; then
