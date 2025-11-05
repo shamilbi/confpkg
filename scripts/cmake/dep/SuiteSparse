@@ -1,0 +1,9 @@
+#!/bin/bash
+
+PkgHome="https://github.com/DrTimothyAldenDavis/SuiteSparse/tags"
+
+pkg_post_install() {
+    # Slackware
+    # Don't package static libraries:
+    find "$LibDir2" -type f -name '*.a' -delete
+}
