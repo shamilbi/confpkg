@@ -7,8 +7,10 @@ python=
 ConfigureOpts+=(
     #Slackware
     -DMOD_QT=ON
-    -DMOD_GLXANIMATE=ON
     -DMOD_QT6=ON
+    -DMOD_JACKRACK=OFF
+    -DMOD_RUBBERBAND=OFF
+    -DMOD_GLXANIMATE=ON
     -DMOD_GLXANIMATE_QT6=ON
 
     #-DMOD_OPENCV=ON
