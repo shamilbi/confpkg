@@ -1,0 +1,17 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://lttng.org/files/urcu/?C=M;O=D"
+    "https://github.com/urcu/userspace-rcu/tags"
+)
+
+pkg_post_install() {
+    # Slackware
+    # Move libraries out of /usr:
+    # Move libraries and symlinks:
+    find "$LibDir2" -maxdepth 1 -name 'lib*.so*' |
+        pkg_mv_ln "$DestDir/$LibName"
+    # Find this stuff in the source tarball:
+    rm -rf "$DocDir2"/examples
+    :
+}
