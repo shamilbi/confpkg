@@ -1,0 +1,34 @@
+#!/bin/bash
+
+PkgHome="https://github.com/bdwgc/bdwgc/tags"
+
+ConfigureOpts+=(
+    # Slackware
+    --disable-dependency-tracking
+    --enable-cplusplus
+    --enable-large-config
+    --enable-parallel-mark
+    --enable-threads=posix
+    #--with-libatomic-ops=no
+
+    # NOTE:  Using --disable-static exports a subset of symbols, and has caused
+    # some things that use gc to break.  So it is recommended to build the static
+    # libraries and then remove them before packaging.
+    --enable-static
+
+    --with-libatomic-ops=yes
+)
+MakeEnv=(
+    docdir="$DocDir"
+    pkgdatadir="$DocDir"
+)
+InstallEnv+=("${MakeEnv[@]}")
+
+# See bugzilla.redhat.com/689877 for -DUSE_GET_STACKBASE_FOR_MAIN
+# running valgrind on a gc-using application causes segfault
+pkg_add_cflags "-DUSE_GET_STACKBASE_FOR_MAIN"
+
+pkg_post_install() {
+    # Remove static libraries that we don't want in the package:
+    find "$LibDir2" -type f -name '*.a' -delete
+}
