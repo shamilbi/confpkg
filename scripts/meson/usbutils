@@ -1,0 +1,11 @@
+#!/bin/bash
+
+PkgHome="https://git.kernel.org/pub/scm/linux/kernel/git/gregkh/usbutils.git/"
+
+pkg_post_install() {
+    # Slackware
+    # Include the example usbreset program
+    gcc $CFLAGS -o usbreset usbreset.c || return 1
+    pkg_install_mfd 755 usbreset "$Prefix2"/bin
+    pkg_install_mfd 644 man/usbreset.1 "$ManDir2"/man1
+}
