@@ -1,0 +1,8 @@
+#!/bin/bash
+
+PkgHome="https://github.com/deadbeefsociety/sshfs"
+
+ConfigureOpts+=(
+    --bindir=bin
+    --sbindir=sbin
+)
