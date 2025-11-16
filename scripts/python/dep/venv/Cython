@@ -1,0 +1,7 @@
+#!/bin/bash
+
+pkg_post_install() {
+    local dir=$DocDir2
+    #pkg_install_mfd 644 Doc/* "$dir"
+    pkg_cp_fd Demos "$dir"
+}
