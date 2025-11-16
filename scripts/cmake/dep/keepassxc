@@ -2,7 +2,7 @@
 
 PkgHome="https://github.com/keepassxreboot/keepassxc"
 
-# REQ: botan, minizip, qt5
+# REQ: botan 3.8, minizip, qt5
 
 ConfigureOpts+=(
     -DKEEPASSXC_BUILD_TYPE=Release
