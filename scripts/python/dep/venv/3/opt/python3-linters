@@ -1,12 +1,10 @@
 #!/bin/bash
 
 PythonInstallLibs=(
-    black
     mypy
     flake8
 )
 PythonInstallBins=(
-    black
     mypy
     flake8
     pycodestyle
