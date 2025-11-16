@@ -1,0 +1,9 @@
+#!/bin/bash
+
+PkgHome="https://git.kernel.org/pub/scm/libs/libtrace/libtraceevent.git/"
+
+pkg_post_install() {
+    # Slackware
+    # -*.a
+    find "$LibDir2" -type f -name '*.a' -delete
+}
