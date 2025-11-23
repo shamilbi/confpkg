@@ -1,5 +1,7 @@
 #!/bin/bash
 
+[[ -f $Home/.local.sh ]] && . "$Home"/.local.sh
+
 . "$Home/functions.sh" || exit 1
 
 # installpkg dirs
