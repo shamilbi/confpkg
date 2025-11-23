@@ -25,4 +25,7 @@ pkg_post_install() {
     if [[ ! -d $d1 && -d $d2 ]]; then
         ln -sfnr "$d2" "$d1"
     fi
+
+    rm -rf "$DocDir2"/examples
+    :
 }
