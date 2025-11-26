@@ -1,0 +1,15 @@
+#!/bin/bash
+
+PkgHome="https://github.com/xiph/libao/tags"
+
+[[ ! $PULSE ]] && ConfigureOpts+=(--disable-pulse)
+
+MakeEnv=(
+    docdir="$DocDir"
+)
+InstallEnv+=("${MakeEnv[@]}")
+
+
+pkg_post_install() {
+    rm -f "$DocDir2"/{*.html,*.css,*.c}
+}
