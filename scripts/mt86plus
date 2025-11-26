@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# Memtest86+ is a stand-alone memory tester for x86 and x86-64 architecture computers.
+# It provides a more thorough memory check than that provided by BIOS memory tests.
+# Memtest86+ can be loaded and run either directly by a PC BIOS (legacy or UEFI)
+# or via an intermediate bootloader that supports the Linux 16-bit, 32-bit, 64-bit, or EFI handover boot protocol.
+# It should work on any Pentium class or later 32-bit or 64-bit x86 CPU.
+#
+# Memtest86+ v6 is a unified, free, open-source memory testing tool, released under GNU GPL v2.0.
+# The new v6 code base (originally called PCMemTest) was provided by Martin Whitaker,
+# based on Memtest86+ v5, developed by Sam Demeulemeester. Both are now working on Memtest86+.
+#
+# Memtest86+ is unrelated to 'Memtest86', a closed-source `Freemium` software released in 2013 by PassMark Software Pty Ltd.
+
+PkgHome="https://www.memtest.org/"
+
+SrcDir=$OrigSrcDir/build64
+[[ ! -d $SrcDir ]] && SrcDir=$OrigSrcDir/build/x86_64 # v8
+
+unset pkg_configure
+
+CleanOpts=(clean)
+
+pkg_install() {
+    local dir0=$DestDir/boot/efi
+    local dir1=$dir0/EFI/mt86plus
+    mkdir -p "$dir1"
+
+    local i
+    for i in memtest.efi "${Name,,}"; do
+        if [[ -f $SrcDir/$i ]]; then
+            pkg_install_mff 640 "$SrcDir/$i" "$dir1"/bootx64.efi
+            break
+        fi
+    done
+
+    # chmod: dir -> 750
+    find "$dir0" -type d -depth -exec chmod 750 {} \;
+}
