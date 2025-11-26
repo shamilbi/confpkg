@@ -1,0 +1,7 @@
+#!/bin/bash
+
+unset pkg_configure pkg_check pkg_make
+
+pkg_install() {
+    pkg_install_mff 755 fasm.x64 "$Prefix2/bin"/fasm
+}
