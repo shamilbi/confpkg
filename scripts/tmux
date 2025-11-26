@@ -1,0 +1,11 @@
+#!/bin/bash
+
+PkgHome="https://github.com/tmux/tmux"
+
+# on any make error: recompile libevent
+
+ConfigureOpts+=(
+    # Slackware
+    --enable-sixel
+    --disable-cgroups
+)
