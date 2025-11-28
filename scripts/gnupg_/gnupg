@@ -2,6 +2,10 @@
 
 ConfigureOpts+=(
     # Slackware
+    --disable-ccid-driver
+    --enable-large-secmem
+    --enable-g13
+    --enable-maintainer-mode
     --program-prefix=""
     --program-suffix=""
     #--enable-gpg-is-gpg2
