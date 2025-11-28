@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PkgHome="https://gitlab.freedesktop.org/libinput/libinput"
+PkgHome="https://gitlab.freedesktop.org/libinput/libinput/-/tags"
 
 ConfigureOpts+=(
     # Slackware
