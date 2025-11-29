@@ -1,0 +1,13 @@
+#!/bin/bash
+
+PkgHome="https://github.com/libproxy/libproxy"
+
+ConfigureOpts+=(
+    -Ddocs=false # true, Whether to generate the API reference for libproxy (requires introspection)
+    -Dtests=false # true, Whether to compile test cases for libproxy
+)
+
+pkg_post_install() {
+    # Slackware
+    find "$LibDir2" -type f -name '*.a' -delete
+}
