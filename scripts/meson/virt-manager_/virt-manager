@@ -1,6 +1,8 @@
 #!/bin/bash
 
-PkgHome="https://github.com/virt-manager/virt-manager"
+PkgHome+=(
+    "https://github.com/virt-manager/virt-manager"
+)
 
 pkg_set_python python3
 
