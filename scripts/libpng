@@ -10,31 +10,31 @@ PkgHome=(
 ConfigureOpts+=(--enable-static)
 
 pkg_pre_configure() {
+    # check apng patch
     #define PNG_APNG_SUPPORTED
     grep -Fq PNG_APNG_SUPPORTED png.h || {
-        echo "\
+        cat <<EOF
 APNG patch not found
 URL: https://sourceforge.net/projects/libpng-apng/"
+EOF
         return 1
         }
 }
 
 pkg_post_install() {
-    if [[ ! -d $IncludeDir2/$Name ]]; then
-        (
-            cd "$IncludeDir2" || exit 1
-            while read -r f; do
-                d=${f:2}    #./
-                ln -sfn "$d" "$Name"
-            done < <(find -maxdepth 1 -type d -name "$Name*")
-        ) || return 1
+    # /usr/include/libpng
+    local name=${Name,,}
+    local dir=$IncludeDir2/$name
+    if [[ ! -d $dir ]]; then
+        local dir2
+        while dir2=$(pkg_read_exist); do
+            ln -sfnr "$dir2" "$dir" # libpng16 -> libpng
+            break
+        done < <(find "$IncludeDir2" -mindepth 1 -maxdepth 1 -type d -name "$name*")
     fi
+
+    # pngcp
     if [[ -e pngcp ]]; then
         pkg_install_mfd 755 pngcp "$Prefix2/bin"
     fi
-
-    local f=$LibDir2/libpng.la
-    [[ -e $f ]] && rm -f "$f"
-
-    :
 }
