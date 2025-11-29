@@ -1,0 +1,7 @@
+#!/bin/bash
+
+PkgHome="https://github.com/pex-tool/pex"
+
+pkg_post_install() {
+    find "$DestDir" -type f -name '*.exe' -delete
+}
