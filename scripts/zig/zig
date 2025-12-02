@@ -1,0 +1,11 @@
+#!/bin/bash
+
+PkgHome="https://ziglang.org/"
+
+if [[ $FullName = *-linux-* ]]; then
+    # zig-0.12.0-linux-x86_64.tar.xz
+    pkg_find_script_ "$Name.bin"
+else
+    pkg_find_script_ "$Name.src"
+fi
+pkg_include_script_

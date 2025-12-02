@@ -1,0 +1,20 @@
+#!/bin/bash
+
+PkgHome="https://ziglang.org/download/"
+
+unset pkg_configure pkg_make
+
+pkg_install() {
+    local prefix=$LibDir/$Name
+    local prefix2=$DestDir$prefix
+
+    pkg_cp_fd lib zig "$prefix2"
+    ls -d "$prefix2/zig" | pkg_ln_d "$Prefix2/bin"
+}
+
+pkg_install_doc() {
+    pkg_install_mfd 644 R* L* "$DocDir2"
+    if [[ -d doc ]]; then
+        pkg_cp_dd doc "$DocDir2"
+    fi
+}

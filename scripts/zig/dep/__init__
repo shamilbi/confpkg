@@ -1,0 +1,26 @@
+#!/bin/bash
+
+unset pkg_configure
+
+InstallOpts=(
+    -p "$Prefix2"
+    #--prefix-exe-dir "$Prefix2"/bin
+)
+
+pkg_make() {
+    ## bad permissions
+    ## try current_dir.copyFile("res/pam.d/ly", pam_dir, "ly", .{ .override_mode = 644 });
+    ## fix: delete .override_mode
+    #local f1=build.zig
+    #if pkg_create_orig "$f1"; then
+    #    sed -i -e 's,\.override_mode = [0-9]\+,,' "$f1"
+    #fi
+
+    zig build
+}
+
+pkg_install() {
+    # zig build install -h
+    #zig build -Ddest_directory="$DestDir" installopenrc
+    zig build install "${InstallOpts[@]}"
+}

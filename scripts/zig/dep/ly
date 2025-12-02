@@ -1,0 +1,6 @@
+#!/bin/bash
+
+pkg_install_doc() {
+    pkg_install_mfd 644 *.md "$DocDir2"
+    pkg_cp_dd res "$DocDir2"/res
+}
