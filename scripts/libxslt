@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PkgHome="https://download.gnome.org/sources/$Name/?C=M&O=D"
+
 [[ ! $BuildSteps ]] && BuildSteps=("${BuildForPython[@]}")
 if [[ $BuildStep ]]; then
     pkg_set_python "$BuildStep"
