@@ -1,0 +1,8 @@
+#!/bin/bash
+
+PkgHome="https://www.nftables.org/"
+
+ConfigureOpts+=(
+    --with-json-parsing
+)
+#    --with-xml-parsing \
