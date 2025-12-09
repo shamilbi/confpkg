@@ -1,0 +1,8 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    -Dsystemd=disabled # enabled, Build with systemd support
+    -Dsystemd-service=false # Install systemd service (true if systemd option is enabled)
+    -Dcapng=enabled # Build with libcap-ng support
+    -Dthermal=enabled # Build with thermal support
+)
