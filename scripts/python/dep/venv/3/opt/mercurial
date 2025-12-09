@@ -1,11 +1,7 @@
 #!/bin/bash
 
-export HGWITHRUSTEXT=cpython
+# error: the configured Python interpreter version (3.14) is newer than PyO3's maximum supported version (3.13)
+# help: set PYO3_USE_ABI3_FORWARD_COMPATIBILITY=1 to suppress this check and build anyway using the stable ABI
+export PYO3_USE_ABI3_FORWARD_COMPATIBILITY=1
 
-if (($(pkg_cmp_versions "$Version" "6.8.1") == -1)); then
-    # hg push error:
-    # ImportError:
-    # /usr/lib64/python3.12/site-packages/mercurial/rustext.cpython-312-x86_64-linux-gnu.so:
-    # undefined symbol: _PyUnicode_Ready
-    BuildForPython=(python3.11)
-fi
+export HGWITHRUSTEXT=cpython
