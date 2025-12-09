@@ -1,0 +1,17 @@
+#!/bin/bash
+
+pkg_post_install() {
+    # Slackware
+    # There's still code looking for this header name"
+    # /usr/include/librsvg-2.0/librsvg/librsvg-features.h
+    local name=librsvg-features.h
+    local f1
+    f1=$(find "$IncludeDir2" -mindepth 3 -maxdepth 3 -type f \
+            -name "$name" -print -quit)
+    if [[ ! $f1 || ! -e $f1 ]]; then
+        f1=$(find "$IncludeDir2" -mindepth 3 -maxdepth 3 -type f \
+                -name "rsvg-features.h" -print -quit)
+        [[ -f $f1 ]] && ln -sfnr "$f1" "${f1%/*}/$name"
+    fi
+
+}
