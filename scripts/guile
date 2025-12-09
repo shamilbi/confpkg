@@ -1,0 +1,38 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    # Slackware
+    --with-threads
+    --disable-rpath
+    --disable-error-on-warning
+)
+
+pkg_pre_configure() {
+    # Slackware
+    local patches=(
+        0001-Mark-mutex-with-owner-not-retained-threads-test-as-u.patch
+        0002-Look-for-guile-procedures.txt-in-pkglibdir.patch
+        0003-Disable-sandbox.test-1e6-alloc-loop-allocation-limit.patch
+        0004-gc.test-after-gc-hook-mark-unresolved-on-failure-eve.patch
+        0005-Mark-test-out-of-memory-as-an-expected-failure-for-n.patch
+        0006-numbers.test-disable-unresolved-mixed-type-division-.patch
+        0019-Compile-with-fexcess-precision-standard-for-i-3456-8.patch
+    )
+    local i
+    for i in "${patches[@]}"; do
+        pkg_patch_f3 "$i" 1 || return 1
+    done
+    pkg_autoreconf
+}
+
+pkg_post_install() {
+    # Slackware
+    # Move libguile*-gdb.scm to GDB's autoload directory to avoid
+    # getting "not an ELF file" errors from ldconfig:
+    ls -d "$LibDir2"/*-gdb.scm | pkg_mv_d "$ShareDir2/gdb/auto-load${LibDir}"
+    # Change timestamps on *.go and *.scm files, otherwise on multilib systems
+    # the compiled (go) files may be detected as older than the source (scm)
+    # files, causing guile to attempt to recompile itself with every use:
+    find "$LibDir2" -name "*.go" -exec touch "{}" \;
+    find "$ShareDir2" -name "*.scm" -exec touch "{}" \;
+}
