@@ -1,0 +1,7 @@
+#!/bin/bash
+
+PkgHome="https://github.com/dyne/frei0r/tags"
+
+ConfigureOpts+=(
+    -DCMAKE_INSTALL_LIBDIR="$LibName"
+)
