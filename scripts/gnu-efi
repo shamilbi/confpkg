@@ -6,6 +6,7 @@ MakeEnv=(
     # Slackware
     #CPPFLAGS="$CFLAGS"
     LIBDIR="$LibDir"
+    PKGCONFIGDIR="$LibDir"/pkgconfig
 
     PREFIX="$Prefix"
         # Slackware
@@ -21,4 +22,7 @@ pkg_post_install() {
     # Slackware
     # Fix install locations:
     mv "$LibDir2"/{*.lds,crt0*.o} "$LibDir2"/gnuefi/
+
+    rm -f "$LibDir2"/gnu-efi.pc
+    :
 }
