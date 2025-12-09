@@ -1,0 +1,16 @@
+#!/bin/bash
+
+PkgHome="https://github.com/cdrdao/cdrdao"
+
+ConfigureOpts+=(
+    # Slackware
+    --without-scglib
+    --with-ogg-support
+    --with-mp3-support
+    --with-lame
+)
+
+pkg_post_install() {
+    pkg_cp_fd contrib "$DocDir2"
+    pkg_install_mfd 644 *.lsm "$DocDir2"
+}
