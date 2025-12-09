@@ -41,11 +41,15 @@ PythonInstallLibs=(
     typing-extensions
 )
 
-pkg_post_install() {
+pkg_post_install_1() {
     # pytz, tzdata
     local dir
     while IFS= read -r dir; do
         rm -rf "$dir"
         ln -sfn "$Prefix/share/zoneinfo" "$dir"
     done < <(find "$DestDir" -type d -name zoneinfo)
+}
+
+pkg_post_install() {
+    pkg_post_install_1
 }

@@ -1,0 +1,9 @@
+#!/bin/bash
+
+BuildForPython=(python3.13)
+
+pkg_post_install() {
+    pkg_post_install_1
+
+    rm -rf "$Prefix2"/bin
+}
