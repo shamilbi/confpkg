@@ -1,0 +1,9 @@
+#!/bin/bash
+
+PkgHome="https://github.com/s-yata/marisa-trie/tags"
+
+ConfigureOpts+=(
+    -DLIB_INSTALL_DIR="$LibName"
+    -DBUILD_TESTING=OFF
+    #-DENABLE_NATIVE_CODE=ON
+)
