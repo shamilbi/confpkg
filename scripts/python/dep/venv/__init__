@@ -3,7 +3,8 @@
 # compile $PythonVenvDir/ then copy to /usr
 
 unset BuildSteps # pkg_python_install (BuildForPython)
-unset pkg_configure pkg_make PythonInstallLibs PythonInstallLibs0
+unset pkg_configure pkg_make
+unset PythonInstallLibs PythonInstallLibs0 PythonNoBuildIsolation
 PythonVenvSystem=1
 
 # Slackware
