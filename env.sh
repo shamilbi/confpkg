@@ -68,7 +68,7 @@ DocDir0=/usr/doc
 
 Python=python3
 #BuildForPython=(python3)
-BuildForPython=(python3.12 python3.13)
+BuildForPython=(python3.12 python3.14)
 
 _find_utils() {
     local i
