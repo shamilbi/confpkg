@@ -1,0 +1,53 @@
+#!/bin/bash
+
+MakeEnv=(
+    TOPDIR="$Prefix"
+    TZDIR="$ShareDir"/zoneinfo
+    ETCDIR="$Prefix"/sbin
+    ZICDIR="$Prefix"/sbin
+    BINDIR="$Prefix"/bin
+    MANDIR="$ManDir"
+    TZDEFAULT="$Etc"/localtime
+    LIBDIR="$LibDir"
+    VERSION="$Version"
+)
+InstallEnv+=("${MakeEnv[@]}")
+pkg_check=
+CleanOpts=(clean)
+
+pkg_del_cflags '-std=gnu17'
+
+pkg_pre_configure() {
+    # Slackware
+    pkg_add_cflags "-DHAVE_SNPRINTF=1"
+    # Default to more bloated (but more compatible) "fat" format with zic.
+    # This was the default prior to tzcode2020b.
+    pkg_patch_f3 zic.default.fat.diff.gz 1 || return 1
+}
+
+pkg_post_install() {
+    rm -f "$LibDir2"/*.a
+
+    (
+        cd "$ShareDir2" || exit 1
+
+        # Slackware
+        # These are all identical to the normal zoneinfo files, so let's hard link
+        # them to save space:
+        cp -al zoneinfo posix
+        mv posix zoneinfo
+        # Install the "right" files:
+        ls -d zoneinfo-leaps/* | pkg_mv_d zoneinfo/right
+        rm -rf zoneinfo-leaps zoneinfo-posix
+        # Remove $PKG/usr/share/zoneinfo/localtime -- the install script will
+        # create it as a link to /etc/localtime.
+        rm -f zoneinfo/localtime
+    )
+
+    # /etc/localtime
+    local f=$Etc2/localtime
+    [[ -f $f ]] && rm -f "$f"
+
+    # del empty dirs
+    find "$DestDir" -depth -type d -empty -delete
+}
