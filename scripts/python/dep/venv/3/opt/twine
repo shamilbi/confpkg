@@ -1,5 +1,8 @@
 #!/bin/bash
 
+PythonInstallLibs=(
+    pysocks
+)
 PythonInstallBins=(
     twine
 )
