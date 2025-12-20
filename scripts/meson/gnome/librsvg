@@ -1,5 +1,10 @@
 #!/bin/bash
 
+ConfigureOpts+=(
+    # Slackware
+    -Dpixbuf-loader=enabled
+)
+
 pkg_post_install() {
     # Slackware
     # There's still code looking for this header name"
