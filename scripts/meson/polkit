@@ -1,0 +1,59 @@
+#!/bin/bash
+
+PkgHome="https://github.com/polkit-org/polkit/tags"
+
+# passwd
+# polkitd:x:87:87:PolicyKit daemon owner:/var/lib/polkit:/bin/false
+# group
+# polkitd:x:87:
+user=polkitd
+group=polkitd
+userId=87
+groupId=87
+userHome=/var/lib/polkit
+userShell=/bin/false
+userComment="PolicyKit daemon owner" 
+
+ConfigureOpts+=(
+    # Slackware
+    -Dintrospection=true
+    -Dsession_tracking=elogind
+    -Dsystemdsystemunitdir=/usr/lib/systemd/user
+    -Dauthfw=pam
+    -Dpam_module_dir=/"$LibName"/security
+    -Dpam_prefix=/etc/pam.d
+    -Dman=true
+)
+
+
+pkg_pre_configure() {
+    pkg_check_group "$group" "$groupId" || return 1
+    pkg_check_user "$user" "$group" "$userId" "$userHome" "$userShell" "$userComment" || return 1
+
+    # Slackware
+    pkg_patch_f3 dont-set-wheel-group-as-admin.diff 1 || return 1
+}
+
+pkg_post_install() {
+    # Slackware
+    # Create homedir for polkit.  This is mentioned in /etc/passwd, but isn't
+    # actually used for anything later.  Perms don't matter.
+    mkdir -p "$DestDir/var/lib/polkit"
+    # Move dbus configs to system location:
+    ls -d "$Etc2"/dbus-1/system.d/* | pkg_mv_d "$ShareDir2"/dbus-1/system.d
+    rmdir --parents "$Etc2"/dbus-1/system.d
+    # Leave the /etc/polkit-1/rules.d/ dir in place, but move the config(s)
+    ls -d "$Etc2"/polkit-1/rules.d/* | pkg_mv_d "$ShareDir2"/polkit-1/rules.d
+}
+
+pkg_read2var pkg_post_installpkg <<EOF
+pkg_post_installpkg() {
+    # Slackware
+    # Remove obsolete rules:
+    rm -f etc/polkit-1/localauthority/50-local.d/*.pkla{,.new}
+    rm -f etc/polkit-1/rules.d/*.pkla{,.new}
+    # Remove obsolete directory:
+    rmdir etc/polkit-1/localauthority/50-local.d 2>/dev/null
+    rmdir etc/polkit-1/localauthority 2>/dev/null
+}
+EOF
