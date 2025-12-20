@@ -5,7 +5,7 @@ pkg_configure_replace() {
     local arr i found
     arr=()
     for i in "${ConfigureOpts[@]}"; do
-        if [[ $i = $1=* ]]; then
+        if [[ $i = "$1"=* ]]; then
             [[ $found ]] && continue
             arr+=("$1=$2")
             found=1
