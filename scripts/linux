@@ -6,7 +6,6 @@ unset pkg_configure pkg_check DOC pkg_strip
 
 CleanOpts=(clean)
 
-# clang, CONFIG_CFI_CLANG=y
 check_llvm=1
 
 check_env() {
@@ -18,23 +17,9 @@ check_env() {
         }
 
     MakeEnv=()
-    local clang=$(command -v clang) opt
+    local clang=$(command -v clang)
     if [[ $check_llvm && $clang ]]; then
-        opt="LLVM=${clang%/*}" # LLVM=/usr/bin
-        MakeEnv=("$opt")
-        grep -q -m 1 -e '^CONFIG_CFI_CLANG=y' .config ||
-            {
-                echo "bad .config: CONFIG_CFI_CLANG != y"
-                echo "configure kernel: $opt make nconfig"
-                return 1
-            }
-    else
-        grep -q -m 1 -e '^CONFIG_CFI_CLANG=y' .config &&
-            {
-                echo "bad .config: CONFIG_CFI_CLANG = y"
-                echo "configure kernel: make nconfig"
-                return 1
-            }
+        MakeEnv=("LLVM=1")
     fi
 }
 
