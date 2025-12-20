@@ -1,8 +1,16 @@
 #!/bin/bash
 
-PkgHome="https://github.com/intel/media-driver"
+PkgHome="https://github.com/intel/media-driver/tags"
 
 # REQ: intel-gmmlib
+
+ConfigureOpts+=(
+    # Slackware
+    -DCMAKE_POLICY_VERSION_MINIMUM=3.5.0
+    -DINSTALL_DRIVER_SYSCONF=OFF
+    -DMEDIA_BUILD_FATAL_WARNINGS=OFF
+    -Wno-dev
+)
 
 pkg_pre_configure() {
     # clang
