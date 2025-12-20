@@ -462,31 +462,44 @@ pkg_install_mfd() {
     # pkg_install_mfd 755 *.sh dir
     # pkg_install_mfd 755 -o root -g bin *.sh dir
     # install -pm <mode> file ... dir
-    local mode=$1
-    shift 1
-
-    local args=("${@:1:($# - 1)}") # (arg1, ... argN), last
-    local dir=${!#}                # last
-
-    if [[ ! $mode || ! $dir ]]; then
-        pkg_log "empty mode or dir"
+    # ls *.ttf | pkg_install_mfd 644 dir
+    if (($# < 2)); then
+        pkg_log "bad args: $*"
         return 1
     fi
 
-    if [[ ! -d $dir ]]; then
-        mkdir -p "$dir" || {
-            pkg_log "mkdir error"
-            return 1
-        }
+    local mode=$1
+    shift 1
+
+    local args=("${@:1:$(($# - 1))}") # (arg1, ... argN), last
+    local dir=${!#}                # last
+
+    if [[ ! $mode ]]; then
+        pkg_log "empty mode"
+        return 1
     fi
+
+    pkg_mkdir "$dir" || return 1
+
     local i
-    for i in "${args[@]}"; do
-        if [[ -L $i ]]; then
-            cp -a "$i" "$dir"
-        else
-            install -pm "$mode" "$i" "$dir"
-        fi
-    done
+    if (($# < 2)); then
+        # ls *.ttf | pkg_install_mfd 644 dir
+        while i=$(pkg_read_exist); do
+            if [[ -L $i ]]; then
+                cp -a "$i" "$dir"
+            else
+                install -pm "$mode" "$i" "$dir"
+            fi
+        done
+    else
+        for i in "${args[@]}"; do
+            if [[ -L $i ]]; then
+                cp -a "$i" "$dir"
+            else
+                install -pm "$mode" "$i" "$dir"
+            fi
+        done
+    fi
 }
 
 pkg_install_mff() {
