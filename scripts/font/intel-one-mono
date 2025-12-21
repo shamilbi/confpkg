@@ -1,0 +1,8 @@
+#!/bin/bash
+
+PkgHome="https://github.com/intel/intel-one-mono/tags"
+
+pkg_install() {
+    ls -d fonts/otf/*.otf | pkg_install_mfd 644 "$FontsDir2/OTF"
+    ls -d fonts/ttf/*.ttf | pkg_install_mfd 644 "$FontsDir2/TTF"
+}
