@@ -1,0 +1,13 @@
+#!/bin/bash
+
+PkgHome="https://download.savannah.gnu.org/releases/dmidecode/?C=M&O=D"
+
+unset -v pkg_configure
+
+MakeEnv=(
+    prefix="$Prefix"
+    docdir="$DocDir"
+    mandir="$ManDir"
+)
+InstallEnv+=("${MakeEnv[@]}")
+CleanOpts=(clean)
