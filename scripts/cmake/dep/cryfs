@@ -18,9 +18,11 @@ ConfigureOpts+=(
 )
 
 pkg_pre_configure() {
-    # Fix building with Boost 1.88
-    # https://github.com/cryfs/cryfs/pull/494/commits/926822a4e3778dac7362637b80aca584d217c753
-    pkg_patch_f3 926822a4e3778dac7362637b80aca584d217c753.diff 1 || return 1
+    if (($(pkg_cmp_versions "$Version" "1.0.2") < 0)); then
+        # Fix building with Boost 1.88
+        # https://github.com/cryfs/cryfs/pull/494/commits/926822a4e3778dac7362637b80aca584d217c753
+        pkg_patch_f3 926822a4e3778dac7362637b80aca584d217c753.diff 1 || return 1
+    fi
 }
 
 pkg_post_install() {
