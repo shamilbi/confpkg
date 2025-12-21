@@ -1,0 +1,16 @@
+#!/bin/bash
+
+PkgHome="https://github.com/microsoft/cascadia-code/tags"
+# CascadiaCode-2407.24.zip
+
+pkg_install() {
+    local dir=(ttf otf)
+    local d1
+    for d1 in "${dir[@]}"; do
+        if [[ -d $d1 ]]; then
+            # *.ttf
+            find "$d1" type f -name "*.$d1" |
+                pkg_install_mfd 644 "$FontsDir2/${d1^^}"
+        fi
+    done
+}
