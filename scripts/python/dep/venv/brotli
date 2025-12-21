@@ -1,0 +1,29 @@
+#!/bin/bash
+
+PkgHome="https://github.com/google/brotli/tags"
+
+pkg_post_install() {
+    local opts=(
+        # Slackware
+        -DCMAKE_INSTALL_PREFIX="$Prefix"
+        -DCMAKE_BUILD_TYPE=Release
+        -DCMAKE_INSTALL_LIBDIR="$LibDir"
+        -DCMAKE_C_FLAGS="$CFLAGS"
+        -DCMAKE_CXX_FLAGS="$CFLAGS"
+        #-DCMAKE_C_FLAGS_RELEASE:STRING="$SLKCFLAGS"
+        #-DCMAKE_CXX_FLAGS_RELEASE:STRING="$SLKCFLAGS"
+        #-DMAN_INSTALL_DIR="$ManDir"
+        -DSYSCONF_INSTALL_DIR=/etc
+        #-DLIB_SUFFIX=${LIBDIRSUFFIX}
+        -DBUILD_TESTING=NO
+
+        -DBUILD_SHARED_LIBS=ON
+        -DCMAKE_INSTALL_MANDIR="$ManDir"
+        -DCMAKE_INSTALL_DOCDIR="$DocDir"
+    )
+    cmake -B _build "${opts[@]}" . || return 1
+    make -C _build || return 1
+    make -C _build DESTDIR="$DestDir" install
+
+    pkg_install_mfd 644 docs/brotli.1 "$ManDir2/man1"
+}
