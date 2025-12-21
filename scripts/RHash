@@ -1,0 +1,44 @@
+#!/bin/bash
+
+PkgHome="https://github.com/rhash/RHash"
+
+ConfigureOpts=(
+    --prefix="$Prefix"
+    --sysconfdir=/etc
+    --mandir="$ManDir"
+    --libdir="$LibDir"
+    --disable-lib-static
+    --enable-lib-shared
+)
+
+pkg_post_make() {
+    # python bindings
+    local d=bindings/python
+    [[ ! -d $d ]] && { pkg_log "dir $d not found"; return 1; }
+
+    # rhash/rhash.py
+    # _LIBNAME = "librhash.so.0"
+    # ->
+    # _LIBNAME = "librhash.so.1"
+    if [[ ! -f rhash.py.tmp ]]; then
+        local f=$d/rhash/rhash.py
+        local so=$(find librhash -regex '.*/librhash\.so\.[0-9]+$' -print -quit)
+        if [[ $so ]]; then
+            so=$(basename "$so")
+            sed -i -e 's,"librhash\.so\..*","'"$so"'",' "$f"
+        fi
+        touch rhash.py.tmp
+    fi
+
+    echo "make $d ..."
+    (cd "$d" || exit 1
+        unset PythonVenvSystem PythonNoBuildIsolation PythonInstallLibs
+        pkg_python_install || exit 1
+    ) || return 1
+}
+
+pkg_post_install() {
+    local name=librhash
+    cp -a "$name/$name.so" "$LibDir2"
+    pkg_install_mfd 644 "$name"/rhash.h "$Prefix2/include"
+}
