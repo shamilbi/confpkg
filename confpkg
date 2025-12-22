@@ -437,6 +437,7 @@ pkg_post_install2_() {
     if ((${#ProtectDirs[*]})); then
         for i in "${ProtectDirs[@]}"; do
             while IFS= read -r fpath; do
+                [[ $fpath = *.new ]] && continue
                 mv "$fpath" "$fpath.new"
                 pkg_doinst_add "config ${fpath:${#DestDir}+1}"
             done < <(find "$DestDir$i" -type f 2>/dev/null)
