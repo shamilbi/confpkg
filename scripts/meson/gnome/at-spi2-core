@@ -1,0 +1,7 @@
+#!/bin/bash
+
+BuildSteps=("${BuildForPython[@]}")
+if [[ $BuildStep ]]; then
+    pkg_set_python "$BuildStep"
+    ConfigureOpts+=(-Dpython="$BuildStep")
+fi
