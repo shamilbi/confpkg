@@ -1,0 +1,32 @@
+#!/bin/bash
+
+PkgHome="https://github.com/nigels-com/glew/tags"
+
+MakeEnv=(
+    # Slackware
+    OPT="$CFLAGS"
+
+    GLEW_PREFIX="$Prefix"
+    LIBDIR="$LibDir"
+    BINDIR="$Prefix"/bin
+    INCDIR="$IncludeDir"/GL
+    PKGDIR="$LibDir"/pkgconfig
+)
+InstallEnv+=("${MakeEnv[@]}")
+InstallOpts=(
+    # Slackware
+    install.all
+)
+
+pkg_pre_configure() {
+    # Slackware
+    # Fix libdir so that it doesn't include /tmp/package-glew:
+    sed -i "s|@libdir@|$LibDir|g" glew.pc.in
+    # Use lib${LIBDIRSUFFIX} (if needed) in Makefile:
+    #sed -i "s,/lib,/lib${LIBDIRSUFFIX},g" Makefile
+}
+
+pkg_post_install() {
+    # Slackware
+    find "$LibDir2" -type f -name '*.a' -delete
+}
