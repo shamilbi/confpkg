@@ -1,0 +1,8 @@
+#!/bin/bash
+
+PkgHome="https://github.com/intel/libva"
+
+ConfigureOpts+=(--enable-glx)
+
+[[ $WAYLAND ]] && ConfigureOpts+=(--enable-wayland) \
+    || ConfigureOpts+=(--disable-wayland)
