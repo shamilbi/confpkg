@@ -2,4 +2,15 @@
 
 PkgHome="https://github.com/netwide-assembler/nasm/tags"
 
+# make: *** No rule to make target 'check'.  Stop.
 pkg_check=
+
+pkg_post_install() {
+    # Slackware
+    (
+        cd doc || exit 1
+        touch pptok.src perlbreq.src
+        make nasmdoc.txt || exit 1
+        pkg_install_mfd 644 nasmdoc.txt "$DocDir2"
+    ) || return 1
+}
