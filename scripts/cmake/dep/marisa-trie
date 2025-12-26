@@ -3,7 +3,77 @@
 PkgHome="https://github.com/s-yata/marisa-trie/tags"
 
 ConfigureOpts+=(
+    # Slackware
     -DLIB_INSTALL_DIR="$LibName"
+
     -DBUILD_TESTING=OFF
-    #-DENABLE_NATIVE_CODE=ON
 )
+
+pkg_pre_configure() {
+    (
+        cd "$OrigSrcDir" || exit 1
+        if [[ $Version = "0.3.1" ]]; then
+            # bindings/perl
+            # .../usr/include/marisa/base.h:185:22: error: ‘MARISA_MEMORY_ERROR’ cannot be used as a function
+            # https://github.com/s-yata/marisa-trie/issues/121
+            pkg_patch_f3 806090b8a01f5c6f2ca3138db5c38d4b328684d8.patch 1 || exit 1
+        fi
+    )
+}
+
+pkg_post_install() {
+    (
+        cd "$OrigSrcDir" || exit 1
+
+        # Slackware
+        # Regenerate bindings:
+        echo "---------------- perl ..."
+        make -C bindings -j1 swig-perl || exit 1
+        (
+            cd bindings/perl || exit 1
+            opts=(
+                INC="-I$IncludeDir2"
+                LIBS="-L$LibDir2"
+                PREFIX="$Prefix"
+                INSTALLDIRS=vendor
+            )
+            perl Makefile.PL "${opts[@]}" || exit 1
+            make || exit
+            make test || exit 1
+            make install DESTDIR="$DestDir" || exit 1
+        ) || exit 1
+        echo "---------------- python3 ..."
+        make -C bindings -j1 swig-python3 || exit 1
+        (
+            cd bindings/python3 || exit 1
+            for p in "${BuildForPython[@]}"; do
+                pkg_set_python "$p"
+                opts=(
+                    --include-dirs="$IncludeDir2"
+                    --library-dirs="$LibDir2"
+                )
+                "$Python" setup.py build_ext "${opts[@]}" || exit 1
+                "$Python" setup.py install --root="$DestDir" || exit 1
+            done
+        ) || exit 1
+        echo "---------------- ruby ..."
+        make -C bindings -j1 swig-ruby || exit 1
+        (
+            cd bindings/ruby || exit 1
+            opts=(
+                --with-opt-include="$IncludeDir2"
+                --with-opt-lib="$LibDir2"
+                --vendor
+            )
+            ruby extconf.rb "${opts[@]}" || exit 1
+            make || exit 1
+            make install DESTDIR="$DestDir" || exit 1
+        )
+    ) || return 1
+
+    # Remove perllocal.pod and other special files that don't need to be installed,
+    # as they will overwrite what's already on the system.
+    find "$DestDir" -name perllocal.pod -o -name ".packlist" -o -name "*.bs" -delete
+    # Remove empty directories
+    find "$DestDir" -depth -type d -empty -delete
+}
