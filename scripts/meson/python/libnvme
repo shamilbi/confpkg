@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PkgHome="https://github.com/linux-nvme/libnvme/tags"
+
 pkg_pre_configure() {
     # python3 = import('python').find_installation('python3')
     local f1=libnvme/meson.build
