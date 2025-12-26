@@ -6,13 +6,18 @@ BuildSteps=("${BuildForPython[@]}")
 [[ $BuildStep ]] && pkg_set_python "$BuildStep"
 
 ConfigureOpts+=(
-    -DDOCUMENTATION=OFF
     -DPYTHON_BINDINGS=ON
+    # <2025-06-30
     -DPythonInterp_FIND_VERSION="$PythonV12"
     -DPythonInterp_FIND_VERSION_COUNT=2
     -DPythonInterp_FIND_VERSION_MAJOR="$PythonV1"
     -DPythonInterp_FIND_VERSION_MINOR="$PythonV2"
+    # >=2025-06-30
+    -DPython3_EXECUTABLE="$Python"
+
     -DFTDIPP=ON
+    -DBUILD_TESTS=OFF
+    -DDOCUMENTATION=OFF
 )
 
 pkg_pre_configure() {
