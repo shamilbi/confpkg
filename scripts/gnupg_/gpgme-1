@@ -15,7 +15,7 @@ MakeEnv=(
 InstallEnv+=("${MakeEnv[@]}")
 
 pkg_post_install() {
-    pkg_reinstall_python lang/python
+    #pkg_reinstall_python lang/python
 
     gzip -9 "$DocDir2"/ChangeLog*
 }
