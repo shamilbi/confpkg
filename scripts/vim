@@ -19,6 +19,8 @@ ConfigureOpts+=(
     --with-wayland=no
     #--with-x=no
     #--with-compiledby="<volkerdi@slackware.com>"
+    #--without-x
+    #--disable-gui
 
     --disable-gtktest
     --disable-netbeans # Disable NetBeans integration support
@@ -34,6 +36,24 @@ ConfigureOpts+=(
 Make=(make)
 pkg_check=
 ProtectFiles=("$ShareDir"/vim/vimrc)
+
+#pkg_pre_configure() {
+#    # Slackware
+#    # enable-rubyinterp
+#    # If dynamic support for Ruby works with this $ARCH, then allow it:
+#    if [[ $Arch = "x86_64" ]]; then
+#        ConfigureOpts+=(
+#            --enable-rubyinterp=dynamic
+#        )
+#    else
+#        # The possible settings for this are yes/no/dynamic.
+#        # Set it to "no" until Ruby fixes this (slated for Ruby 4.1, it seems) or Vim
+#        # upstream finds a workaround.
+#        ConfigureOpts+=(
+#            --enable-rubyinterp=no
+#        )
+#    fi
+#}
 
 pkg_post_install() {
     # Slackware
