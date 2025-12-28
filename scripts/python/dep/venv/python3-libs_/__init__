@@ -5,6 +5,7 @@ PythonVenvSystem=
 PythonInstallLibs=(
     wheel
     build
+    installer
     setuptools-rust
     flit-core           # argon2-cffi
     poetry-core         # dnspython
