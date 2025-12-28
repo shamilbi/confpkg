@@ -1,7 +1,21 @@
 #!/bin/bash
 
-pkg_set_python python3
+BuildSteps=("${BuildForPython[@]}")
+[[ $BuildStep ]] && pkg_set_python "$BuildStep"
+
+pkg_pre_configure() {
+    # python3 = import('python').find_installation('python3', modules: 'gi')
+    local f1=meson.build
+    sed -i -re "s|find_installation\\('(python[0-9.]+)'|find_installation('$BuildStep'|" "$f1"
+}
 
 pkg_post_install() {
-    pkg_python_compileall "$Prefix2"
+    "$Python" -m compileall "$PythonLibDir2"
+
+    # link: gexiv2.pc -> gexiv2-0.16.pc
+    local f1
+    while f1=$(pkg_read_exist); do
+        ln -sfnr "$f1" "$LibDir2"/pkgconfig/"$Name".pc
+        break
+    done < <(find "$LibDir2"/pkgconfig -type f -name "$Name-*.pc")
 }
