@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# A cross-platform FOSS library written in C to communicate with iOS devices natively
+
+PkgHome="https://github.com/libimobiledevice/libimobiledevice"
+
+BuildSteps=("${BuildForPython[@]}")
+[[ $BuildStep ]] && pkg_set_python "$BuildStep"
+
+:
