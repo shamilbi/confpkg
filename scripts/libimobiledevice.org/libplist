@@ -1,0 +1,7 @@
+#!/bin/bash
+
+PkgHome="https://github.com/libimobiledevice/libplist"
+
+BuildSteps=("${BuildForPython[@]}")
+[[ $BuildStep ]] && pkg_set_python "$BuildStep"
+:
