@@ -1,0 +1,27 @@
+#!/bin/bash
+
+PkgHome="https://github.com/storaged-project/${Name,,}/tags"
+
+BuildSteps=("${BuildForPython[@]}")
+[[ $BuildStep ]] && pkg_set_python "$BuildStep"
+
+ConfigureOpts+=(
+    # Slackware
+    #--without-dm
+    #--without-python2
+    --with-python3 # support python3 [default=check]
+
+    --enable-introspection=yes # no/auto/yes, Enable introspection for this build
+    --enable-tests=no # Run tests at compile time (default=yes)
+    #--with-dmraid=no # support dmraid [default=yes]
+)
+MakeEnv+=(
+    python3="$Python"
+    py3libdir="$PythonPlatDir"
+        # $(shell python3 -c "import sysconfig; print(sysconfig.get_path('platlib', vars={'platbase': '${exec_prefix}'}))")
+)
+InstallEnv+=("${MakeEnv[@]}")
+
+pkg_post_install() {
+    pkg_python_compileall "$PythonPlatDir2"
+}
