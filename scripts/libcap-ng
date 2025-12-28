@@ -1,0 +1,35 @@
+#!/bin/bash
+
+PkgHome="https://github.com/stevegrubb/libcap-ng"
+
+BuildSteps=("${BuildForPython[@]}")
+[[ $BuildStep ]] && pkg_set_python "$BuildStep"
+
+ConfigureOpts+=(
+    # Slackware
+    --with-python3
+
+    --libdir="/$LibName"
+    --with-python=no
+)
+
+pkg_pre_configure() {
+    local f
+
+    f=autogen.sh
+    if [[ ! -f $f.tmp ]]; then
+        ./$f || return 1
+        touch "$f.tmp"
+    fi
+
+    export PYTHON3=$Python
+}
+
+pkg_post_install() {
+    # Slackware
+    # Move libraries, as they might be needed by programs that bring a network
+    # mounted /usr online:
+    # link /lib64/* --> /usr/lib64/
+    find "$DestDir/$LibName" -maxdepth 1 -name "lib*.so*" |
+        pkg_ln_d "$LibDir2"
+}
