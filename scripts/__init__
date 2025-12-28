@@ -199,7 +199,9 @@ pkg_set_python() {
     Python=$(readlink -f "$Python")
 
     export PYTHON=$Python
+
     export PYTHONARCHDIR=$($Python -c 'import sysconfig as sc; print(sc.get_paths()["platlib"])')
+    PythonPlatDir=$PYTHONARCHDIR
 
     # /usr/include/python3.12
     PythonIncludeDir=$($Python -c 'import sysconfig as sc; print(sc.get_paths()["include"])')
@@ -219,6 +221,7 @@ pkg_set_python() {
 
     PythonLibDir2=$DestDir$PythonLibDir
     PythonSitePackagesDir2=$DestDir$PythonSitePackagesDir
+    PythonPlatDir2=$DestDir$PythonPlatDir
 }
 
 pkg_python_post_install() {
