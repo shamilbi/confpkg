@@ -1,0 +1,11 @@
+#!/bin/bash
+
+BuildSteps=("${BuildForPython[@]}")
+[[ $BuildStep ]] && pkg_set_python "$BuildStep"
+
+ConfigureOpts+=(
+    --with-modulesdir="$LibDir"
+    --python="$Python" # python binary to be used [Default: /usr/bin/python3]
+)
+
+unset pkg_check DOC
