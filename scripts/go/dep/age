@@ -1,4 +1,6 @@
 #!/bin/bash
 
+PkgHome="https://github.com/FiloSottile/age/tags"
+
 GoBuild=(go build -o . -trimpath "./cmd/...")
 GoBuildBins=(age age-keygen)
