@@ -1,0 +1,5 @@
+#!/bin/bash
+
+PkgHome="https://github.com/karol-broda/snitch/tags"
+
+GoBuild=(go build -o snitch .)
