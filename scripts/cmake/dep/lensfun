@@ -2,6 +2,9 @@
 
 PkgHome="https://github.com/lensfun/lensfun"
 
+BuildSteps=("${BuildForPython[@]}")
+[[ $BuildStep ]] && pkg_set_python "$BuildStep"
+
 ConfigureOpts+=(
     # Slackware
     -DBUILD_LENSTOOL=ON
@@ -9,8 +12,10 @@ ConfigureOpts+=(
     -DBUILD_FOR_SSE2=ON
     -DBUILD_TESTS=OFF
     -DINSTALL_HELPER_SCRIPTS=ON
+
+    -DPython3_EXECUTABLE="$Python"
 )
 
 pkg_post_install() {
-    pkg_reinstall_python apps
+    pkg_python_compileall "$PythonLibDir2"
 }
