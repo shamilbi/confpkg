@@ -5,6 +5,9 @@ PkgHome=(
     "https://gitlab.com/webmproject/libaom/-/tags"
 )
 
+# REQ: nasm-2.x
+# libheif REQ: /usr/lib64/libaom.a
+
 ConfigureOpts+=(
     # Slackware
     -DENABLE_NASM=1
@@ -13,7 +16,3 @@ ConfigureOpts+=(
 
     -DCMAKE_INSTALL_LIBDIR="$LibName"
 )
-
-pkg_post_install() {
-    find "$LibDir2" -type f -name '*.a' -delete
-}
