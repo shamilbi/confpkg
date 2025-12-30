@@ -692,27 +692,31 @@ pkg_mkdir_cache() {
 }
 
 pkg_reinstall_python() {
+    # REQ: pkg_set_python ...
     # reinstall python (egg -> dist-info)
     # pkg_reinstall_python <dir>
     local dir=$1
-
-    local pL p d d2
-    pL=($(find "$LibDir2" -mindepth 1 -maxdepth 1 -type d -name 'python*'))
-    # */python3.10
-    if (( ! ${#pL[*]} )); then
-        # not found, create lib64/pythonX
-        d=$LibDir2/$(basename $(readlink -f $(command -v "$Python")))
-        pL=("$d")
+    local p=$(basename "$Python") # python3.14
+    if [[ ! $p ]]; then
+        echo "var Python not defined"
+        return 1
     fi
+
+    local dest i
+    for i in "$LibDir2/$p" "$PythonLibDir2"; do
+        if [[ -d $i ]]; then
+            dest=$i
+            break
+        fi
+    done
+    [[ ! $dest ]] && dest=$PythonLibDir2
+
     (
         pkg_cd_srcdir || exit 1
         cd "$dir" || exit 1
-        for d in "${pL[@]}"; do
-            p=$(basename "$d")  # python3.10
-            d2=$d/site-packages
-            rm -rf "$d2"
-            "$p" -m pip install . -t "$d2"
-        done
+        d2=$dest/site-packages
+        [[ -d $d2 ]] && rm -rf "$d2"
+        "$Python" -m pip install . -t "$d2"
     )
 }
 
