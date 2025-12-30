@@ -1,0 +1,5 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    -DBUILD_WITH_QT5=OFF # Build with Qt 5, ON
+)
