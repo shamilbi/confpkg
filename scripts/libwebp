@@ -2,8 +2,6 @@
 
 PkgHome="https://github.com/webmproject/libwebp/tags"
 
-pkg_set_python python3
-
 ConfigureOpts+=(
     # Slackware
     --disable-silent-rules
@@ -20,5 +18,14 @@ if [[ $Arch = "i686" ]]; then
 fi
 
 pkg_post_install() {
-    pkg_reinstall_python swig
+    local p f1
+    for p in "${BuildForPython[@]}"; do
+        pkg_set_python "$p"
+
+        # version="0.0",
+        f1=$SrcDir/swig/setup.py
+        sed -i -re 's|^( *)version=.*,$|\1version="'"$Version"'",|' "$f1"
+
+        pkg_reinstall_python swig
+    done
 }
