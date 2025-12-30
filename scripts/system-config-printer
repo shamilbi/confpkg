@@ -2,7 +2,8 @@
 
 PkgHome="https://github.com/OpenPrinting/system-config-printer/tags"
 
-pkg_set_python python3
+BuildSteps=("${BuildForPython[@]}")
+[[ $BuildStep ]] && pkg_set_python "$BuildStep"
 
 unset ProtectDirs
 
