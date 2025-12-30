@@ -2,6 +2,7 @@
 
 ConfigureOpts+=(
     -Dshout2=disabled
+    -Dqt5=disabled # true, Qt5 QML video sink plugin
 )
 [[ ! $PULSE ]] && ConfigureOpts+=(-Dpulse=disabled)
 [[ ! $AALIB ]] &&
