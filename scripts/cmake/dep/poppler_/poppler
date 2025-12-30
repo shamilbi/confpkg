@@ -26,6 +26,7 @@ ConfigureOpts+=(
     #-DENABLE_SPLASH=ON
     #-DENABLE_BOOST=OFF
 
+    -DENABLE_QT5=OFF # Compile poppler qt5 wrapper, ON
     -DBUILD_GTK_TESTS=OFF       # Whether to compile the GTK+ test programs
     -DBUILD_QT5_TESTS=OFF       # Whether to compile the Qt5 test programs
     -DBUILD_QT6_TESTS=OFF       # Whether to compile the Qt6 test programs
