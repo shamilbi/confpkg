@@ -3,4 +3,7 @@
 ConfigureOpts+=(
     -DCMAKE_INSTALL_LIBDIR="$LibName" # /usr/lib64 -> lib64
         # DESTINATION "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/pkgconfig")
+    # to help find proper version
+    -DGpgme_VERSION="$(grep -m 1 -e '^#define GPGME_VERSION ' "$IncludeDir"/gpgme.h| sed -re 's,.*"([0-9.]+)",\1,')"
+        # #define GPGME_VERSION "2.0.1"
 )
