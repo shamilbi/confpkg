@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PkgHome="https://download.samba.org/pub/linux-cifs/cifs-utils/?C=M;O=D"
+
 ConfigureOpts+=(
     --enable-cifsacl # Create get/set cifsacl binary [default=yes]
     --disable-systemd # Enable systemd specific behavior for mount.cifs [default=yes]
