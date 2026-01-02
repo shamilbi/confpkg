@@ -26,10 +26,12 @@ pkg_pre_make() {
 pkg_post_install() {
     # Slackware
     local f1
+    local name=${Name,,}
     for f1 in . documentation; do
-        f1=$f1/"$Name".conf-example
+        f1=$f1/$name.conf-example
         if [[ -f $f1 ]]; then
-            pkg_install_mff 644 "$f1" "$Etc2/$Name.conf"
+            pkg_install_mff 644 "$f1" "$Etc2/$name.conf"
+            break
         fi
     done
 }
