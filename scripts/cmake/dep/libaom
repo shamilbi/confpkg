@@ -5,12 +5,11 @@ PkgHome=(
     "https://gitlab.com/webmproject/libaom/-/tags"
 )
 
-# REQ: nasm-2.x
 # libheif REQ: /usr/lib64/libaom.a
 
 ConfigureOpts+=(
     # Slackware
-    -DENABLE_NASM=1
+    #-DENABLE_NASM=1 # REQ: nasm-2.x
     -DENABLE_DOCS=0
     -DENABLE_TESTS=0
 
