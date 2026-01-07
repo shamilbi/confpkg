@@ -1,0 +1,3 @@
+#!/bin/bash
+
+PkgHome="https://gitlab.freedesktop.org/mobile-broadband/libqrtr-glib"
