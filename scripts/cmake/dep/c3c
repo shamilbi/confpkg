@@ -1,0 +1,33 @@
+#!/bin/bash
+
+PkgHome="https://github.com/c3lang/c3c/tags"
+
+#ConfigureOpts+=(
+#    -DC3_LINK_DYNAMIC=ON # OFF, Link dynamically with LLVM/LLD libs
+#        # Could not find LLD_COFF using the following names: liblldCOFF.so
+#)
+
+pkg_pre_configure() {
+    local f1
+
+    # disable ARM, AARCH64, RISCV
+    f1=$OrigSrcDir/src/version.h
+    if pkg_create_orig "$f1"; then
+        cat >>"$f1" <<EOF
+#define ARM_DISABLE 1
+#define AARCH64_DISABLE 1
+#define RISCV_DISABLE 1
+EOF
+    fi
+
+    # fix destinations
+    f1=$OrigSrcDir/CMakeLists.txt
+    if pkg_create_orig "$f1"; then
+        # install(DIRECTORY lib/ DESTINATION lib/c3)
+        # install(DIRECTORY lib/ DESTINATION lib64/c3)
+        sed -i -e 's,DESTINATION lib/c3),DESTINATION '"$LibName"'/c3),' "$f1"
+        # install(FILES c3c.1 DESTINATION "share/man/man1")
+        # install(FILES c3c.1 DESTINATION "man/man1")
+        sed -i -e 's,DESTINATION "share/man/man1"),DESTINATION "man/man1"),' "$f1"
+    fi
+}
