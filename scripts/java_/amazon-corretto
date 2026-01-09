@@ -1,0 +1,3 @@
+#!/bin/bash
+
+PkgHome="https://aws.amazon.com/corretto/"

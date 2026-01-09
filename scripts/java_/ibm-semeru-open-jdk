@@ -1,0 +1,8 @@
+#!/bin/bash
+
+PkgHome="https://github.com/ibmruntimes/semeru21-binaries/tags"
+
+# libjvm.so preloadLibrary(/opt/ibm-semeru-open-jdk/lib/default/libj9vm29.so):
+#   /opt/ibm-semeru-open-jdk/lib/default/libj9vm29.so:
+#   cannot enable executable stack as shared object requires: Invalid argument
+# libjvm.so failed to load: j9vm29

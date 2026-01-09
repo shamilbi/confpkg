@@ -1,0 +1,43 @@
+#!/bin/bash
+
+unset pkg_make pkg_check
+
+prefix0=/opt/java # link to real java
+destdir0=$DestDir$prefix0
+
+prefix=/opt/$Name
+destdir=$DestDir$prefix
+
+pkg_install() {
+    pkg_cp_fd -l . "$destdir"
+}
+
+pkg_post_install() {
+    # /opt/java -> /opt/$Name
+    ln -sfnr "$destdir" "$destdir0"
+
+    # link: /usr/lib64/libjvm.so --> /opt/$Name/java/jre/**/libjvm.so
+    # there are two libjvm.so: client and server
+    find "$destdir" -type f -name libjvm.so | grep -F -m 1 server |
+        pkg_ln_d "$LibDir2"
+
+    # link: /usr/bin/{java,javac} -> /opt/$Name/bin/
+    ls -d "$destdir/bin"/{java,javac} | pkg_ln_d "$Prefix2"/bin
+
+    [[ -d $destdir/demo ]] && rm -rf "$destdir0"/demo
+
+    # /etc/profile.d/
+    local dir=$Etc2/profile.d
+    pkg_install_mff 644 "$dir"/java.sh <<EOF
+#!/bin/sh
+export JAVA_HOME="$prefix0"
+export MANPATH="\${MANPATH}:\${JAVA_HOME}/man"
+export PATH="\${PATH}:\${JAVA_HOME}/bin"
+EOF
+    pkg_install_mff 644 "$dir"/java.csh <<EOF
+#!/bin/csh
+setenv JAVA_HOME "$prefix0"
+setenv MANPATH \${MANPATH}:\${JAVA_HOME}/man
+setenv PATH \${PATH}:\${JAVA_HOME}/bin
+EOF
+}
