@@ -1,0 +1,39 @@
+#!/bin/bash
+
+PkgHome="https://invisible-island.net/dialog/"
+
+pkg_configure_del --docdir --localedir
+
+ConfigureOpts+=(
+    # Slackware
+    --enable-nls
+    --with-ncursesw
+    --enable-widec
+)
+pkg_check=
+
+pkg_pre_configure() {
+    # Slackware
+    # These patches take care of the formatting issues that were preventing
+    # us from moving to a more recent version of dialog:
+    if (($(pkg_cmp_versions "$Version" "1.3-20260107") < 0)); then
+        pkg_patch_f3 dialog.all.use_height.diff.gz 1 || return 1
+        pkg_patch_f3 dialog.smaller.min.height.diff.gz 1 || return 1
+    else
+        pkg_patch_f3 dialog.all.use_height-2.diff.gz 1 || return 1
+        pkg_patch_f3 dialog.smaller.min.height-2.diff.gz 1 || return 1
+    fi
+    pkg_patch_f3 dialog.no.aspect.ratio.autoajust.patch.gz 1 || return 1
+}
+
+pkg_post_install() {
+    # Slackware
+    # Keep the old traditional looknfeel :-)
+    # /etc/dialogrc
+    pkg_install_mff 644 samples/slackware.rc "$Etc2"/dialogrc
+    # Don't package this static library:
+    find "$LibDir2" -type f -name 'libdialog.a' -delete
+    find "$LibDir2" -depth -type d -empty -delete
+    # /bin/dialog
+    echo "$Prefix2/bin/$Name" | pkg_mv_ln "$DestDir/bin"
+}
