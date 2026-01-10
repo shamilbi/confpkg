@@ -3,7 +3,7 @@
 #
 # Copyright 1994, 1995, 1998  Patrick Volkerding, Moorhead, Minnesota USA
 # Copyright 2001, Slackware Linux, Inc., Concord, CA USA
-# Copyright 2009, 2015, 2016, 2018, 2020  Patrick J. Volkerding, Sebeka, MN, USA
+# Copyright 2009, 2015, 2016, 2018, 2020, 2025  Patrick J. Volkerding, Sebeka, MN, USA
 # All rights reserved.
 #
 # Redistribution and use of this script, with or without modification, is
@@ -25,6 +25,12 @@
 #
 
 # shamilbi
+# Sat, 10 Jan 2026 18:04:47 +0200 <shamilbi>
+#   +delete_file()
+#   delete_files(): if "$ROOT/$iFILE" is a (broken?) link then delete the link
+#   preserve_file(): cp -p -> cp -pP
+#   delete_dirs(): -check link
+#   +usage()
 # Sun Apr 07 15:01:01 2019 +0700 <shamilbi>
 #   -    mv $ADM_DIR/packages/$PKGNAME $LOG_DIR/removed_packages
 #   +    mv $ADM_DIR/packages/$PKGNAME $LOG_DIR/removed_packages && \
@@ -39,6 +45,11 @@
 #    cat_except() {
 #        -      cat $(find . -maxdepth 1 -type f | grep -v "$2")
 #        +      cat $(find . -maxdepth 1 -type f ! -name "$2")
+#
+# Tue Feb  4 23:24:32 UTC 2025
+# Don't remove formatted man pages in /usr/man/cat* with delete_cats().
+# They were not part of the original package and are none of our business here.
+#
 # Wed Apr  1 22:14:46 UTC 2020
 # Add --skip-douninst option to skip running the uninstall script.
 # Save removed uninstall scripts in /var/log/removed_uninstall_scripts.
@@ -213,7 +224,7 @@ preserve_file() {
   if [ ! -d "$PRES_DIR/$PKGNAME/$D" ]; then
     mkdir -p "$PRES_DIR/$PKGNAME/$D" || return 1
   fi
-  cp -p "$ROOT/$D/$F" "$PRES_DIR/$PKGNAME/$D" || return 1
+  cp -pP "$ROOT/$D/$F" "$PRES_DIR/$PKGNAME/$D" || return 1
  fi
  return 0
 }
@@ -254,22 +265,36 @@ keep_links() {
  done
 }
 
+delete_file() {
+    # del $ROOT/$FILE
+    if [ ! "$WARN" = "true" ]; then
+        ! [ $TERSE ] && echo "  --> Deleting $ROOT/$FILE"
+        preserve_file "$FILE" && rm -f "$ROOT/$FILE"
+    else
+        ! [ $TERSE ] && echo "  --> $ROOT/$FILE would be deleted"
+        #preserve_file "$FILE"
+    fi
+}
+
+# This is the worst function I've ever written.
+# But we'll continue to use it with --preserve... unless we break out that
+# functionality into a new script... --preserve doesn't really belong here and
+# puts a lot of extra complexity in the code path slowing things down for
+# something I suspect few people use.
 delete_files() {
  local unset LC_ALL         # Locally (within this delete_files function) allow handling of backslashes
  while read -r AFILE ; do   # do not expand backslashes on read
   FILE=$(printf "%b" "$AFILE")   # unescape octal characters
+  if [ -L "$ROOT/$FILE" ]; then
+      delete_file
+      continue
+  fi
   if [ ! -d "$ROOT/$FILE" ]; then
    if [ -r "$ROOT/$FILE" ]; then
     if [ "$ROOT/$FILE" -nt "$ADM_DIR/packages/$PKGNAME" ]; then
      ! [ $TERSE ] && echo "WARNING: $ROOT/$FILE changed after package installation."
     fi
-    if [ ! "$WARN" = "true" ]; then
-     ! [ $TERSE ] && echo "  --> Deleting $ROOT/$FILE"
-     preserve_file "$FILE" && rm -f "$ROOT/$FILE"
-    else
-     ! [ $TERSE ] && echo "  --> $ROOT/$FILE would be deleted"
-     preserve_file "$FILE"
-    fi
+    delete_file
    else
     if [ "$(echo $FILE | cut -b1-8)" != "install/" ]; then
      ! [ $TERSE ] && echo "  --> $ROOT/$FILE no longer exists. Skipping."
@@ -296,14 +321,11 @@ delete_links() {
  done
 }
 
+# This is the second worst function I've ever written.
 delete_dirs() {
  sort -r | \
  while read DIR ; do
   if [ -d "$ROOT/$DIR" ]; then
-    if [ -L "$ROOT/$DIR" ]; then
-        echo "$DIR" | delete_links
-        continue
-    fi
     if [ ! "$WARN" = "true" ]; then
       if [ $(ls -a "$ROOT/$DIR" | wc -l) -eq 2 ]; then
         ! [ $TERSE ] && echo "  --> Deleting empty directory $ROOT/$DIR"
@@ -315,20 +337,6 @@ delete_dirs() {
      ! [ $TERSE ] && echo "  --> $ROOT/$DIR (dir) would be deleted if empty"
     fi
   fi
- done
-}
-
-delete_cats() {
- sed -n 's,/man\(./[^/]*$\),/cat\1,p'  | \
- while read FILE ; do
-   if [ -f "$ROOT/$FILE" ]; then
-     if [ ! "$WARN" = "true" ]; then
-       ! [ $TERSE ] && echo "  --> Deleting $ROOT/$FILE (fmt man page)"
-       rm -f $ROOT/$FILE
-     else
-       ! [ $TERSE ] && echo "  --> $ROOT/$FILE (fmt man page) would be deleted"
-     fi
-   fi
  done
 }
 
@@ -389,7 +397,8 @@ remove_packages() {
      sort -u > $TMP/required_links$$
     mv $TMP/required_list$$ $TMP/required_files$$
     sort -u $TMP/required_links$$ $TMP/required_files$$ > $TMP/required_list$$
-    comm -12 $TMP/del_link_list$$ $TMP/required_list$$ | keep_links
+    # keep_links is purely informational, skip if TERSE:
+    ! [ $TERSE ] && comm -12 $TMP/del_link_list$$ $TMP/required_list$$ | keep_links
     comm -23 $TMP/del_link_list$$ $TMP/required_list$$ | delete_links
    else
     cat $ADM_DIR/scripts/* 2> /dev/null | extract_links | \
@@ -401,7 +410,6 @@ remove_packages() {
    comm -23 $TMP/delete_list$$ $TMP/required_list$$ > $TMP/uniq_list$$
    delete_files < $TMP/uniq_list$$
    delete_dirs < $TMP/uniq_list$$
-   delete_cats < $TMP/uniq_list$$
    if [ ! "$KEEP" = "true" ]; then
     rm -f $TMP/delete_list$$ $TMP/required_files$$ $TMP/uniq_list$$
     rm -f $TMP/del_link_list$$ $TMP/required_links$$ $TMP/required_list$$
@@ -451,8 +459,13 @@ remove_packages() {
  done
 }
 
+usage() {
+  echo "Usage: $(basename $0) [--copy] [--keep] [--preserve] [--skip-douninst] [--terse] [--warn] [--dry-run] packagename ..."
+  exit 1
+}
+
 if [ "$#" = "0" ]; then
-  echo "Usage: $(basename $0) [--copy] [--keep] [--preserve] [--skip-douninst] [--terse] [--warn] [--dry-run] packagename ..."; exit 1
+  usage
 fi
 
 while : ; do
@@ -463,7 +476,7 @@ while : ; do
   -skip-douninst | --skip-douninst) SKIP_DOUNINST=true; shift;;
   -terse | --terse) TERSE=0; shift;;
   -warn | --warn | -dry-run | --dry-run) WARN=true; shift;;
-  -* | --*) echo "Usage: $(basename $0) [--copy] [--keep] [--preserve] [--warn] [--dry-run] packagename ..."; exit 1;;
+  -* | --*) usage;;
   *) break
  esac
 done
