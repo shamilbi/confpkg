@@ -1,0 +1,17 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://sourceforge.net/projects/lcms/files/lcms/"
+    "https://github.com/mm2/Little-CMS/tags"
+)
+
+ConfigureOpts+=(
+    -Dtests=disabled # enabled, Enable or disable tests
+    -Dutils=true # false, Build the utils
+)
+if [[ $GPL3 ]]; then
+    ConfigureOpts+=(
+        -Dfastfloat=true # false, Build and install the fast float plugin, use only if GPL 3.0 is acceptable
+        -Dthreaded=true # false, Build and install the multi threaded plugin, use only if GPL 3.0 is acceptable
+    )
+fi
