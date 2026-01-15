@@ -1,0 +1,12 @@
+#!/bin/bash
+
+pkg_pre_configure() {
+    # src/emitterutils.cpp:221:11: error: use of undeclared identifier 'uint16_t'
+    # #include "yaml-cpp/null.h"
+    # +#include <cstdint>
+    local f1=$OrigSrcDir/src/emitterutils.cpp
+    if pkg_create_orig "$f1"; then
+        sed -i -e '/^#include "yaml-cpp\/null.h"/a\
+#include <cstdint>' "$f1"
+    fi
+}
