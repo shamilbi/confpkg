@@ -1,0 +1,23 @@
+#!/bin/bash
+
+PkgHome="https://github.com/intel/libva"
+
+ConfigureOpts+=(
+    -Dwith_glx=yes # [yes, no, auto], =auto
+)
+#option('driverdir', type : 'string', description : 'drivers path')
+#option('disable_drm', type : 'boolean', value : false)
+#option('with_x11', type : 'combo', choices : ['yes', 'no', 'auto'], value : 'auto')
+#option('with_legacy', type : 'array', choices : ['emdg', 'nvctrl', 'fglrx'], value : [])
+#option('enable_docs', type : 'boolean', value : false)
+
+[[ $WAYLAND ]] && ConfigureOpts+=(-Dwith_wayland=yes) ||
+    ConfigureOpts+=(-Dwith_wayland=no)
+
+pkg_post_install() {
+    # Slackware
+    # Add a default config file to reduce message verbosity:
+    pkg_install_mfd 644 "$SupportDir"/libva.conf "$Etc2"
+    # Fix a couple of mistakenly executable header files:
+    chmod 644 "$IncludeDir2"/va/*.h
+}
