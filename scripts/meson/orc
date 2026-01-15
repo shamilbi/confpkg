@@ -1,0 +1,6 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    -Dorc-test=disabled     # Build the orc-test library used for unit testing and by the orc-bugreport tool
+    -Dtests=disabled
+)
