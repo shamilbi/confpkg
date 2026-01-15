@@ -1,0 +1,15 @@
+#!/bin/bash
+
+PkgHome+=(
+    "https://github.com/OpenPrinting/libcupsfilters"
+)
+
+# REQ: qpdf>10
+
+ConfigureOpts+=(
+    # Slackware
+    --disable-mutool # Disable filters using mutool
+
+    --enable-poppler # enable Poppler-based filters
+    --enable-dbus # enable DBus CMS code
+)
