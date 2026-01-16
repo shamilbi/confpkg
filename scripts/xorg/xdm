@@ -12,18 +12,16 @@ pkg_post_install() {
     echo "$LibDir2/X11/xdm" | pkg_mv_ln "$Etc2/X11" || return 1
 
     # etc/X11: *.new
-    (
-        cd "$DestDir" || exit 1
-        while read -r f; do
-            case "$f" in
-                *.so|*.la|*.xpm|*/chooser)
-                    continue
-                    ;;
-            esac
-            mv "$f" "$f.new"
-            pkg_doinst_add "config /$f"
-        done < <(find etc/X11 -type f)
-    ) || return 1
+    local f
+    while IFS= read -r f; do
+        case "$f" in
+            *.so|*.la|*.xpm|*/chooser|*.new)
+                continue
+                ;;
+        esac
+        mv "$f" "$f.new"
+        pkg_doinst_add_config "$f"
+    done < <(find "$DestDir"/etc/X11 -type f)
 
     # /var/lib/xdm
     mkdir -pm 755 "$DestDir/var/lib/xdm"
