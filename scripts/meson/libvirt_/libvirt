@@ -22,13 +22,11 @@ pkg_pre_configure() {
 
 pkg_post_install() {
     # *.conf --> *.conf.new
-    (
-        cd "$DestDir" || exit 1
-        while IFS= read -r fpath; do
-            mv "$fpath" "$fpath.new"
-            pkg_doinst_add "config ${fpath:1}"
-        done < <(find . -type f -name '*.conf')
-    )
+    local fpath
+    while IFS= read -r fpath; do
+        mv "$fpath" "$fpath.new"
+        pkg_doinst_add_config "$fpath"
+    done < <(find "$DestDir" -type f -name '*.conf')
 
     rm -rf "$DocDir2"/html
     rm -rf "$DestDir"/run
