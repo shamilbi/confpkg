@@ -789,3 +789,26 @@ pkg_read2var() {
     read -r -d '' "$1"
     :
 }
+
+pkg_doinst_add() {
+    local dir=$DestDir/install
+    local file=$dir/doinst.sh
+    if [[ ! -f $file ]]; then
+        pkg_install_mfd 644 "$FilesDir/confpkg/doinst.sh" "$dir"
+    fi
+    if (($# > 0)); then
+        echo "$1" >>"$file"
+    else
+        # stdin
+        cat >>"$file"
+    fi
+}
+
+pkg_doinst_add_config() {
+    # f1=$DestDir/$path
+    # pkg_doinst_add_config "$f1"
+    # -> pkg_doinst_add "config $path"
+    local f1=$1
+    [[ ! $f1 ]] && return 1
+    pkg_doinst_add "config ${f1:$((${#DestDir} + 1))}"
+}
