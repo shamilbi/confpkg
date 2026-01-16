@@ -528,20 +528,6 @@ EOF
     fi
 }
 
-pkg_doinst_add() {
-    local dir=$DestDir/install
-    local file=$dir/doinst.sh
-    if [[ ! -f $file ]]; then
-        pkg_install_mfd 644 "$FilesDir/confpkg/doinst.sh" "$dir"
-    fi
-    if (($# > 0)); then
-        echo "$1" >>"$file"
-    else
-        # stdin
-        cat >>"$file"
-    fi
-}
-
 unset TgzFile
 
 pkg_define_tgzfile_() {
