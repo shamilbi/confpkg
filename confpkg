@@ -439,15 +439,17 @@ pkg_post_install2_() {
             while IFS= read -r fpath; do
                 [[ $fpath = *.new ]] && continue
                 mv "$fpath" "$fpath.new"
-                pkg_doinst_add "config ${fpath:${#DestDir}+1}"
+                pkg_doinst_add_config "$fpath"
             done < <(find "$DestDir$i" -type f 2>/dev/null)
         done
     fi
     if ((${#ProtectFiles[*]})); then
         for i in "${ProtectFiles[@]}"; do
             fpath=$DestDir$i
-            [[ -f $fpath ]] && mv -f "$fpath" "$fpath.new"
-            pkg_doinst_add "config ${i:1}"
+            if [[ -f $fpath ]]; then
+                mv -f "$fpath" "$fpath.new"
+                pkg_doinst_add_config "$fpath"
+            fi
         done
     fi
     if [[ -d $DestDir/lib/modules ]]; then
