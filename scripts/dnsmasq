@@ -1,0 +1,70 @@
+#!/bin/bash
+
+Daemon=$Prefix/sbin/dnsmasq
+DaemonOpts=(-C /etc/dnsmasq.conf)
+# --dhcp-leasefile=/var/state/dnsmasq/dnsmasq.leases
+
+MakeEnv=(
+    # Slackware
+    "PREFIX=$Prefix"
+    MANDIR="$ManDir"
+    COPTS="-DHAVE_DNSSEC -DHAVE_DBUS -DHAVE_LIBIDN2 -DHAVE_CONNTRACK"
+)
+# Slackware
+MakeOpts=(all-i18n)
+InstallEnv+=("${MakeEnv[@]}")
+InstallOpts=(install-i18n)
+
+CleanOpts=(clean)
+pkg_check=
+
+pkg_pre_configure() {
+    local f1
+
+    # Slackware
+    f1=dnsmasq.conf.example
+    # -#dhcp-leasefile=/var/lib/misc/dnsmasq.leases
+    # +#dhcp-leasefile=/var/state/dnsmasq/dnsmasq.leases
+    sed -i -re 's,(.*dhcp-leasefile)=.*,\1=/var/state/dnsmasq/dnsmasq.leases,' "$f1"
+    f1=src/config.h
+    # -#      define LEASEFILE "/var/lib/misc/dnsmasq.leases"
+    # +#      define LEASEFILE "/var/state/dnsmasq/dnsmasq.leases"
+    local s1='"/var/lib/misc/dnsmasq.leases"'
+    local s2='"/var/state/dnsmasq/dnsmasq.leases"'
+    sed -i -re 's,(.*define LEASEFILE) '"$s1"',\1 '"$s2"',' "$f1"
+    f1=Makefile
+    # Use libidn2:
+    # -CFLAGS        = -Wall -W -O2
+    # +CFLAGS        = -Wall -W -O2 -DHAVE_LIBIDN2
+    # -LDFLAGS       = 
+    # +LDFLAGS       = -lidn2
+    if pkg_create_orig "$f1"; then
+        sed -i -r \
+            -e 's,^(CFLAGS)[ \t]*=(.*),\1=\2 -DHAVE_LIBIDN2,' \
+            -e 's,^(LDFLAGS)[ \t]*=(.*),\1=\2 -lidn2,' \
+            "$f1"
+    fi
+}
+
+pkg_post_install() {
+    # Slackware
+    chmod 0755 "$Prefix2"/sbin/dnsmasq
+    # /etc/dnsmasq.d/
+    mkdir -p "$Etc2"/dnsmasq.d
+    # /var/state/dnsmasq/
+    mkdir -p "$DestDir"/var/state/dnsmasq
+    # /etc/dnsmasq.conf.new
+    pkg_install_mff 644 dnsmasq.conf.example "$Etc2"/dnsmasq.conf
+    # /usr/share/dnsmasq/trust-anchors.conf
+    pkg_install_mfd 644 trust-anchors.conf "$ShareDir2"/dnsmasq
+
+    # docs
+    local i
+    for i in *.html F* *.conf.example dbus contrib; do
+        if [[ -d $i ]]; then
+            pkg_cp_fd "$i" "$DocDir2"
+            continue
+        fi
+        pkg_install_mfd 644 "$i" "$DocDir2"
+    done
+}
