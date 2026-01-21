@@ -1,0 +1,16 @@
+#!/bin/bash
+
+PkgHome="https://github.com/xiph/opus"
+
+ConfigureOpts+=(
+    # Slackware
+    -Dcustom-modes=true # false, Enable non-Opus modes, e.g. 44.1 kHz & 2^n frames
+    -Drtcd=enabled
+    -Dintrinsics=enabled
+
+    -Dtests=disabled # auto, Build tests
+    -Ddocs=disabled # auto, Build API documentation
+    -Ddocdir="$DocDir" # doc/opus, Directory to install documentation into (default: DATADIR/doc/opus')
+)
+#[[ $JACK ]] && ConfigureOpts+=(--enable-custom-modes) # jack2, enable non-Opus modes, e.g. 44.1 kHz & 2^n frames
+:
