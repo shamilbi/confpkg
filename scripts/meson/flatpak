@@ -23,6 +23,7 @@ ConfigureOpts+=(
     -Dsystemd=disabled # build with systemd support
     -Dsystem_bubblewrap="$(command -v bwrap)" # system bwrap executable, or empty string to build subproject
     -Dsystem_fusermount="$(command -v fusermount3)" # system fusermount executable, or empty string to auto-select based on fuse version
+    -Ddbus_config_dir="$ShareDir"/dbus-1/system.d # directory for D-Bus system configuration [$sysconfdir/dbus-1/system.d]
 )
 
 pkg_pre_configure() {
