@@ -1,0 +1,19 @@
+#!/bin/bash
+
+PkgHome="https://gitlab.archlinux.org/grawlinson/libx86/-/tags"
+
+MakeEnv=(
+    # Slackware
+    #CFLAGS="$SLKCFLAGS"
+    BACKEND=x86emu
+    LIBDIR="$LibDir"
+)
+InstallEnv+=("${MakeEnv[@]}")
+
+CleanOpts=(clean)
+
+pkg_post_install() {
+    # Slackware
+    # Kill the static library; we shouldn't need it
+    find "$LibDir2" -type f -name '*.a' -delete
+}
