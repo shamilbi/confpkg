@@ -6,6 +6,9 @@ ConfigureOpts+=(
     --with-python=python3
     --without-java
     --without-qt
+    --with-dbusconfdir="$ShareDir" # path to D-Bus config directory
+        # /usr/share/dbus-1/system.d
+
 )
 
 pkg_pre_configure() {
