@@ -13,6 +13,10 @@ ConfigureOpts+=(
 )
 
 pkg_pre_configure() {
+    # Slackware
+    # [PATCH] Fix AVC decode resolution check for non-macroblock-aligned surfaces
+    pkg_patch_f3 2.patch 1 || return 1
+
     # clang
     # media_softlet/linux/common/os/xe/mos_bufmgr_xe.c:1091:52: error:
     #   variable length arrays in C++ are a Clang extension [-Werror,-Wvla-cxx-extension]
