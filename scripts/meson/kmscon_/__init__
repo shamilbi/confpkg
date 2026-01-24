@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PkgHome="https://github.com/kmscon/${Name,,}/tags"
+
 ConfigureOpts+=(
     -Dtests=false # true, Build unit tests
 )
