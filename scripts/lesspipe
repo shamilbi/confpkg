@@ -1,0 +1,45 @@
+#!/bin/bash
+
+PkgHome="https://github.com/wofr06/lesspipe/"
+
+ConfigureOpts=(
+    # Slackware
+    --prefix="$Prefix"
+    --bash-completion-dir="$ShareDir"/bash-completion/completions
+    --zsh-completion-dir="$ShareDir"/zsh/site-functions
+
+    --mandir="$ManDir"/man1 # install man pages in in MANDIR (PREFIX/share/man/man1)
+)
+
+pkg_pre_configure() {
+    # Slackware
+    # Don't use special handling for .log files:
+    pkg_patch_f3 lesspipe.log.patch 1 || return 1
+}
+
+pkg_post_install() {
+    local f1 f2
+
+    # Slackware
+    # I tried to like this, but it mostly annoyed me.
+    f1=$Prefix2/bin/lesspipe.sh
+    mv "$f1" "$Prefix2"/bin/lesspipe-wofr06.sh
+    # Install my own version:
+    f2=$Prefix2/bin/lesspipe-volkerdi.sh
+    gzip -dc "$SupportDir"/lesspipe.sh.gz >"$f2"
+    chmod 755 "$f2"
+}
+
+pkg_read2var pkg_post_installpkg <<EOF
+pkg_post_installpkg() {
+    # Slackware
+    # Link to a default lesspipe script. If you don't like this, relink to the
+    # other version, or install anything else you like as /usr/bin/lesspipe.sh.
+    # This package will leave it alone after that.
+    local f1=usr/bin/lesspipe.sh
+    if [[ ! -e \$f1 ]]; then
+        ln -sfnr usr/bin/lesspipe-volkerdi.sh "\$f1"
+    fi
+}
+pkg_post_installpkg
+EOF
