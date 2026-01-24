@@ -1,0 +1,55 @@
+From 18db5ae3ae833af302ea0fbfd1e5c633ac73a743 Mon Sep 17 00:00:00 2001
+From: Mark Nudelman <markn@greenwoodsoftware.com>
+Date: Thu, 22 Jan 2026 08:44:33 -0800
+Subject: [PATCH] Fix handling of empty terminfo capabilities.
+
+If a terminfo capability is set to an empty string,
+treat it as if it were undefined.
+
+Related to #710.
+---
+ NEWS      | 2 ++
+ screen.c  | 2 ++
+ version.c | 3 ++-
+ 3 files changed, 6 insertions(+), 1 deletion(-)
+
+#diff --git a/NEWS b/NEWS
+#index 2ac95d19..02209de1 100644
+#--- a/NEWS
+#+++ b/NEWS
+#@@ -17,6 +17,8 @@
+# 
+# * Fix bug using negative value with -z option (github #709).
+# 
+#+* Fix bug handling empty terminfo capabilties (github #710).
+#+
+# * Fix memory leak in setupterm (github #707).
+# 
+# ======================================================================
+diff --git a/screen.c b/screen.c
+index dd8ab292..b8219bf5 100644
+--- a/screen.c
++++ b/screen.c
+@@ -1298,6 +1298,8 @@ public constant char * special_key_str(int key)
+ 	default:
+ 		return (NULL);
+ 	}
++	if (s != NULL && *s == '\0')
++		s = NULL;
+ 	return (s);
+ }
+ 
+#diff --git a/version.c b/version.c
+#index 6cda04a7..0380c3a9 100644
+#--- a/version.c
+#+++ b/version.c
+#@@ -1075,7 +1075,8 @@ v689  12/27/25  Add prompt seqs %C, %W, %Q, ?Q; don't allow any command to
+# v690  12/31/25  Cleanup.
+# v691  1/10/26   Fix mingw build.
+# v692            Fix memory leak in setupterm; clear termio ICRNL|INLCR;
+#-                fix bug with negative value in -z.
+#+                fix bug with negative value in -z; fix bug with empty 
+#+                terminfo caps.
+# */
+# 
+# char version[] = "692x";

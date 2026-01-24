@@ -1,0 +1,35 @@
+#!/bin/bash
+
+PkgHome="https://www.greenwoodsoftware.com/less/download.html"
+
+ConfigureOpts+=(
+    --with-editor=vim # use PROGRAM as the default editor [vi]
+)
+
+pkg_pre_configure() {
+    local file
+
+    # Slackware
+    pkg_patch_f3 18db5ae3ae833af302ea0fbfd1e5c633ac73a743.patch 1 || return 1
+    # Fix path in manpage:
+    file=less.nro
+    if [[ -r $file ]]; then
+        sed -i "s,/usr/local/etc,/etc,g" "$file"
+    fi
+    # Prep needed if using the git archive:
+    for file in funcs.h less.nro lesskey.nro lessecho.nro; do
+        if [[ ! -r $file ]]; then
+            make -f Makefile.aut "$file"
+        fi
+    done
+}
+
+pkg_post_install() {
+    local i
+
+    # Slackware
+    # Install profile scripts:
+    for i in less.sh less.csh; do
+        pkg_install_mfd 755 "$SupportDir/$i" "$Etc2"/profile.d
+    done
+}
