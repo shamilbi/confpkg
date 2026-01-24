@@ -3,3 +3,7 @@
 ConfigureOpts+=(
     -DBUILD_STATIC_LIBS=OFF
 )
+
+pkg_post_install() {
+    rm -rf "$DocDir2"/examples
+}
