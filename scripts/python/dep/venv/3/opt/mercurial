@@ -4,4 +4,13 @@
 # help: set PYO3_USE_ABI3_FORWARD_COMPATIBILITY=1 to suppress this check and build anyway using the stable ABI
 export PYO3_USE_ABI3_FORWARD_COMPATIBILITY=1
 
-export HGWITHRUSTEXT=cpython
+if (($(pkg_cmp_versions "$Version" "7.2") < 0)); then
+    export HGWITHRUSTEXT=cpython
+else
+    pkg_configure=1
+    pkg_configure() {
+        local fn=setup.py
+        pkg_create_orig "$fn"
+        sed -i -re 's,^( +)rust = False$,\1rust = True,' "$fn"
+    }
+fi
