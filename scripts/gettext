@@ -6,7 +6,8 @@ ConfigureOpts+=(
     # Slackware
     --libexecdir="$LibDir"
 
-    --enable-relocatable
+    #--enable-relocatable
+    --disable-java # do not build Java sources
 )
 Make=(make)
 
