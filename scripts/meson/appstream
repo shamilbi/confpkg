@@ -10,6 +10,16 @@ ConfigureOpts+=(
     -Dstemming=false
     -Dsystemd=false # Build with systemd support
     -Dvapi=true
+    -Dbash-completion=false
+        # -Dbash-completion=false since we don't want to require it to be installed
+        # at build time.
 
     -Dinstall-docs=false # true, Install documentation for API and specification
 )
+
+pkg_post_install() {
+    # Slackware
+    # Add bash-completion support manually:
+    local dir=$ShareDir2/bash-completion/completions
+    pkg_install_mff 644 contrib/appstreamcli.bash-completion "$dir"/appstreamcli
+}
