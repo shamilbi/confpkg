@@ -1,9 +1,10 @@
 #!/bin/bash
 
+# REQ: libspelling
+
 ConfigureOpts+=(
-    -Denchant=disabled # feature, enabled, Use enchant for spellchecking
     -Dbugreport_url= # string, https://gitlab.gnome.org/GNOME/gnome-text-editor/issues,
-                     # URL to report issues.
-                     # Distributions packaging Text Editor are encouraged to set this to their bugtracker
+        # URL to report issues.
+        # Distributions packaging Text Editor are encouraged to set this to their bugtracker
     -Ddevelopment=false # boolean, false, If this is a development build
 )
