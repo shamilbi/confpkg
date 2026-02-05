@@ -1,0 +1,6 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    -Ddocs=false # true, Generate documentation
+    -Dsysprof=false # true, Generate profiler data using Sysprof
+)
