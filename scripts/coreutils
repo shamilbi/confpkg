@@ -1,0 +1,108 @@
+#!/bin/bash
+
+unset -v ProtectDirs
+ProtectFiles=(/etc/DIR_COLORS)
+
+# Slackware
+# "wc" and "cksum" can make use of AVX, but since the kernel has added a
+# mitigation that makes AVX seem to be available when it really isn't,
+# it is not reliable. Even the author of this wc optimization questioned
+# how useful it really was... and for us, it isn't worth it to have by
+# default. But feel free to enable/recompile if you like.
+# The upstream suggestion to use the GLIBC_TUNABLES to disable this would
+# be system-wide, so that's just a no-go.
+DISABLE_USE_AVX=true
+
+ConfigureOpts+=(
+    # Slackware
+    --bindir=/bin
+    --enable-install-program=arch
+    --with-openssl=no
+        # Don't use the openssl crypto library, otherwise /bin/sort ends up linked
+        # against openssl's libcrypto which creates problems for upgradepkg.
+        # It is also possible to use --with-linux-crypto to enable the Linux kernel
+        # crypto routines, but we'll skip this for now.
+    --enable-year2038
+)
+
+pkg_pre_configure() {
+    # Slackware
+    # Patch uname to correctly display CPU information:
+    pkg_patch_f3 coreutils.uname.diff.gz 1 || return 1
+    # Revert change to ls quoting style introduced in coreutils-8.25:
+    pkg_patch_f3 no_ls_quoting.patch.gz 1 || return 1
+    # Compilation with glibc version later than 2.3.2 needs the environment
+    # variable DEFAULT_POSIX2_VERSION set to 199209.
+    # Without that line, the coreutils will start complaining about 'obsolete'
+    # command switches, like "tail -20" will be considered obsolete.
+    # This behaviour breaks many other packages... the 'obsolete' parameters are
+    # too commonly used to disregard them.  Better to stick with the older more
+    # widely accepted standards until things begin to demand the new way.
+    export DEFAULT_POSIX2_VERSION=199209
+    #
+    export FORCE_UNSAFE_CONFIGURE=1
+}
+
+pkg_pre_make() {
+    # Slackware
+    if [[ $DISABLE_USE_AVX = "true" ]]; then
+        # Change lib/config.h to disable AVX:
+        sed -i "s/#define USE_AVX2_CRC32.*/#undef USE_AVX2_CRC32/g" lib/config.h
+        sed -i "s/#define USE_AVX2_WC_LINECOUNT.*/#undef USE_AVX2_WC_LINECOUNT/g" lib/config.h
+        sed -i "s/#define USE_AVX512_CRC32.*/#undef USE_AVX512_CRC32/g" lib/config.h
+        # Fix comments:
+        sed -i "s/avx2 hardware instructions enabled/avx2 hardware instructions disabled/g" lib/config.h
+        sed -i "s/AVX2 enabled/AVX2 disabled/g" lib/config.h
+        sed -i "s/avx512 hardware instructions enabled/avx512 hardware instructions disabled/g" lib/config.h
+    fi
+}
+
+pkg_post_install() {
+    # Slackware
+    # This seems wrong, and it stomps on files in the ksh93 package, though I'm
+    # not sure the placement of those is correct, either...  The ksh93 package
+    # installs them as flat text files, while coreutils installs empty directories
+    # Oh well, this is what we've done for years, and nobody's complained...
+    rm -rf "$ShareDir2"/locale/*/LC_TIME
+    # Move "arch" to /bin
+    mv "$Prefix2"/bin/arch "$DestDir"/bin
+    # These are important enough that they should probably all go into /bin at this
+    # point...   Having some of them unavailable when /usr isn't mounted is just a
+    # source of unending bug reports for various third party applications.
+    # Time to end those reports.  :-)
+    ls -d "$DestDir"/bin/* | pkg_ln_d "$Prefix2"/bin
+    # Add some defaults, although a very slack-like set of default options are built
+    # into /bin/ls now anyway:
+    pkg_install_mfd 644 "$SupportDir"/DIR_COLORS "$Etc2"
+    # Since dircolors no longer provides any default aliases these scripts
+    # will be needed for ls to act as expected:
+    pkg_install_mfd 755 "$SupportDir"/coreutils-dircolors.csh "$Etc2"/profile.d
+    pkg_install_mfd 755 "$SupportDir"/coreutils-dircolors.sh "$Etc2"/profile.d
+    # Remove things that are provided by other Slackware packages:
+    local i
+    for i in hostname kill su uptime ; do
+        rm -f "$DestDir/bin/$i"
+        rm -f "$Prefix2/bin/$i"
+        rm -f "$Prefix2/sbin/$i"
+        rm -f "$ManDir2"/man?/"$i".*
+    done
+    # Add ginstall links (there's still a lot of stuff that needs this to compile):
+    ls -d "$DestDir"/bin/install | pkg_ln_ff "$DestDir"/bin/ginstall
+    ls -d "$ManDir2"/man1/install.1 | pkg_ln_ff "$ManDir2"/man1/ginstall.1
+    ls -d "$DestDir"/bin/ginstall | pkg_ln_d "$Prefix2"/bin
+}
+
+pkg_install_doc() {
+    local files=(
+        AUTHORS COPYING ChangeLog NEWS
+        README THANKS TODO
+    )
+    pkg_install_mfd 644 "${files[@]}" "$DocDir2"
+    gzip -9 "$DocDir2"/{ChangeLog,NEWS}
+}
+
+pkg_read2var pkg_post_installpkg <<EOF
+# Slackware
+# This is needed to prevent installpkg from trippping over itself:
+PATH=/bin:\$PATH
+EOF
