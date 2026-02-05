@@ -1,0 +1,13 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    # Slackware
+    --sysconfdir=/etc/conntrackd
+)
+
+pkg_post_install() {
+    # Slackware
+    pkg_install_mff 644 doc/stats/conntrackd.conf "$Etc2"/conntrackd/conntrackd.conf.sample
+
+    pkg_cp_fd doc "$DocDir2"
+}
