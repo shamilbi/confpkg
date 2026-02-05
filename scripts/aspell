@@ -1,0 +1,12 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    # Slackware
+    --enable-pkgdatadir="$LibDir"/aspell
+    --enable-data-dir="$LibDir"/aspell
+    --enable-pkglibdir="$LibDir"/aspell
+    --enable-dict-dir="$LibDir"/aspell
+)
+
+# Slackware
+pkg_add_cflags "-fpermissive"
