@@ -1,0 +1,5 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    -Dbuild-testsuite=false # true, Build GtkSourceView testsuite
+)
