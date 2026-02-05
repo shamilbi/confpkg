@@ -1,6 +1,9 @@
 #!/bin/bash
 
-PkgHome="https://midnight-commander.org/"
+PkgHome=(
+    "https://midnight-commander.org/"
+    "https://github.com/MidnightCommander/mc/tags"
+)
 
 ConfigureOpts+=(
     # Slackware
