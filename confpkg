@@ -856,6 +856,7 @@ pkg_find_script_() {
 
 pkg_edit_script_() {
     if [[ -f $Script ]]; then
+        [[ -d $SupportDir ]] && touch "$SupportDir"
         exec "$Editor" "$Script"
     else
         echo "script not exist: $(basename "$Script")"
