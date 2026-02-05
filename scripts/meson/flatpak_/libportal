@@ -1,0 +1,16 @@
+#!/bin/bash
+
+PkgHome="https://github.com/flatpak/libportal/tags"
+
+ConfigureOpts+=(
+    # Slackware
+    #-Ddocs=true
+
+    -Ddocs=false    # Build API reference with gi-docgen
+    -Dtests=false   # Build unit tests
+)
+
+pkg_pre_configure() {
+    # Slackware
+    pkg_patch_f3 compile_against_qt6_ge_6.9.0.patch 1 || return 1
+}

@@ -1,0 +1,3 @@
+#!/bin/bash
+
+PkgHome="https://github.com/flatpak/${Name,,}/tags"

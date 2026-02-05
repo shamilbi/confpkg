@@ -1,7 +1,5 @@
 #!/bin/bash
 
-PkgHome="https://github.com/flatpak/flatpak"
-
 # kernel: USER_NS=y
 # REQ: appstream, libostree, snowball (libstemmer)
 
