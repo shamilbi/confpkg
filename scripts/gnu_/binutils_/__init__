@@ -1,0 +1,87 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://ftp.gnu.org/gnu/binutils/?C=M;O=D" # GNU
+    "https://packages.debian.org/source/bookworm/binutils" # Debian
+)
+
+SupportDir=$FilesDir/binutils
+
+ConfigureOpts+=(
+    # Slackware
+    --enable-gold=no
+        # The gold linker is deprecated upstream, so by default we do not build it.
+    --disable-compressed-debug-sections
+    --enable-multilib
+    --enable-64-bit-bfd
+    --enable-plugins
+    --enable-threads
+    --enable-targets="i386-efi-pe,bpf-unknown-none,$Host"
+    --enable-install-libiberty
+    --enable-ld=default
+    --enable-initfini-array
+)
+
+# Slackware
+[[ $Arch = "i686" ]] && ConfigureOpts+=(--enable-werror=no)
+
+# Slackware
+# Set to ld.bfd. The old gold linker is no more.
+DEFAULT_LD=ld.bfd
+
+# Slackware
+# Use "tooldir=/usr" to avoid internal references to the /usr/${TARGET}/
+# directory. While binutils won't actually use that directory after this,
+# we'll still create it since some people have made local use of it.
+# Note that this will place ldscripts in /usr/lib, even on $ARCH that
+# use LIBDIRSUFFIX=64. According to Ian Lance Taylor, the ldscripts have
+# been built into the linker for quite some time and the ones in the
+# filesystem aren't actually loaded. For the most part they are now
+# documentation and it doesn't matter where they reside.
+MakeEnv=("tooldir=/usr")
+InstallEnv+=("${MakeEnv[@]}")
+
+pkg_pre_configure() {
+    # Slackware:
+    # These were shipped empty and will need to be regenerated:
+    rm -f binutils/doc/*.1 binutils/doc/*.man gprof/gprof.1 ld/ld.1 gas/doc/as.1
+    # Export the demangle.h header file (I suspect this is obsolete...):
+    pkg_patch_f3 binutils-export-demangle.h.patch.gz 1 || return 1
+    # Don't check to see if "config.h" was included in the installed headers:
+    pkg_patch_f3 binutils-no-config-h-check.patch.gz 1 || return 1
+    # Set %version to something halfway meaningful:
+    pkg_patch_f3 binutils-version.patch.gz 1 || return 1
+    sed -i -e 's/%''{release}/slack151/g' bfd/Makefile{.am,.in}
+    # Work around a bug caused by binutils using an ancient libtool:
+    pkg_patch_f3 binutils-libtool-lib64.patch.gz 1 || return 1
+    # Various regression fixes:
+    pkg_patch_f3 binutils-2.27-aarch64-ifunc.patch.gz 1 || return 1
+    pkg_patch_f3 binutils-do-not-link-with-static-libstdc++.patch.gz 1 || return 1
+    pkg_patch_f3 binutils-readelf-other-sym-info-2.patch.gz 1 || return 1
+}
+
+pkg_post_install() {
+    local i
+
+    # Slackware
+    # Add a symlink since binutils's version of strings used to be called
+    # "strings-GNU" on Slackware, and it's possible that people have scripts
+    # that use that name:
+    (
+        cd "$Prefix2"/bin || exit 1
+        ln -sfnr strings strings-GNU
+    ) || return 1
+    # If the requested default linker is present, make it the default:
+    # Set the link differently on the system to change the default at runtime.
+    if [[ -r $Prefix2/bin/$DEFAULT_LD ]]; then
+        (
+            cd "$Prefix2"/bin
+            ln -sfnr "$DEFAULT_LD" ld
+        )
+    fi
+
+    (
+        cd "$ManDir2/man1" || exit 1
+        ln -sfnr strings.1 strings-GNU.1
+    )
+}
