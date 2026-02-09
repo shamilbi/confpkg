@@ -32,14 +32,19 @@ RTMP= # librtmp
 SELINUX=
 AUDIT=
 
+# Slackware
+# Automatically determine the architecture we're building on:
 Arch=$(uname -m)
 case $Arch in
-    i?86)
-        # Slackware
-        Arch=i686
-        ;;
+    i?86) Arch=i686 ;;
+    armv7hl) ;;
+    arm*) Arch=arm ;;
+    *) ;;
 esac
-Host="$Arch-slackware-linux"
+case $Arch in
+    arm*) Host="$Arch-slackware-linux-gnueabi" ;;
+    *) Host="$Arch-slackware-linux" ;;
+esac
 
 LibSuffix=
 [[ $Arch = "x86_64" ]] && LibSuffix="64"
