@@ -2,6 +2,5 @@
 
 PkgHome=(
     "https://ftp.gnu.org/gnu/${Name,,}/?C=M;O=D" # GNU
-    #"https://packages.debian.org/bookworm/${Name,,}" # Debian
-    "https://packages.debian.org/source/bookworm/${Name,,}" # Debian
+    "${DebianSearchURL}${Name,,}"
 )

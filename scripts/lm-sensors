@@ -2,7 +2,7 @@
 
 PkgHome=(
     "https://github.com/groeck/lm-sensors"
-    "https://packages.debian.org/trixie/lm-sensors"
+    "${DebianSearchURL}lm-sensors"
 )
 
 # Slackware

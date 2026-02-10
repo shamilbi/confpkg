@@ -2,7 +2,7 @@
 
 PkgHome=(
     "https://ftp.gnu.org/gnu/binutils/?C=M;O=D" # GNU
-    "https://packages.debian.org/source/bookworm/binutils" # Debian
+    "${DebianSearchURL}binutils"
 )
 
 SupportDir=$FilesDir/binutils

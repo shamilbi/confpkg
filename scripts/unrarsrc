@@ -3,7 +3,7 @@
 PkgHome=(
     "ftp://ftp.rarlab.com/rar/"
     "https://www.linuxfromscratch.org/blfs/view/svn/general/unrar.html"
-    "https://packages.debian.org/bookworm/amd64/unrar"
+    "${DebianSearchURL}unrar"
 )
 
 pkg_check=

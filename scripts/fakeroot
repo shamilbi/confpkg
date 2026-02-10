@@ -1,3 +1,3 @@
 #!/bin/bash
 
-PkgHome="https://packages.debian.org/search?searchon=names&keywords=fakeroot"
+PkgHome="${DebianSearchURL}fakeroot"

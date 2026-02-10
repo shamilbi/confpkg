@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PkgHome[1]="https://packages.debian.org/source/bookworm/gnu-which"
+PkgHome[1]="${DebianSearchURL}gnu-which"
 
 ConfigureOpts+=(
     --bindir=/bin

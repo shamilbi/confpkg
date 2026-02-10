@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PkgHome[1]="https://packages.debian.org/stable/automake"
+PkgHome[1]="${DebianSearchURL}automake"
 
 pkg_post_install() {
     # Slackware

@@ -2,5 +2,5 @@
 
 PkgHome=(
     "https://gitlab.com/iucode-tool/iucode-tool/-/tags"
-    "https://packages.debian.org/bookworm/iucode-tool"
+    "${DebianSearchURL}iucode-tool"
 )
