@@ -112,3 +112,7 @@ UserCacheDir=~/.cache/confpkg
 #xdg-open "https://www.startpage.com/sp/search?query=$Name" &
 #PkgSearchURL="https://www.startpage.com/sp/search?query="
 PkgSearchURL="https://html.duckduckgo.com/html?q="
+
+# https://packages.debian.org/search?searchon=sourcenames&keywords=fakeroot
+# https://packages.debian.org/search?searchon=names&keywords=libxine2
+DebianSearchURL="https://packages.debian.org/search?searchon=sourcenames&keywords="
