@@ -10,7 +10,9 @@ pkg_pre_configure() {
     local file
 
     # Slackware
-    pkg_patch_f3 18db5ae3ae833af302ea0fbfd1e5c633ac73a743.patch 1 || return 1
+    if (($(pkg_cmp_versions "$Version" "692") < 0)); then
+        pkg_patch_f3 18db5ae3ae833af302ea0fbfd1e5c633ac73a743.patch 1 || return 1
+    fi
     # Fix path in manpage:
     file=less.nro
     if [[ -r $file ]]; then
