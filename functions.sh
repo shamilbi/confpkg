@@ -391,7 +391,7 @@ pkg_filter_doc() {
                 # Makethird Makedefs CMakeList.txt
                 continue
                 ;;
-            meson_options* | requirements*.txt | ABOUT-NLS | INSTALL | cmake-config.txt)
+            meson_options* | requirements*.txt | ABOUT-NLS | INSTALL* | cmake-config.txt)
                 #  meson_options.txt
                 continue
                 ;;
