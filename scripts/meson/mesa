@@ -103,6 +103,8 @@ pkg_pre_configure() {
 }
 
 pkg_post_install() {
+    local dir
+
     # Slackware
     # Add a default provider for glvnd when the vendor cannot be determined:
     (
@@ -113,13 +115,15 @@ pkg_post_install() {
         fi
     ) || return 1
 
-    # link equals
-    (
-        cd "$LibDir2/dri" || exit 1
-        ls -d virtio_gpu_dri.so virtio_gpu_drv_video.so | pkg_ln_equals
-    )
-    (
-        cd "$LibDir2/vdpau" || exit 1
-        find . -type f -name 'libvdpau_virtio_gpu.so.*' | pkg_ln_equals
-    )
+    if (($(pkg_cmp_versions "$Version" "26") < 0)); then
+        # link equals
+        (
+            cd "$LibDir2/dri" || exit 1
+            ls -d virtio_gpu_dri.so virtio_gpu_drv_video.so | pkg_ln_equals
+        )
+        (
+            cd "$LibDir2/vdpau" || exit 1
+            find . -type f -name 'libvdpau_virtio_gpu.so.*' | pkg_ln_equals
+        )
+    fi
 }
