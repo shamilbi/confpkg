@@ -7,13 +7,17 @@ ConfigureOpts+=(
     -Dudev-dir=/lib/udev
     -Ddocumentation=false
     -Dtests=false
-
-    #-Dlibwacom=false
 )
 
 pkg_pre_configure() {
     if (($(pkg_cmp_versions "$Version" "1.29") < 0)); then
         # Slackware
-        pkg_patch_f3 libinput.less.lag.complaining.diff.gz 1 || return 1
+        pkg_patch_f3 libinput.less.lag.complaining.diff 1 || return 1
+    elif (($(pkg_cmp_versions "$Version" "1.31.0") < 0)); then
+        # Slackware
+        pkg_patch_f3 libinput.less.lag.complaining-2.diff 1 || return 1
+    else
+        # Slackware
+        pkg_patch_f3 libinput.less.lag.complaining-3.diff 1 || return 1
     fi
 }
