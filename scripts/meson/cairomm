@@ -1,9 +1,12 @@
 #!/bin/bash
 
+PkgHome="https://www.cairographics.org/releases/?C=M;O=D"
+
 ConfigureOpts+=(
+    # Slackware
+    -Dboost-shared=true # false, Use shared version of boost
+
     -Dbuild-documentation=false
     -Dbuild-examples=false
     -Dbuild-tests=false
 )
-#option('boost-shared', type: 'boolean',
-#  value: false, description: 'Use shared version of boost')
