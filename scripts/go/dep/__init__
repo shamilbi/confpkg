@@ -20,6 +20,9 @@ pkg_make() {
     elif [[ -f builder.Makefile ]]; then
         # docker-compose v2
         "${Make[@]}" -f builder.Makefile || return 1
+    elif [[ -f Makefile ]]; then
+        # whosthere
+        "${Make[@]}" -f Makefile build || return 1
     elif [[ -d cmd ]]; then
         GoBuild=(go build -o . -trimpath "./cmd/...")
         "${GoBuild[@]}"
