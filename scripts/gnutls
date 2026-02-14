@@ -2,6 +2,8 @@
 
 PkgHome="https://gitlab.com/gnutls/gnutls/"
 
+# REQ: nettle-3.x
+
 ConfigureOpts+=(
     # Slackware
     --disable-rpath
@@ -13,6 +15,9 @@ ConfigureOpts+=(
 
     --disable-doc
     --enable-libdane=no
+    --without-tpm # Disable TPM (trousers) support
+    --with-tpm2=yes # yes/link/dlopen/no, customize/disable TPM2 support
+    --enable-ssl3-support # enable support for the SSL 3.0 protocol
 )
 MakeEnv+=(
     imagesdir="$DocDir"
