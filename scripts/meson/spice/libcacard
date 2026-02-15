@@ -4,3 +4,14 @@ ConfigureOpts+=(
     -Dpcsc=enabled # Build with PC/SC pass-through support
     -Ddisable_tests=true # false, Disable building tests targets
 )
+
+pkg_pre_configure() {
+    # meson.build
+    # version: run_command('build-aux/git-version-gen', meson.source_root() + '/.tarball-version', check : true).stdout().strip(),
+    #   /usr/lib64/pkgconfig/$Name.pc
+    #   Version: UNKNOWN
+    local f1=meson.build
+    if pkg_create_orig "$f1"; then
+        sed -i -re 's/^( *version:) run_command\(.*,$/\1 '"'$Version'"',/' "$f1"
+    fi
+}
