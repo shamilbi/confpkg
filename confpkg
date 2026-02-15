@@ -727,7 +727,7 @@ pkg_find_sort() {
     # find + sort in current dir
     # (seconds, name) -> sort reverse -> (name)
     local name=$1
-    find . -mindepth 1 -maxdepth 1 -type f -iname "$name-*" |
+    find . -mindepth 1 -maxdepth 1 -type f -iname "${name}*" |
         while name2=$(pkg_read_exist); do
             name2=${name2:2} # ./x -> x
             echo "$(date -r "$name2" +"%s") $name2" # (seconds, name)
