@@ -1,0 +1,21 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://sourceforge.net/projects/lame/files/lame/"
+    "${DebianSearchURL}lame"
+)
+
+ConfigureOpts+=(
+    # Slackware
+    --htmldir="$DocDir"/html
+    --enable-mp3rtp
+    --enable-nasm
+)
+MakeEnv=(
+    pkgdocdir="$DocDir"
+)
+InstallEnv+=("${MakeEnv[@]}")
+
+pkg_post_install() {
+    gzip -9 "$DocDir2"/ChangeLog
+}
