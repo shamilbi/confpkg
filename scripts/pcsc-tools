@@ -1,0 +1,5 @@
+#!/bin/bash
+
+pkg_install_doc() {
+    pkg_install_mfd 644 R* L* "$DocDir2"
+}
