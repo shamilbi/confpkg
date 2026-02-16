@@ -1,0 +1,20 @@
+#!/bin/bash
+
+PkgHome="https://github.com/rkd77/elinks/tags"
+
+ConfigureOpts+=(
+    -Dtre=false # true, TRE regex search support
+    #-Dcss=false # true, Cascading Style Sheet support
+    -Dlibcss=false # true, whether to compile libcss support, requires libdom. This option is automatically enabled with js support
+    -Ddoc=false # true, whether build documentation (260MB)
+    -Dexmode=true # false, exmode (CLI) interface
+    -Dno-root=true # false, prevention of usage by root
+
+    -D256-colors=true # false, 256 color support
+    -Dtrue-color=true # false, true color support
+
+    -Dbrotli=true # false, brotli support
+    -Dzstd=true # false, zstd support
+    -Dlzma=true # false, lzma encoding support
+)
+pkg_check=
