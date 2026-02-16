@@ -1,0 +1,32 @@
+#!/bin/bash
+
+PkgHome="https://github.com/libmtp/libmtp"
+
+ConfigureOpts+=(
+    # Slackware
+    --with-udev=/lib/udev
+)
+
+MakeEnv=(
+    pkgdocdir="$DocDir"
+)
+InstallEnv+=("${MakeEnv[@]}")
+
+pkg_pre_configure() {
+    echo "y" | ./autogen.sh
+}
+
+pkg_pre_make() {
+    # -examples
+    local f1=Makefile
+    pkg_create_orig "$f1"
+    # SUBDIRS = src examples util doc
+    sed -i -r -e 's,^(SUBDIRS =.*) examples (.*),\1 \2,' "$f1"
+}
+
+pkg_post_install() {
+    # -html
+    local d1=$DocDir2/html
+    [[ -d $d1 ]] && rm -rf "$d1"
+    :
+}
