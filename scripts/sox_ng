@@ -1,0 +1,16 @@
+#!/bin/bash
+
+PkgHome="https://codeberg.org/sox_ng/sox_ng/tags"
+
+ConfigureOpts+=(
+    # Slackware
+    --enable-replace
+    --enable-year2038
+    --with-ffmpeg
+    --with-distro="Slackware"
+)
+
+[[ ! $ALSA ]] && ConfigureOpts+=(--without-alsa)
+[[ ! $PULSE ]] && ConfigureOpts+=(--without-pulseaudio)
+
+pkg_check=
