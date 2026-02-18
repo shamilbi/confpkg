@@ -4,13 +4,26 @@ PkgHome="https://mirrors.edge.kernel.org/pub/software/utils/dtc/"
 
 # REQ BY: qemu
 
+BuildSteps=("${BuildForPython[@]}")
+[[ $BuildStep ]] && pkg_set_python "$BuildStep"
+
 ConfigureOpts+=(
-    -Dstatic-build=false # Build static binaries
+    -Dstatic-build=false # false, Build static binaries
         # doesn't work
     -Dtests=false # true, Build tests
-    #-Dpython=disabled # auto, Build pylibfdt Python library
-        # swig
 )
+
+pkg_pre_configure() {
+    if [[ $Version = "1.7.2" ]]; then
+        pkg_patch_f3 dtc-1.7.2-glibc_fixes-1.patch 1 || return 1
+    fi
+
+    # #!/usr/bin/env python3
+    # ->
+    # #!$Python
+    pkg_create_orig setup.py
+    sed -i -e "1s,.*,#!$Python," setup.py
+}
 
 pkg_post_install() {
     # del *.a
