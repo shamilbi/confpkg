@@ -1,0 +1,29 @@
+#!/bin/bash
+
+ConfigureOpts=(
+    # Slackware
+    --prefix="$Prefix"
+    #--libdir="$LibName"
+    --shared
+
+    --libdir="/$LibName"
+)
+
+if [[ $Arch = "x86_64" ]]; then
+    ConfigureOpts+=(--64)
+fi
+
+MakeEnv=(
+    pkgconfigdir="$LibDir/pkgconfig"
+    mandir="$ManDir"
+)
+InstallEnv+=("${MakeEnv[@]}")
+pkg_check=1
+
+pkg_post_install() {
+    # Slackware
+    # Now that libkmod requires libz, we had better move the shared library
+    # up a level:
+    # mv-part has already done, so just link
+    find "$DestDir/$LibName" -maxdepth 1 -name 'libz.so*' | pkg_ln_d "$LibDir2"
+}
