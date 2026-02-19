@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PkgHome="https://gitlab.freedesktop.org/pipewire/pipewire"
+PkgHome="https://gitlab.freedesktop.org/pipewire/pipewire/-/tags"
 
 # REQ: rst2man (python docutils)
 # subproject/wireplumber is fetched from
@@ -18,10 +18,20 @@ ConfigureOpts+=(
 
     -Dexamples=disabled # enabled, Build examples
     -Dtests=disabled # enabled, Build tests
-    -Dsystemd=disabled
 )
 [[ ! $PULSE ]] && ConfigureOpts+=(-Dlibpulse=disabled)
 [[ ! $JACK ]] && ConfigureOpts+=(-Djack=disabled -Dpipewire-jack=disabled)
+
+if (($(pkg_cmp_versions "$Version" "1.6") < 0)); then
+    ConfigureOpts+=(
+        -Dsystemd=disabled
+    )
+else
+    ConfigureOpts+=(
+        -Dlibsystemd=disabled # Enable code that depends on libsystemd, =auto
+        -Dlogind-provider=libelogind # ['libelogind', 'libsystemd'], =libsystemd, Provider for logind integration
+    )
+fi
 
 pkg_post_install() {
     # Slackware
