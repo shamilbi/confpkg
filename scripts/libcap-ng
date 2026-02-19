@@ -8,6 +8,7 @@ BuildSteps=("${BuildForPython[@]}")
 ConfigureOpts+=(
     # Slackware
     --with-python3
+    --enable-deprecated
 
     --libdir="/$LibName"
     --with-python=no
