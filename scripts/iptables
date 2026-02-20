@@ -1,0 +1,25 @@
+#!/bin/bash
+
+PkgHome="https://git.netfilter.org/iptables"
+
+ConfigureOpts+=(
+    # Slackware
+    --enable-devel # Install Xtables development headers
+    --enable-libipq # Build and install libipq
+    --enable-bpf-compiler # Build bpf compiler
+    --enable-nfsynproxy # Build SYNPROXY configuration tool
+)
+MakeEnv=(
+    PREFIX="$Prefix"
+    KERNEL_DIR="$KernelSrcDir"
+)
+InstallEnv+=("${MakeEnv[@]}")
+unset pkg_check ProtectDirs
+
+pkg_post_install() {
+    local f=$Prefix2/sbin/xtables-multi
+    local f2=$Prefix2/bin/iptables-xml
+    if [[ ! -f $f2 ]]; then
+        ls -d "$f" | pkg_ln_ff "$f2"
+    fi
+}
