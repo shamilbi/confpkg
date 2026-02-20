@@ -1,0 +1,3 @@
+#!/bin/bash
+
+GoBuild=("${Make[@]}" -f Makefile build)
