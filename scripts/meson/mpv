@@ -2,7 +2,7 @@
 
 PkgHome="https://github.com/mpv-player/mpv/tags"
 
-# REQ: libplacebo
+# REQ: libplacebo, ffmpeg
 
 ConfigureOpts+=(
     # Slackware
