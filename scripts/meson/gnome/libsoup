@@ -6,3 +6,9 @@ ConfigureOpts+=(
     -Dvapi=enabled
     -Ddocs=disabled
 )
+
+pkg_pre_configure() {
+    if [[ $Version = "3.6.6" ]]; then
+        pkg_patch_f3 libsoup-3.6.6-upstream_fixes-1.patch 1 || return 1
+    fi
+}
