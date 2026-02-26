@@ -3,5 +3,11 @@
 PkgHome="https://github.com/dyne/frei0r/tags"
 
 ConfigureOpts+=(
+    # Slackware
+    -DCMAKE_C_FLAGS_RELEASE="$CFLAGS"
+    -DCMAKE_CXX_FLAGS_RELEASE="$CFLAGS"
     -DCMAKE_INSTALL_LIBDIR="$LibName"
+    #-DLIB_SUFFIX=${LIBDIRSUFFIX}
+    -DWITHOUT_OPENCV=OFF
+    -DWITHOUT_GAVL=ON
 )
