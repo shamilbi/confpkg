@@ -15,8 +15,10 @@ ConfigureOpts+=(
     -Dfaad=disabled
     -Dvoaacenc=disabled
     -Dvoamrwbenc=disabled
-    -Dmodplug=disabled      # ModPlug audio decoder plugin (libmodplug)
+    -Dmodplug=disabled # ModPlug audio decoder plugin (libmodplug)
+    -Dzxing=disabled # =auto, Barcode image scanner plugin using zxing-cpp library
 )
 [[ ! $IEEE1394 ]] && ConfigureOpts+=(-Ddc1394=disabled)
 #[[ ! $RTMP ]] && ConfigureOpts+=(-Drtmp=disabled -Drtmp2=disabled)
+
 :
