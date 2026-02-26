@@ -13,7 +13,7 @@ pkg_configure_del --docdir
 ConfigureOpts+=(
     # Slackware
     --program-prefix=
-    #--with-x
+    #--with-x # use the X Window System
         # --with-x or not --with-x, that is the question.  It seems many other
         # distributions don't compile with X support, but it's been traditional
         # here.  I am moving the prefix to /usr (instead of /usr/X11R6) though,
@@ -34,9 +34,6 @@ ConfigureOpts+=(
         # Default security policy to install as policy.xml:
         # POLICY=${POLICY:-limited}
 
-    # non Slackware
-    --docdir="$DocDir"
-    --without-zip # libzip zip.h error
     --without-x
 )
 MakeEnv=(
