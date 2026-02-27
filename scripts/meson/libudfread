@@ -1,0 +1,12 @@
+#!/bin/bash
+
+PkgHome="https://code.videolan.org/videolan/libudfread/-/tags"
+
+ConfigureOpts+=(
+    -Dembed_udfread=false # Build libudfread as static library with no install
+)
+
+pkg_post_install() {
+    # del *.a
+    find "$LibDir2" -type f -name '*.a' -delete
+}
