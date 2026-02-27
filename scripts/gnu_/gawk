@@ -1,0 +1,13 @@
+#!/bin/bash
+
+unset -v ProtectDirs
+
+pkg_post_install() {
+    # Slackware
+    # gawk-$VERSION -> gawk
+    ls -d "$Prefix2"/bin/gawk-* | pkg_ln_ff "$Prefix2"/bin/gawk
+    # -> /bin
+    ls -d "$Prefix2"/bin/{gawk*,awk} | pkg_mv_ln "$DestDir"/bin
+    # gawk.1 -> awk.1
+    ln -sfnr "$ManDir2"/man1/{gawk.1,awk.1}
+}
