@@ -16,6 +16,7 @@ userShell=/bin/false
 userComment=
 
 dbdir=/var/lib/clamav
+confdir=/etc/clamav
 
 ConfigureOpts+=(
     -DCLAMAV_USER="$user"
@@ -23,13 +24,14 @@ ConfigureOpts+=(
     -DENABLE_SYSTEMD=OFF
     -DCMAKE_INSTALL_DOCDIR="$DocDir"
     -DDATABASE_DIRECTORY="$dbdir"
-    -DAPP_CONFIG_DIRECTORY=/etc/clamav
+    -DAPP_CONFIG_DIRECTORY="$confdir"
     -DENABLE_TESTS=OFF # pytest
 
     -DENABLE_MILTER=OFF
         # v1.4.2
         # /usr/bin/ld: /usr/lib64/libmilter.a(main.o): relocation R_X86_64_32 against `.rodata.str1.1' can not be used when making a PIE object; recompile with -fPIE
         # /usr/bin/ld: failed to set dynamic section sizes: bad value
+    #-DCVD_CERTS_DIRECTORY="$confdir"/certs
 )
 
 pkg_pre_configure() {
@@ -44,9 +46,16 @@ pkg_pre_configure() {
 }
 
 pkg_post_install() {
-    local dbdir2=${DestDir}${dbdir}
-    mkdir -p "$dbdir2"
-    chown -R "$user:$group" "$dbdir2"
+    local dir
+
+    dir=${DestDir}${dbdir}
+    mkdir -p "$dir"
+    chown -R "$user:$group" "$dir"
+
+    #dir=${DestDir}${confdir}/certs
+    #if [[ -d $dir ]]; then
+    #    chown -R "$user:$group" "$dir"
+    #fi
 
     # del *.a
     find "$LibDir2" -type f -name '*.a' -delete
