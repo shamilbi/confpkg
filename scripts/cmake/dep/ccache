@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PkgHome="https://ccache.dev/download.html"
+
 # REQ: fmt
 
 ConfigureOpts+=(
