@@ -59,4 +59,8 @@ pkg_post_install() {
 
     # del *.a
     find "$LibDir2" -type f -name '*.a' -delete
+
+    # del $DocDir/html
+    rm -rf "$DocDir2"/html
+    :
 }
