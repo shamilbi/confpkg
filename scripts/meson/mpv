@@ -32,6 +32,7 @@ ConfigureOpts+=(
 
 [[ ! $PULSE ]] && ConfigureOpts+=(-Dpulse=disabled)
 [[ ! $AALIB ]] && ConfigureOpts+=(-Dcaca=disabled) # auto, CACA
+[[ ! $JACK ]] && ConfigureOpts+=(-Djack=disabled) # auto, JACK audio output
 
 pkg_pre_configure() {
     if (($(pkg_cmp_versions "$Version" "0.41") < 0)); then
