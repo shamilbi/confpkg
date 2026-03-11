@@ -9,7 +9,7 @@ PkgHome="https://gitlab.freedesktop.org/pipewire/pipewire/-/tags"
 ConfigureOpts+=(
     # Slackware
     -Dudevrulesdir=/lib/udev/rules.d
-    #-Dman=enabled # disabled, Manual pages
+    -Dman=enabled # disabled, Manual pages
     -Dffmpeg=enabled # disabled, Enable ffmpeg spa plugin integration
     -Dvulkan=enabled # disabled, Enable vulkan spa plugin integration
     #-Djack=disabled
