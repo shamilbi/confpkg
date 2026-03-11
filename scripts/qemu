@@ -94,7 +94,8 @@ target=(
 
 audio_drv_list="alsa,oss,sdl"
 # alsa/coreaudio/default/dsound/jack/oss/pa/pipewire/sdl/sndio
-[[ $JACK ]] && audio_drv_list+=",jack"
+[[ $JACK ]] && audio_drv_list+=",jack" ||
+    ConfigureOpts+=(-Djack=disabled) # auto, JACK sound support
 
 ConfigureOpts+=(
     --enable-spice
