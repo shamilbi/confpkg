@@ -1,0 +1,21 @@
+#!/bin/bash
+
+PkgHome="https://download.gimp.org/pub/gegl/?C=M&O=D"
+
+ConfigureOpts+=(
+    # Slackware
+    -Ddocs=false # ['auto', 'true', 'false'], auto, build documentation
+    -Dworkshop=true
+    -Dmrg=disabled
+    -Dmaxflow=disabled
+)
+
+pkg_pre_configure() {
+    if (($(pkg_cmp_versions "$Version" "0.4.54") < 0)); then
+        # Slackware
+        # GEGL 0.4.28 started checking for "dot" at runtime, breaking GIMP on machines
+        # that lack it. We'll drop the runtime check for now and revisit this approach
+        # later if it causes any unwanted side effects.
+        pkg_patch_f3 gegl.no.runtime.dot.check.diff.gz 1 || return 1
+    fi
+}
