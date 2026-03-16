@@ -1,0 +1,29 @@
+#!/bin/bash
+
+PkgHome="https://curl.se/"
+
+ConfigureOpts+=(
+    # Slackware
+    --with-libssh2
+    --with-gssapi
+    --enable-ares
+    --without-ca-bundle
+    --with-ca-path=/etc/ssl/certs
+    --with-nghttp2="$Prefix"
+    --with-nghttp3="$Prefix"
+    --with-openssl-quic
+    --with-openssl="$Prefix"
+
+    --without-gnutls
+    --with-ngtcp2="$Prefix" # Enable ngtcp2 usage
+        # configure: error: nghttp3 enabled without a QUIC library; enable ngtcp2
+)
+[[ ! $RTMP ]] && ConfigureOpts+=(--without-librtmp)
+
+pkg_check=
+
+pkg_pre_configure() {
+    if (($(pkg_cmp_versions "$Version" "8.10.0") < 0)); then
+        pkg_patch_f3 fe9baa1619d13a1d3ac6bfa530abe229805cddff.patch 1 || return 1
+    fi
+}
