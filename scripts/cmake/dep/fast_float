@@ -1,0 +1,10 @@
+#!/bin/bash
+
+PkgHome="https://github.com/fastfloat/fast_float/tags"
+
+ConfigureOpts+=(
+    # Slackware
+    -Wno-dev
+    -DSYSTEM_DOCTEST=OFF
+    -DFASTFLOAT_TEST=OFF
+)
