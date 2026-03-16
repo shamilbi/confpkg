@@ -1,0 +1,8 @@
+#!/bin/bash
+
+PkgHome="https://github.com/simdutf/simdutf/tags"
+
+ConfigureOpts+=(
+    # Slackware
+    -DSIMDUTF_TESTS=OFF
+)
