@@ -2,7 +2,7 @@
 
 PkgHome[1]="https://download.gimp.org/gimp/?C=M&O=D"
 
-# REQ: openexr-3.2.x, mypaint-brushes-2.x
+# REQ: openexr-3.2.x, mypaint-brushes-2.x, gexiv2<0.15.0
 
 ConfigureOpts+=(
     # Slackware
