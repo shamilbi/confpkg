@@ -1,0 +1,35 @@
+#!/bin/bash
+
+PkgHome="https://gitlab.freedesktop.org/freetype/freetype"
+
+ConfigureOpts+=(
+    # Slackware
+    --with-zlib=yes # [yes|no|auto], use system zlib instead of internal library [default=auto]
+    --with-bzip2=yes # [yes|no|auto] support bzip2 compressed fonts [default=auto]
+    --with-png=yes # [yes|no|auto] support png compressed OpenType embedded bitmaps [default=auto]
+    --enable-freetype-config # install freetype-config
+)
+
+pkg_post_install() {
+    # Slackware
+    # Install runtime profile configuration scripts, used to set hinting defaults:
+    pkg_install_mfd 755 "$SupportDir"/freetype.csh "$Etc2"/profile.d
+    pkg_install_mfd 755 "$SupportDir"/freetype.sh "$Etc2"/profile.d
+    # This shouldn't be needed (apps should pick up -I/usr/include/freetype2 from
+    # `freetype-config --cflags` while compiling), but it's so often reported as
+    # a bug that I'll give in to the point.  Now that Freetype1 is pretty much gone
+    # having this link shouldn't hurt anything.  Try not to rely on it, though.
+    # /usr/include/freetype
+    local incdir=$IncludeDir2/freetype
+    if [[ ! -d $incdir ]]; then
+        find "$IncludeDir2" -mindepth 1 -maxdepth 1 -type d \
+            -name "freetype*" ! -name "freetype" \
+            -exec ln -sfnr {} "$incdir" \;
+        # non Slackware
+        if [[ -d $incdir/freetype ]]; then
+            # usr/include/freetype2/freetype
+            # link -> usr/include/freetype
+            ln -sfnr "$incdir/freetype" "$incdir"
+        fi
+    fi
+}
