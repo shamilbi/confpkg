@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PkgHome="https://mirrors.edge.kernel.org/pub/software/utils/dtc/"
+PkgHome="https://git.kernel.org/pub/scm/utils/dtc/dtc.git"
 
 # REQ BY: qemu
 
@@ -26,6 +26,7 @@ pkg_pre_configure() {
 }
 
 pkg_post_install() {
+    # Slackware
     # del *.a
     find "$LibDir2" -type f -name '*.a' -delete
 }
