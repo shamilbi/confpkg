@@ -44,7 +44,8 @@ InstallEnv+=("${MakeEnv[@]}")
 pkg_post_install() {
     # Slackware
     # Provide all the security policy XML files as examples:
-    pkg_install_mfd 644 config/policy-*.xml "$Etc2"/ImageMagick-"${VersionArr[0]}"
+    local etc=$Etc2/ImageMagick-${VersionArr[0]}
+    pkg_install_mfd 644 config/policy-*.xml "$etc"
     # Nothing but a perl upgrade should replace this (and maybe not even that)
     find "$DestDir" -name perllocal.pod -delete
     # Remove rpaths:
@@ -56,6 +57,8 @@ pkg_post_install() {
 
     # del bulk dirs
     rm -rf "$DocDir2"/{www,images,index.html,Install-*.txt}
+    # del policy.xml (copy of policy-limited.xml)
+    rm -f "$etc"/policy.xml
 }
 
 pkg_del_la() {
