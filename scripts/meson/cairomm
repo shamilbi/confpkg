@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PkgHome="https://www.cairographics.org/releases/?C=M;O=D"
+PkgHome="https://gitlab.freedesktop.org/cairo/cairomm/-/tags"
 
 ConfigureOpts+=(
     # Slackware
