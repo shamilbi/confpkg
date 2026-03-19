@@ -12,14 +12,21 @@ ConfigureOpts+=(
     -DMOD_RUBBERBAND=OFF
     -DMOD_GLXANIMATE=ON
     -DMOD_GLXANIMATE_QT6=ON
-
-    #-DMOD_OPENCV=ON
 )
 
 if [[ $python ]]; then
     ConfigureOpts+=(-DSWIG_PYTHON=ON)
     pkg_set_python python3
 fi
+
+pkg_pre_configure() {
+    # -libpostproc (ffmpeg-7.1)
+    local f1=$OrigSrcDir/cmake/FindFFmpeg.cmake
+    if pkg_create_orig "$f1"; then
+        # find_component(POSTPROCESS libpostproc    postproc    libpostproc/postprocess.h)
+        sed -i -re 's,^( *)(find_component\(POSTPROCESS .*),\1#\2,' "$f1"
+    fi
+}
 
 pkg_post_install() {
     if [[ $python ]]; then
