@@ -7,6 +7,10 @@ pkg_pre_configure() {
         # v1.5.0: protobuf<28
         pkg_patch_f3 protobuf-c-1.5.0-consolidated_fixes-1.patch 1 || return 1
     fi
+    if [[ $Version = "1.5.2" ]]; then
+        # https://github.com/protobuf-c/protobuf-c/issues/795#issuecomment-3976758749
+        pkg_patch_f3 protobuf-c-1.5.2-protobuf-34.patch 1 || return 1
+    fi
 
     # disable tests
     # Makefile.am
