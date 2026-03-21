@@ -1,0 +1,10 @@
+#!/bin/bash
+
+PkgHome="https://code.videolan.org/videolan/x264/"
+
+ConfigureOpts+=(
+    --enable-strip
+    --enable-pic
+)
+pkg_check=
+InstallOpts=(install-cli install-lib-dev install-lib-shared)
