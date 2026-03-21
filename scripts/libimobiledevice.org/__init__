@@ -1,0 +1,18 @@
+#!/bin/bash
+
+PkgHome="https://github.com/libimobiledevice/${Name,,}/tags"
+
+[[ ! $SYSTEMD ]] && ConfigureOpts+=(--without-systemd)
+
+pkg_pre_configure() {
+    [[ ! -x configure ]] && pkg_autoreconf
+    # configure: error: PACKAGE_VERSION is not defined.
+    # Make sure to configure a source tree checked out from git or that .tarball-version is present.
+    local s
+    if [[ -f NEWS ]]; then
+        s=$(grep -m 1 -e '^Version .*' NEWS | sed -e 's,^Version *,,')
+        # configure:
+        # PACKAGE_VERSION=''
+        sed -i -r -e 's,^(PACKAGE_VERSION)=.*,\1='"'$s'"',' configure
+    fi
+}

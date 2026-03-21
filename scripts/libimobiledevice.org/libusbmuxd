@@ -1,0 +1,9 @@
+#!/bin/bash
+
+pkg_post_install() {
+    local f
+    f=$(find "$LibDir2/pkgconfig" -type f -name "$Name-*.pc" -print -quit)
+    if [[ $f && -f $f ]]; then
+        ln -sfnr "$f" "$LibDir2/pkgconfig/$Name.pc"
+    fi
+}
