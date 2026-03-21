@@ -1,0 +1,12 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://tigervnc.org/"
+    "https://github.com/TigerVNC/tigervnc/"
+)
+
+# REQ: fltk-1.3.x
+
+ConfigureOpts+=(
+    -DINSTALL_SYSTEMD_UNITS=OFF
+)
