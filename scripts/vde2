@@ -1,0 +1,11 @@
+#!/bin/bash
+
+ProtectDirs=(
+    /etc/rc.d
+)
+
+pkg_post_install() {
+    # Slackware
+    # Add startup script:
+    pkg_install_mfd 644 "$SupportDir"/rc.vdenetwork "$Etc2"/rc.d
+}

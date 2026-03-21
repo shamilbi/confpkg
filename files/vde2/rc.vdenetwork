@@ -1,0 +1,204 @@
+#!/bin/sh
+# $Id: rc.vdenetwork,v 1.7 2011/12/06 14:18:08 root Exp root $
+# Qemu environment preparation script
+
+# ---------------------------------------------------------------------------
+#
+# After running this startup script, run a QEMU virtual machine in this way:
+#
+#  qemu-system-x86_64 \
+#    -net vde,sock=/var/run/kvm0.ctl,vlan=0 -net nic,vlan=0 \
+#    [qemu_option [qemu_option], ...]
+#
+# This will automatically connect the QEMU virtual machine to the VDE switch.
+#
+# ---------------------------------------------------------------------------
+#
+# Network type can be one of "route" "bridge" or "nat":
+# - In "route" mode, the script will expect that the 'routed' daemon is running
+#   on the host (see /etc/rc.d/rc.inet2 to start 'routed'), and will not
+#   create iptables NAT rules.
+#   The virtual network will be routed on the LAN and will be accessible as a
+#   separate network segment (make sure the IP range defined below does not
+#   conflict with existing parts of your network!). The guests will use our
+#   private dnsmasq server to obtain IP addresses.
+# - In "bridge" mode, the script will try to add the tap device to an existing
+#   network bridge, and will not create iptables NAT rules.
+#   The guests will be seen on the LAN as part of the network.
+# - In "nat" mode, the script will create iptables NAT rules. These hide the
+#   virtual network behind an internal NAT router. The guests will have full
+#   network access, but will be accessible only from the host.
+#
+# ---------------------------------------------------------------------------
+
+#NETWORKTYPE="route"
+#NETWORKTYPE="bridge"
+NETWORKTYPE="nat"
+
+# Host interfaces that need to be NAT-ed (in case we're not bridging/routing):
+# Add more interfaces space-separated, like "eth+ wlan+"
+NAT_IFS="eth+"
+
+# What is the bridge interface called if we are bridging?
+BR_DEV=br0
+
+# What is the name of the tun/tap device we will be using?
+TAP_DEV=kvm0
+
+start_tap() {
+  # Load tun module
+  /sbin/modprobe tun 2>/dev/null
+  # Wait for the module to be loaded
+  while ! /bin/lsmod |grep -q "^tun"; do echo Waiting for tun device;sleep 1; done
+
+  # Start tap switch
+  vde_switch --tap ${TAP_DEV} --daemon --group kvm \
+    --sock /var/run/${TAP_DEV}.ctl --pidfile /var/run/${TAP_DEV}_vde.pid \
+    --mod 775 --mgmtmode 770 --mgmt /var/run/${TAP_DEV}-manage
+
+  sleep 1
+
+  # Change pipe permission:
+  #chmod -R a+rwx /var/run/vde.ctl
+} # End start_tap
+
+stop_tap() {
+  # Bring tap interface down:
+  ifconfig ${TAP_DEV} down
+
+  # Kill VDE switch:
+  #pgrep -f vde_switch | xargs kill -TERM
+  kill -HUP $(cat /var/run/${TAP_DEV}_vde.pid)
+
+  # Remove the control socket:
+  #rmdir /var/run/vde.ctl
+} # End stop_tap
+
+start_localdhcp() {
+  # The IP configuration for the tap device that will be used for
+  # the virtual machine network:
+
+  TAP_IP=10.111.111.254
+  TAP_MASK=255.255.255.0
+  TAP_BCAST=$(/bin/ipmask ${TAP_MASK} ${TAP_IP} | cut -f 1 -d ' ')
+
+  # Definitions for the LAN segment the Qemu virtual machines will be in.
+  # These definitions will be fed to dnsmasq - this program will provide DNS
+  # and DHCP to the Qemu LAN.
+
+  # The VM_IPLOW and VM_IPHIGH addresses must agree with the definitions for
+  # the tap0 device above. These 'low' and 'high' values are the IP address
+  # range for the DHCP server to use.
+
+  VM_DOMAIN=qemu.lan
+  VM_IPLOW=10.111.111.128
+  VM_IPHIGH=10.111.111.199
+  VM_BCAST=${TAP_BCAST}
+  VM_MASK=${TAP_MASK}
+
+  # For additional options to dnsmasq - the commented example specifies that
+  # all DNS lookups for 'my.net' should go to 192.168.1.1;
+  # On the second line you find a configuration for supporting network boot:
+  #DNSMASQ_OPTIONS="--server /my.net/192.168.1.1 \
+  #                 --dhcp-boot=/pxelinux.0,\"192.168.1.1\",192.168.1.1"
+  DNSMASQ_OPTIONS=""
+
+  # Bring tap interface up
+  ifconfig ${TAP_DEV} ${TAP_IP} broadcast ${TAP_BCAST} netmask ${TAP_MASK}
+
+  # Start dnsmasq, the DNS/DHCP server
+  # for our Virtual Machines behind the tap0 interface.
+  # The '--conf-file' option prevents this instance from reading the default
+  # /etc/dnsmasq.conf settings. Also, binds to the tun interface, to keep it
+  # from interfering with other dnsmasq/named processes running on the host's
+  # primary interfaces. 
+  /usr/sbin/dnsmasq \
+    --log-queries \
+    --user=daemon \
+    --dhcp-leasefile=/var/state/dhcp/qemu-dhcpd.leases \
+    --dhcp-range=${VM_IPLOW},${VM_IPHIGH},${VM_MASK},${VM_BCAST},8h \
+    --interface=${TAP_DEV} --except-interface=lo --bind-interfaces \
+    --pid-file=/var/run/${TAP_DEV}_dnsmasq.pid --conf-file \
+    --domain=${VM_DOMAIN} \
+    $DNSMASQ_OPTIONS
+
+} # End start_localdhcp
+
+stop_localdhcp() {
+  # Stop dnsmasq
+  #pgrep -f dnsmasq | xargs kill -TERM
+  kill -TERM $(cat /var/run/${TAP_DEV}_dnsmasq.pid) \
+    && rm -f /var/run/${TAP_DEV}_dnsmasq.pid
+} # End stop_localdhcp
+
+start_route() {
+  # We need a private dnsmasq instance in a routed configuration:
+  start_localdhcp
+} # End start_route
+
+stop_route() {
+  # We need to stop our private dnsmasq instance in a routed configuration:
+  stop_localdhcp
+} # End stop_route
+
+start_nat() {
+  # Start IP Forwarding
+  echo "1" > /proc/sys/net/ipv4/ip_forward
+  for NIC in ${NAT_IFS}; do
+    iptables -t nat -A POSTROUTING -o ${NIC} -j MASQUERADE
+  done
+
+  # We need a private dnsmasq instance in a NAT configuration:
+  start_localdhcp
+
+} # End start_nat
+
+stop_nat() {
+  # We need to stop our private dnsmasq in a NAT configuration:
+  stop_localdhcp
+
+  # Delete the NAT rules
+  for NIC in ${NAT_IFS}; do
+    iptables -t nat -D POSTROUTING -o ${NIC} -j MASQUERADE
+  done
+  # Stop IP Forwarding
+  echo "0" > /proc/sys/net/ipv4/ip_forward
+}
+
+start_bridge() {
+  # Connect our tap device from the bridge:
+  /sbin/ifconfig $TAP_DEV down                              
+  /sbin/ifconfig $TAP_DEV 0.0.0.0 promisc up                
+  /sbin/brctl addif $BR_DEV $TAP_DEV
+}
+
+stop_bridge() {
+  # Disconnect our tap device from the bridge:
+  /sbin/brctl delif $BR_DEV $TAP_DEV
+}
+
+# See how we were called.
+
+case "$1" in
+  start)
+    echo -n "Starting VDE network for QEMU: "
+
+    start_tap
+    start_$NETWORKTYPE
+    echo
+    ;;
+  stop)
+    echo -n "Stopping VDE network for QEMU: "
+    stop_$NETWORKTYPE
+    stop_tap
+    echo
+    ;;
+  restart|reload)
+    $0 stop
+    sleep 1
+    $0 start
+    ;;
+  *)
+    echo "Usage: $0 {start|stop|restart|reload}"
+    exit 1
+esac
