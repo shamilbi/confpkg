@@ -1,0 +1,12 @@
+#!/bin/bash
+
+PkgHome="https://github.com/open-source-parsers/jsoncpp/tags"
+
+ConfigureOpts+=(
+    -DJSONCPP_WITH_POST_BUILD_UNITTEST=no
+    -DJSONCPP_LIB_BUILD_SHARED=yes
+    -DBUILD_SHARED_LIBS=ON
+    -DBUILD_STATIC_LIBS=OFF # Build jsoncpp_lib as a static library, ON
+)
+#    -DJSONCPP_WITH_TESTS=no \
+pkg_check=
