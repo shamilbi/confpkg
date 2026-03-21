@@ -1,0 +1,7 @@
+#!/bin/bash
+
+PkgHome="https://github.com/AOMediaCodec/libavif"
+
+ConfigureOpts+=(
+    -DAVIF_LIBYUV=LOCAL # (to fetch and build it locally)
+)
