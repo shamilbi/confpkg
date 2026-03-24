@@ -24,15 +24,30 @@ ConfigureOpts+=(
     --enable-vnc
     --enable-vnc-jpeg
     --enable-vnc-sasl
+    --enable-spice-protocol
+    --enable-spice
+    --enable-slirp
+    --enable-usb-redir
+    --enable-vnc --enable-vnc-sasl --enable-vnc-jpeg
 
     --disable-docs
     --enable-crypto-afalg
     --enable-membarrier
     #--enable-modules
-    --enable-spice
     --enable-virglrenderer
     --enable-vte
 )
+
+arr2list() {
+    # (1 2 3) -> "1,2,3"
+    local -n var_=$1
+    local s i
+    for i in "${var_[@]}"; do
+        s+=",$i"
+    done
+    [[ $s ]] && s=${s:1} # del first ,
+    echo "$s"
+}
 
 # Slackware
 case $Arch in
@@ -87,26 +102,21 @@ case $Arch in
         )
         ;;
 esac
+ConfigureOpts+=(--target-list="$(arr2list target)")
 
-audio_drv_list="alsa,oss,sdl"
-# alsa/coreaudio/default/dsound/jack/oss/pa/pipewire/sdl/sndio
-[[ $JACK ]] && audio_drv_list+=",jack" ||
-    ConfigureOpts+=(-Djack=disabled) # auto, JACK sound support
-[[ $PULSE ]] && audio_drv_list+=",pa" || ConfigureOpts+=(--disable-pa)
-[[ $PIPEWIRE ]] && audio_drv_list+=",pipewire"
-ConfigureOpts+=(
-    --audio-drv-list="$audio_drv_list"
+audio_drv_list=(
+    alsa
+    oss
+    sdl
 )
-
-pkg_pre_configure() {
-    local i list
-    for i in "${target[@]}"; do
-        list="$i,"
-    done
-    [[ $list ]] && list=${list:0:-1} # del last comma
-    [[ $list ]] && ConfigureOpts+=(--target-list="$list")
-    :
-}
+# alsa/coreaudio/default/dsound/jack/oss/pa/pipewire/sdl/sndio
+[[ $JACK ]] && audio_drv_list+=(jack) ||
+    ConfigureOpts+=(-Djack=disabled) # auto, JACK sound support
+[[ $PULSE ]] && audio_drv_list+=(pa) || ConfigureOpts+=(--disable-pa)
+[[ $PIPEWIRE ]] && audio_drv_list+=(pipewire)
+ConfigureOpts+=(
+    --audio-drv-list="$(arr2list audio_drv_list)"
+)
 
 pkg_post_install() {
     # Slackware
