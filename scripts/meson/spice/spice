@@ -1,12 +1,15 @@
 #!/bin/bash
 
 ConfigureOpts+=(
-    #--enable-manual=no
-    #--disable-celt051
+    # Slackware
+    #--enable-client # not found
+    #--enable-smartcard
+    -Dsmartcard=enabled # Enable smartcard support
+    #--disable-celt051 # not found
+
     -Dtests=false # true, Build the test binaries
     #-Dgstreamer="1.0" # ['1.0', '0.10', 'no'], Enable gstreamer support
-    #-Dsmartcard=enabled # Enable smartcard support
-    -Dmanual=false # true, Build SPICE manual (asciidoc error)
+    #-Dmanual=false # true, Build SPICE manual (asciidoc error)
 )
 
 pkg_pre_configure() {
