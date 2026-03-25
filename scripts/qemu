@@ -50,56 +50,51 @@ arr2list() {
 }
 
 # Slackware
+# Default 32-bit targets:
+targets32=(
+    arm-linux-user
+    arm-softmmu
+    armeb-linux-user
+    i386-linux-user
+    i386-softmmu
+    riscv32-linux-user
+    riscv32-softmmu
+    sparc-linux-user
+    sparc-softmmu
+)
+# Default 64-bit targets:
+targets64=(
+    aarch64-linux-user
+    aarch64-softmmu
+    loongarch64-linux-user
+    loongarch64-softmmu
+    riscv64-linux-user
+    riscv64-softmmu
+    sparc64-linux-user
+    sparc64-softmmu
+    x86_64-linux-user
+    x86_64-softmmu
+)
+# Unless TARGET_LIST was provided by the user, set the target list based
+# on 32 or 64 bit arch:
+if [[ $(getconf LONG_BIT) = "64" ]]; then
+    # Set default target list for 64-bit.
+    target=("${targets64[@]}" "${targets32[@]}")
+else
+    # Set default target list for 32-bit.
+    target=("${targets32[@]}")
+fi
 case $Arch in
     i686)
         kvm_arch="i386"
         # Sorry, but x86_64-softmmu, x86_64-linux-user, aarch64-softmmu, and
         # aarch64-linux-user do not work on x86:
-        target=(
-            arm-linux-user
-            arm-softmmu
-            armeb-linux-user
-            i386-linux-user
-            i386-softmmu
-            sparc-linux-user
-            sparc-softmmu
-        )
         ;;
     x86_64)
         kvm_arch="x86_64"
-        target=(
-            aarch64-linux-user
-            aarch64-softmmu
-            arm-linux-user
-            arm-softmmu
-            armeb-linux-user
-            i386-linux-user
-            i386-softmmu
-            sparc-linux-user
-            sparc-softmmu
-            sparc64-linux-user
-            sparc64-softmmu
-            x86_64-linux-user
-            x86_64-softmmu
-        )
         ;;
     *)
         kvm_arch=""
-        target=(
-            aarch64-linux-user
-            aarch64-softmmu
-            arm-linux-user
-            arm-softmmu
-            armeb-linux-user
-            i386-linux-user
-            i386-softmmu
-            sparc-linux-user
-            sparc-softmmu
-            sparc64-linux-user
-            sparc64-softmmu
-            x86_64-linux-user
-            x86_64-softmmu
-        )
         ;;
 esac
 ConfigureOpts+=(--target-list="$(arr2list target)")
@@ -125,5 +120,9 @@ pkg_post_install() {
     #pkg_install_mfd 644 "$SupportDir"/65-kvm.rules "$dir"
     # Create "qemu-kvm" symlink. some 3rd party frontends look for it:
     [[ $kvm_arch ]] && ln -s qemu-system-"$kvm_arch" "$Prefix2"/bin/qemu-kvm
-    :
+    # We might as well install the guest agest boot script here also, just to make
+    # the QEMU package complete. Someone might install it in a guest when they
+    # really only needed the guest agent, and that should be fine.
+    local rcd=$Etc2/rc.d
+    pkg_install_mfd 644 "$SupportDir"/rc.qemu-ga "$rcd"
 }
