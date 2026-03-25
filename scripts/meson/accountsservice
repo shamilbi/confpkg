@@ -1,0 +1,23 @@
+#!/bin/bash
+
+PkgHome="https://gitlab.freedesktop.org/accountsservice/accountsservice/-/tags"
+
+ConfigureOpts+=(
+    # Slackware
+    -Dadmin_group=wheel
+    -Ddocbook=false
+    -Dtests=false
+    #-Dgtk_doc=true
+    -Delogind=true
+    -Dsystemdsystemunitdir=no
+)
+
+pkg_post_install() {
+    # Slackware
+    # Move dbus configs to system location:
+    local dir1=$Etc2/dbus-1/system.d
+    local dir2=$ShareDir2/dbus-1/system.d
+    ls -d "$dir1"/* | pkg_mv_d "$dir2"
+    rmdir --parents "$dir1"
+    :
+}
