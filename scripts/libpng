@@ -3,7 +3,7 @@
 PkgHome=(
     "https://sourceforge.net/projects/libpng/files/"
     "https://sourceforge.net/projects/libpng-apng/files/" # APNG patch
-    "https://github.com/pnggroup/libpng"
+    "https://github.com/pnggroup/libpng/tags"
 )
 
 
