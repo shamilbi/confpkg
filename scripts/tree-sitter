@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PkgHome="https://github.com/tree-sitter/tree-sitter"
+PkgHome="https://github.com/tree-sitter/tree-sitter/tags"
 
 MakeEnv=(
     "PREFIX=$Prefix"
@@ -11,10 +11,7 @@ InstallEnv+=("${MakeEnv[@]}")
 pkg_make() {
     "${Make[@]}" "${MakeEnv[@]}" "${MakeOpts[@]}" || return 1
     if [[ -d cli ]]; then
-        (
-            cd cli || exit 1
-            cargo build --release --all-features
-        ) || return 1
+        cargo build --release --all-features -C cli || return 1
     else
         cargo build --release --all-features
     fi
