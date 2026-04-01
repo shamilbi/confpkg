@@ -1,0 +1,6 @@
+#!/bin/bash
+
+PkgHome="https://github.com/rbsec/sslscan/tags"
+
+MakeEnv=("MANDIR=$ManDir")
+InstallEnv+=("${MakeEnv[@]}")
