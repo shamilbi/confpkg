@@ -1,0 +1,17 @@
+#!/bin/bash
+
+PkgHome="https://github.com/lsh123/xmlsec/"
+
+ConfigureOpts+=(
+    --enable-aes
+    --enable-gost
+    --with-openssl
+    --with-gcrypt
+)
+#    --enable-gost2012 \
+
+pkg_pre_configure() {
+    # digests.c:271:15: error: implicit declaration of function 'xmlSecOpenSSLEvpDigestSetLegacyDigest';
+    # did you mean 'xmlSecOpenSSLEvpDigestExecute'? [-Wimplicit-function-declaration]
+    pkg_add_cflags "-Wno-implicit-function-declaration"
+}
