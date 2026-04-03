@@ -33,9 +33,14 @@ pkg_install() {
     # Slackware
     dir=$DestDir/boot
     mkdir -p "$dir"
-    iucode_tool -v \
-        --write-earlyfw="$dir"/intel-ucode.img \
-        intel-ucode || return 1
+    local opts=(
+        iucode_tool -v
+        --write-earlyfw="$dir"/intel-ucode.img
+            # grub.cfg: initrd /intel-ucode.img /initrd.gz ...
+            #                   ^first
+        intel-ucode
+    )
+    "{opts[@]}" || return 1
 }
 
 pkg_install_doc() {
