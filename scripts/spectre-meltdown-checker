@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# REQ: kernel: X86_MSR, X86_CPUID
+
+PkgHome="https://github.com/speed47/spectre-meltdown-checker/tags"
+
+unset pkg_configure pkg_make pkg_check
+
+pkg_install() {
+    pkg_install_mfd 755 "${Name,,}".sh "$Prefix2/sbin"
+}
