@@ -1,6 +1,9 @@
 #!/bin/bash
 
-PkgHome="https://www.nongnu.org/oath-toolkit/"
+PkgHome=(
+    "https://www.nongnu.org/oath-toolkit/"
+    "https://download.savannah.nongnu.org/releases/oath-toolkit/?C=M&O=D"
+)
 
 ConfigureOpts+=(
     --disable-xmltest
