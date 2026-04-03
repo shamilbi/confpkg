@@ -115,4 +115,5 @@ PkgSearchURL="https://html.duckduckgo.com/html?q="
 
 # https://packages.debian.org/search?searchon=sourcenames&keywords=fakeroot
 # https://packages.debian.org/search?searchon=names&keywords=libxine2
-DebianSearchURL="https://packages.debian.org/search?searchon=sourcenames&keywords="
+#DebianSearchURL="https://packages.debian.org/search?searchon=sourcenames&keywords="
+DebianSearchURL="https://packages.debian.org/search?keywords="
