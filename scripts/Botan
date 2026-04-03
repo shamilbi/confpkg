@@ -2,7 +2,7 @@
 
 PkgHome=(
     "https://botan.randombit.net/"
-    "https://github.com/randombit/botan"
+    "https://github.com/randombit/botan/tags"
 )
 
 pkg_set_python python3
