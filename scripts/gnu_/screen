@@ -1,17 +1,19 @@
 #!/bin/bash
 
-PkgHome="https://www.gnu.org/software/screen/"
+#PkgHome="https://www.gnu.org/software/screen/"
 
 ConfigureOpts+=(
     # Slackware
     --with-sys-screenrc=/etc/screenrc
     --with-pty-mode=0620
     --with-pty-group=5
+    --enable-pam
     --enable-telnet
     --disable-socket-dir
-    --enable-use-locale
-    --enable-colors256
-    --enable-rxvt_osc
+    #--enable-use-locale
+    #--enable-colors256
+    #--enable-rxvt_osc
+    --enable-utmp
 )
 
 pkg_pre_configure() {
@@ -21,12 +23,6 @@ pkg_pre_configure() {
     pkg_patch_f3 60-revert-screenrc-change.diff.gz 1 || return 1
     #
     pkg_patch_f3 screen.texinfo.typofix.diff 1 || return 1
-    # Choose correct options depending on whether PAM is installed:
-    if [[ $PAM ]]; then
-        ConfigureOpts+=(--enable-pam)
-    else
-        ConfigureOpts+=(--disable-pam)
-    fi
 }
 
 pkg_pre_make() {
@@ -34,7 +30,7 @@ pkg_pre_make() {
     # Substitutions:
     # It appears the change directly below is broken. We'll issue errata for
     # it if a fix appears, but meanwhile we have a CVE to worry about.
-    # Tought choice.
+    # Tough choice.
     local f1
     for f1 in etc/etcscreenrc doc/*; do
         sed -i -e 's|/usr/local/etc/screenrc|/etc/screenrc|' "$f1"
@@ -52,11 +48,21 @@ pkg_post_install() {
     # /etc/screenrc, /etc/skel/.screenrc
     pkg_install_mff 644 etc/etcscreenrc "$Etc2"/screenrc
     pkg_install_mff 644 etc/screenrc "$Etc2"/skel/.screenrc
-    # /etc/pam.d/screen
-    if [[ $PAM ]]; then
-        pkg_install_mff 644 "$SupportDir"/screen.pam "$Etc2"/pam.d/screen
-    fi
+    # install PAM config:
+    pkg_install_mff 644 "$SupportDir"/screen.pam "$Etc2"/pam.d/screen
 
     rm -f "$DocDir2"/NEWS*
     :
 }
+
+pkg_read2var pkg_post_installpkg <<EOF
+pkg_post_installpkg() {
+    # Slackware
+    #if [ -r etc/pam.d/screen.new ]; then
+    #  config etc/pam.d/screen.new
+    #fi
+    # This is probably safer than leaving the hidden .new file...  maybe?
+    rm -f etc/skel/.screenrc.new
+}
+pkg_post_installpkg
+EOF
