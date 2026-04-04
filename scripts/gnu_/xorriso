@@ -1,0 +1,7 @@
+#!/bin/bash
+
+pkg_post_install() {
+    # Slackware
+    # grub-mkrescue-sed.sh
+    pkg_install_mfd 755 frontend/grub-mkrescue-sed.sh "$Prefix2"/bin
+}
