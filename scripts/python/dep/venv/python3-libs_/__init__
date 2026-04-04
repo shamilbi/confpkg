@@ -3,29 +3,29 @@
 PythonVenvSystem=
 
 PythonInstallLibs=(
-    wheel
-    build
     installer
-    setuptools-rust
-    flit-core           # argon2-cffi
-    poetry-core         # dnspython
-    hatchling
+    poetry-core
+    flit-core
+    six                 # wxPython
+    hatchling           # +packaging
     hatch-vcs
     hatch-fancy-pypi-readme # urllib3
-    urllib3             # conan
+    wheel
+    build
+    setuptools-rust
+    #urllib3             # conan
+    requests            # conan, +urllib3
     python-dateutil     # conan
     pyparsing
     #"cython<4"
     lxml
     #psutil              # glances
-    requests            # conan
     pyyaml              # conan
     pyxdg
     pytz
     tzdata              # pandas
     mako
     sip
-    six                 # wxPython
     pyasn1_modules      # tpm2-pkcs11
     pkgconfig           # tpm2-pytss
     #pygments            # gnu global, textual
@@ -38,7 +38,7 @@ PythonInstallLibs=(
     #versioneer          # pandas
     #ply                 # mesa: for intel vulkan ray-tracing
     docutils            # sphinx, rst2pdf
-    packaging           # meson, ninja
+    #packaging           # meson, ninja
     typing-extensions
 )
 
