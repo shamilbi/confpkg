@@ -4,25 +4,27 @@
 
 ConfigureOpts+=(
     # Slackware
-    --with-sys-screenrc=/etc/screenrc
-    --with-pty-mode=0620
-    --with-pty-group=5
-    --enable-pam
-    --enable-telnet
-    --disable-socket-dir
+    --with-system_screenrc=/etc/screenrc # set location of system screenrc (default: /etc/screenrc)
+    --with-pty-mode=0620 # set pty mode (default: 0620)
+    --with-pty-group=5 # set pty group (default: 5)
+    --enable-pam # enable PAM support (default: enabled)
+    --enable-telnet # enable telnet support (default: disabled)
+    --disable-socket-dir # enable global socket directory (default: disabled)
     #--enable-use-locale
     #--enable-colors256
     #--enable-rxvt_osc
-    --enable-utmp
+    --enable-utmp # enable utmp support (default: disabled)
 )
 
 pkg_pre_configure() {
     # Slackware
     # Revert a change to /etc/screenrc introduced in screen-4.3.x that prevents
     # the console from being properly cleared when detaching from a screen session:
-    pkg_patch_f3 60-revert-screenrc-change.diff.gz 1 || return 1
+    pkg_patch_f3 60-revert-screenrc-change.diff 1 || return 1
     #
     pkg_patch_f3 screen.texinfo.typofix.diff 1 || return 1
+    # Keep UTF-8 combining sequences on UTF-8 displays:
+    pkg_patch_f3 preserve-utf8-combining.patch 1 || return 1
 }
 
 pkg_pre_make() {

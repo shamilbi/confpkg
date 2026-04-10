@@ -1,0 +1,18 @@
+Description: Keep UTF-8 combining sequences on UTF-8 displays
+Author: Peter Dey <github@realmtech.net>
+Last-Update: 2026-02-10
+
+Index: screen/ansi.c
+===================================================================
+--- screen.orig/ansi.c
++++ screen/ansi.c
+@@ -497,7 +497,8 @@ void WriteString(Window *win, char *buf,
+ 					}
+ 					win->w_rend.font = 0;
+ 				}
+-				if (win->w_encoding == UTF8 && c >= 0x0300 && utf8_iscomb(c)) {
++				if (win->w_encoding == UTF8 && c >= 0x0300 && utf8_iscomb(c) &&
++				    (!display || D_encoding != UTF8)) {
+ 					int ox, oy;
+ 					struct mchar omc;
+ 
