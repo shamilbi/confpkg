@@ -1,11 +1,13 @@
 #!/bin/bash
 
-PkgHome="https://feh.finalrewind.org/"
+PkgHome="https://github.com/derf/feh/tags"
 
 # REQ: imlib2
 
 MakeEnv=(
     PREFIX="$Prefix"
+    exif=1
+    magic=1
 )
 InstallEnv+=(
     "${MakeEnv[@]}"
