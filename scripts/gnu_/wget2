@@ -1,0 +1,33 @@
+#!/bin/bash
+
+PkgHome[0]="https://ftp.gnu.org/gnu/wget/?C=M;O=D" # GNU
+
+ConfigureOpts+=(
+    # Slackware
+    --with-ssl=gnutls
+
+    --with-linux-crypto     # use Linux kernel cryptographic API (if available)
+    --disable-doc # don t generate any documentation
+        # makeinfo error, just copy files
+)
+
+pkg_post_install() {
+    # Slackware
+    # I don't think this is supposed to be there. Correct me if I'm wrong.
+    local f1=$Prefix2/bin/wget2
+    local f2=${f1}_noinstall
+    if [[ -r $f1 && $f2 ]]; then
+        rm -f "$f2"
+    fi
+
+    # info
+    f1=docs/wget2.info
+    [[ -f $f1 ]] &&
+        pkg_install_mfd 644 "$f1" "$InfoDir2"
+    # man
+    for f1 in man1 man3; do
+        f2=docs/man/$f1
+        [[ -d $f2 ]] &&
+            pkg_install_mfd 644 "$f2"/* "$ManDir2/$f1"
+    done
+}
