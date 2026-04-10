@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PkgHome="https://github.com/pciutils/pciutils/tags"
+
 # Use pci.ids from hwdata package
 
 unset pkg_configure pkg_check
