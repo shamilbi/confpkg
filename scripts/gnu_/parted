@@ -2,13 +2,15 @@
 
 ConfigureOpts+=(
     # Slackware
-    --enable-device-mapper
-    --with-readline
+    --enable-device-mapper # enable device mapper support default=yes
+    --with-readline # support fancy command line editing
+
+    --disable-nls # do not use Native Language Support
 )
 
 pkg_pre_configure() {
     # Slackware
     pkg_add_cflags "-fgnu89-inline"
 
-    pkg_autoreconf
+    # pkg_autoreconf
 }
