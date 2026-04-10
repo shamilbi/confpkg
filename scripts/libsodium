@@ -1,0 +1,6 @@
+#!/bin/bash
+
+pkg_post_install() {
+    # link: /usr/include/nacl --> sodium (for libssh)
+    ln -sfnr "$IncludeDir2"/sodium "$IncludeDir2"/nacl
+}
