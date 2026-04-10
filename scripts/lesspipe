@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PkgHome="https://github.com/wofr06/lesspipe/"
+PkgHome="https://github.com/wofr06/lesspipe/tags"
 
 ConfigureOpts=(
     # Slackware
