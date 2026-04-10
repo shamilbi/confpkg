@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PkgHome="https://github.com/libsdl-org/SDL/tags"
+
 ConfigureOpts+=(
     # Slackware
     #-DDOC_INSTALL_DIR="doc"
