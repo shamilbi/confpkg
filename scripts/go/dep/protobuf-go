@@ -1,0 +1,3 @@
+#!/bin/bash
+
+GoBuildBins=(protoc-gen-go)
