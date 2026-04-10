@@ -1,10 +1,11 @@
 #!/bin/bash
 
-PkgHome="https://www.libraw.org/"
+PkgHome="https://github.com/LibRaw/LibRaw/tags"
 
 ConfigureOpts+=(
     # Slackware
     --enable-jasper
+        # 22.1: configure: WARNING: unrecognized options: --enable-jasper
     --enable-lcms
 
     --enable-jpeg
