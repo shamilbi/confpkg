@@ -1,0 +1,11 @@
+#!/bin/bash
+
+PkgHome+=(
+    "https://www.linuxfromscratch.org/blfs/view/svn/multimedia/libisoburn.html"
+)
+
+pkg_post_install() {
+    # Slackware (xorriso)
+    # grub-mkrescue-sed.sh
+    pkg_install_mfd 755 frontend/grub-mkrescue-sed.sh "$Prefix2"/bin
+}
