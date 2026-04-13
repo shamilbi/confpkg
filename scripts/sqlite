@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PkgHome="https://github.com/sqlite/sqlite/tags"
+
 pkg_configure_del --docdir --localedir
 
 ConfigureOpts+=(
@@ -21,7 +23,7 @@ ConfigureOpts+=(
     --enable-readline
 )
 
-if (($(pkg_cmp_versions "$Version" "3490000") < 0)); then
+if (($(pkg_cmp_versions "$Version" "3.49") < 0)); then
     ConfigureOpts+=(
         # Slackware
         --enable-tempstore=yes
