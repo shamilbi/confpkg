@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PkgHome="https://github.com/docker/compose/tags"
+
 GoBuild=(go build -o ./build -trimpath "./cmd/...")
 GoBuildBins+=(
     build/cmd
