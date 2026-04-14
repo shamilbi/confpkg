@@ -1,0 +1,94 @@
+#!/bin/bash
+
+PkgHome="https://github.com/kzalewski/openssl-1.1.1/tags"
+
+Configure=./config
+ConfigureOpts=(
+    # Slackware
+    --prefix="$Prefix"
+    --openssldir=/etc/ssl
+    zlib
+    enable-camellia
+    enable-seed
+    enable-rfc3779
+    enable-cms
+    enable-md2
+    enable-rc5
+    enable-ssl3
+    enable-ssl3-method
+    no-weak-ssl-ciphers
+    no-mdc2
+    no-ec2m
+    no-sm2
+    no-sm4
+    no-sse2
+    shared
+)
+
+# These are the known patent issues with OpenSSL:
+# name   #         expires
+# MDC-2: 4,908,861  2007-03-13, not included.
+# IDEA:  5,214,703  2010-05-25, not included.
+#
+# Although all of the above are expired, it's still probably
+# not a good idea to include them as there are better
+# algorithms to use.
+
+CheckOpts=(test)
+CleanOpts=(clean clean-shared)
+v12=${VersionArr[0]}.${VersionArr[1]}
+libname=$LibName/openssl-$v12
+engines=$Prefix/$libname/engines-$v12
+MakeEnv=(
+    MANDIR="$ManDir"
+    LIBDIR="$libname" # rel
+    ENGINESDIR="$engines" # abs
+    DOCDIR="$DocDir"
+)
+InstallEnv+=("${MakeEnv[@]}")
+
+# So that ls has the right field counts for parsing...
+export LC_ALL=C
+
+pkg_pre_configure() {
+    # Slackware
+    # Fix pod syntax errors which are fatal wih a newer perl:
+    find . -name "*.pod" -exec \
+        sed -i "s/^\=item \([0-9]\)\(\ \|$\)/\=item C<\1>/g" {} \;
+}
+
+pkg_post_install() {
+    # -etc
+    rm -rf "$Etc2"
+    # -c_rehash
+    rm -f "$Prefix2"/bin/c_rehash
+    # -> openssl-$v12
+    local f1=$Prefix2/bin/openssl
+    mv "$f1" "$f1-$v12"
+
+    # -> /usr/include/openssl-$v12/
+    local includedir=$IncludeDir/openssl-$v12
+    local includedir2=$IncludeDir2/openssl-$v12
+    mkdir -p "$includedir2"
+    mv "$IncludeDir2/openssl" "$includedir2"
+    local pkgconfig2=$Prefix2/$libname/pkgconfig
+    local i
+    for i in "$pkgconfig2"/*.pc; do
+        sed -i -e 's,^includedir=.*,includedir='"$includedir"',' "$i"
+    done
+
+    # -mandir
+    rm -rf "$ManDir2"
+
+    # -*.a
+    find "$LibDir2" -type f -name '*.a' -delete
+
+    # link -> /lib64/
+    local libdir2=$Prefix2/$libname
+    find "$libdir2" -maxdepth 1 -type f | pkg_mv_ln "$DestDir/$LibName"
+
+    local dir=$DocDir2/html
+    if [[ -d $dir ]]; then
+        rm -rf $dir
+    fi
+}
