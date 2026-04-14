@@ -1,0 +1,16 @@
+#!/bin/bash
+
+PkgHome="https://github.com/jemalloc/jemalloc/tags"
+
+# /usr/bin/ginstall: cannot stat 'doc/jemalloc.3': No such file or directory
+Make=(make)
+
+pkg_pre_make() {
+	# $(INSTALL) -d $(DATADIR)/doc/jemalloc$(install_suffix)
+    # -> $DocDir2
+    local f1=Makefile
+    local s1='$(DATADIR)/doc/jemalloc$(install_suffix)'
+    if pkg_create_orig "$f1"; then
+        sed -i -e 's,'"$s1"','"$DocDir2"',' "$f1"
+    fi
+}
