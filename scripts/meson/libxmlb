@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PkgHome="https://github.com/hughsie/libxmlb"
+PkgHome="https://github.com/hughsie/libxmlb/tags"
 
 ConfigureOpts+=(
     -Dtests=false   # enable tests
