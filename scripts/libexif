@@ -1,0 +1,11 @@
+#!/bin/bash
+
+PkgHome="https://github.com/libexif/libexif/tags"
+
+pkg_post_install() {
+    # libexif.pc
+    # includedir=/usr/include/libexif
+    local s1='^(includedir)=.*'
+    local s2='\1='"$IncludeDir/libexif"
+    sed -i -r -e 's,'"$s1"','"$s2"',' "$LibDir2"/pkgconfig/libexif.pc
+}
