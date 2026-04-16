@@ -1,0 +1,11 @@
+#!/bin/bash
+
+PkgHome=(
+    #"https://inai.de/projects/xtables-addons/"
+    "https://codeberg.org/jengelh/xtables-addons/releases"
+)
+
+pkg_pre_configure() {
+    pkg_kernel_src_dir || return 1
+    ConfigureOpts+=("--with-kbuild=$KernelSrcDir")
+}

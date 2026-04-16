@@ -1,0 +1,21 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://ipset.netfilter.org/install.html"
+)
+
+ConfigureOpts+=(
+    --enable-bashcompl # Install bash completion for ipset
+)
+MakeEnv=(
+    "pkgconfigdir=$LibDir/pkgconfig"
+)
+InstallEnv+=("${MakeEnv[@]}")
+
+pkg_pre_configure() {
+    pkg_kernel_src_dir
+    ConfigureOpts+=(
+        "--with-kbuild=$KernelSrcDir"
+        "--with-ksource=$KernelSrcDir"
+    )
+}

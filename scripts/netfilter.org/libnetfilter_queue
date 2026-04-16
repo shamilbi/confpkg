@@ -1,0 +1,9 @@
+#!/bin/bash
+
+pkg_pre_make() {
+    # SUBDIRS = src utils include examples doxygen
+    local f="Makefile"
+    if pkg_create_orig "$f"; then
+        sed -i -r -e 's, (examples doxygen)$, #\1,' "$f"
+    fi
+}

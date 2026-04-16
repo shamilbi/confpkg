@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PkgHome="https://git.netfilter.org/iptables"
+#PkgHome="https://git.netfilter.org/iptables"
 
 ConfigureOpts+=(
     # Slackware

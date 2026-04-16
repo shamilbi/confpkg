@@ -1,0 +1,23 @@
+#!/bin/bash
+
+#PkgHome="https://netfilter.org/projects/ulogd/"
+
+[[ ! $POSTGRESQL ]] && ConfigureOpts+=(--disable-pgsql) # PostgreSQL output plugin [default=test]
+
+pkg_post_install() {
+    # doc
+    (
+        cd doc || exit 1
+        if [[ ! -f $Name.txt && $(command -v sgml2txt) ]]; then
+            # Slackware
+            sgml2txt -f "$Name.sgml"
+        fi
+
+        pkg_install_mfd 644 "$Name.txt" *.sql *.table "$DocDir2"
+    )
+
+    # Slackware
+    pkg_install_mfd 644 "$Name.conf" "$Etc2"
+    pkg_install_mfd 644 "$SupportDir"/rc.ulogd "$Etc2"/rc.d
+    pkg_install_mff 644 "$SupportDir"/ulogd.logrotate "$Etc2"/logrotate.d/ulogd
+}

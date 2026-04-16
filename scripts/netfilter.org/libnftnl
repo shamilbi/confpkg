@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PkgHome="https://www.nftables.org/"
+#PkgHome="https://www.nftables.org/"
 
 ConfigureOpts+=(
     --with-json-parsing

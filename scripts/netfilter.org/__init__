@@ -1,0 +1,6 @@
+#!/bin/bash
+
+PkgHome=(
+    #"https://git.netfilter.org/${Name,,}"
+    "https://netfilter.org/projects/${Name,,}/downloads.html"
+)
