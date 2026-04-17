@@ -1,0 +1,11 @@
+#!/bin/bash
+
+PkgHome="https://github.com/flashrom/flashrom/tags"
+
+ConfigureOpts+=(
+    -Dtests=disabled # auto, Build unit tests
+)
+
+# pkg_pre_configure() {
+#     pkg_add_cflags "-I$IncludeDir/libftdi1"
+# }
