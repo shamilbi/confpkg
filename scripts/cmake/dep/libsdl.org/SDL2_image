@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# ConfigureOpts+=(
+#     -DCMAKE_INSTALL_LIBDIR="$LibName"
+# )

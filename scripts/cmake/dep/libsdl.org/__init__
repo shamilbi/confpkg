@@ -1,0 +1,9 @@
+#!/bin/bash
+
+PkgHome="https://github.com/libsdl-org/${Name/SDL[0-9]/SDL}/tags"
+
+ConfigureOpts+=(
+    # Slackware
+    -DCMAKE_INSTALL_LIBDIR="$LibName"
+    -DSDL_STATIC=OFF
+)

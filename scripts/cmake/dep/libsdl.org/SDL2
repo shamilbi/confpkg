@@ -1,0 +1,17 @@
+#!/bin/bash
+
+#PkgHome="https://github.com/libsdl-org/SDL/tags"
+
+# ConfigureOpts+=(
+#     -DSDL_STATIC=OFF
+# )
+
+pkg_check=
+
+pkg_pre_configure() {
+    local f="$OrigSrcDir/CMakeLists.txt"
+    if pkg_create_orig "$f"; then
+        # install(FILES "LICENSE.txt" DESTINATION "${LICENSES_PREFIX}")
+        sed -i -r -e 's,^( *)(install\(FILES "LICENSE.txt" .*),\1#\2,' "$f"
+    fi
+}

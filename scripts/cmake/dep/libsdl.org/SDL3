@@ -1,12 +1,14 @@
 #!/bin/bash
 
-PkgHome="https://github.com/libsdl-org/SDL/tags"
+# PkgHome="https://github.com/libsdl-org/SDL/tags"
 
 ConfigureOpts+=(
     # Slackware
     #-DDOC_INSTALL_DIR="doc"
     #-DMAN_INSTALL_DIR="$ManDir"
-    -DSDL_STATIC=OFF
+    #-DSDL_STATIC=OFF
+    -DSDL_WAYLAND_LIBDECOR=ON
+    -DSDL_WAYLAND_LIBDECOR_SHARED=ON
 
     -DSDL_TEST_LIBRARY=OFF # Build the SDL3_test library, ON
 )

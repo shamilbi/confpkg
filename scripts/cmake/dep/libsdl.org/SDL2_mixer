@@ -1,0 +1,6 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    -DSDL2MIXER_MOD=OFF # Support loading MOD music, ON
+    -DSDL2MIXER_MIDI=OFF # Enable MIDI music, ON
+)
