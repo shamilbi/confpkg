@@ -1,0 +1,13 @@
+#!/bin/bash
+
+PkgHome="https://github.com/erikd/libsndfile/tags"
+
+ConfigureOpts+=(
+    # Slackware
+    --htmldir="$DocDir"
+)
+MakeEnv=(
+    # Slackware
+    htmldocdir="$DocDir/html"
+)
+InstallEnv+=("${MakeEnv[@]}")
