@@ -1,0 +1,69 @@
+#!/bin/bash
+
+unset -v pkg_configure
+
+MakeEnv=(
+    # Slackware
+    PREFIX="$Prefix"
+    LIBDIR="$LibDir"
+    MANDIR="$ManDir"
+
+    DOCDIR="$DocDir"
+)
+InstallEnv+=("${MakeEnv[@]}")
+CleanOpts=(clean)
+
+pkg_pre_make() {
+    # Slackware
+    # Include deprecated functions (including GifQuantizeBuffer) into the libgif.so
+    # to fix older packages that require those functions. Really, when functions
+    # were removed from the shared library this should have merited a shared
+    # library .soname version bump.
+    local fp=Makefile re1 re2
+    if pkg_create_orig "$fp"; then
+        if (($(pkg_cmp_versions "$Version" '5.2.2') < 0)); then
+            re1='libgif.so: $(OBJECTS) $(HEADERS)'
+            re2='$(CC) $(CFLAGS) -shared $(LDFLAGS) -Wl,-soname -Wl,libgif.so.$(LIBMAJOR) -o libgif.so $(OBJECTS)'
+        elif (($(pkg_cmp_versions "$Version" '6') < 0)); then
+            re1='$(LIBGIFSO): $(OBJECTS) $(HEADERS)'
+            re2='$(CC) $(CFLAGS) -shared $(LDFLAGS) -Wl,-soname -Wl,$(LIBGIFSOMAJOR) -o $(LIBGIFSO) $(OBJECTS)'
+        else
+            re1='$(LIBGIFSO): $(OBJECTS) $(HEADERS)'
+            re2='$(CC) $(CFLAGS) $(CPPFLAGS) -shared $(LDFLAGS) -Wl,-soname -Wl,$(LIBGIFSOMAJOR) -o $(LIBGIFSO) $(OBJECTS)'
+        fi
+        sed -i -e 's,\('"$re1"'\).*,\1 $(UOBJECTS),' "$fp" || return 1
+        sed -i -e 's|\('"$re2"'\).*|\1 $(UOBJECTS)|' "$fp" || return 1
+    fi
+}
+
+pkg_pre_install() {
+    mkdir -p "$LibDir2"
+}
+
+pkg_post_install() {
+    # Slackware
+    # Install manpages, not xml:
+    find "$ManDir2" -type f -name '*.xml' -delete
+    pkg_install_mfd 644 doc/*.1 "$ManDir2/man1"
+    # -*.a
+    find "$LibDir2" -type f -name '*.a' -delete
+    # Make some compatibility symlinks
+    (
+        cd "$LibDir2" || exit 1
+        # libungif.so
+        if [[ ! -L libungif.so ]]; then
+            fp=$(find . -type l -name 'libgif.so.*' -print -quit)
+            fp=${fp#*/} # ./x -> x
+            fp2=libungif.${fp#*.} # libgif.so.7 -> so.7
+            ln -sfn "$fp" "$fp2"
+            ln -sfn "$fp2" "libungif.so"
+        fi
+    )
+    # Install these obsolete utilities if they were built:
+    local obsolete
+    for obsolete in gifecho giffilter gifinto gifsponge; do
+        if [[ -r $obsolete ]]; then
+            pkg_install_mfd 755 "$obsolete" "$Prefix2"/bin
+        fi
+    done
+}
