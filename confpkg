@@ -528,6 +528,11 @@ EOF
     if [[ ! $DOC && -d $DocDir2 ]]; then
         rm -rf "$DocDir2"
     fi
+
+    # clean /usr/share
+    [[ -d $ShareDir2 ]] &&
+        find "$ShareDir2" -depth -type d -empty -delete
+    :
 }
 
 unset TgzFile
