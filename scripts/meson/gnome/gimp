@@ -14,3 +14,16 @@ ConfigureOpts+=(
 
     -Denable-default-bin=enabled # auto, Install unversioned symlinks pointing to versioned executables (on UNIX) or unversioned duplicates (on Windows)
 )
+
+pkg_pre_configure() {
+    # gimp-data
+    # [submodule "gimp-data"]
+    #     path = gimp-data
+    #     url = https://gitlab.gnome.org/GNOME/gimp-data.git
+    #     branch = main
+    #     shallow = true
+    local d1=gimp-data
+    if [[ -d $d1 ]] && pkg_dir_empty "$d1"; then
+        git clone --depth 1 "https://gitlab.gnome.org/GNOME/gimp-data" "$d1" || return 1
+    fi
+}
