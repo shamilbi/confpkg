@@ -2,9 +2,9 @@
 
 # compile $PythonVenvDir/ then copy to /usr
 
-unset BuildSteps # pkg_python_install (BuildForPython)
-unset pkg_configure pkg_make
-unset PythonInstallLibs PythonInstallLibs0 PythonNoBuildIsolation
+unset -v BuildSteps # pkg_python_install (BuildForPython)
+unset -v pkg_configure pkg_make
+unset -v PythonInstallLibs PythonInstallLibs0 PythonNoBuildIsolation
 PythonVenvSystem=1
 
 # Slackware
@@ -13,7 +13,6 @@ export CMAKE_POLICY_VERSION_MINIMUM=3.5
 
 pkg_install() {
     pkg_python_install
-    #: # python-protobuf-5.29.0: exit 1 without errors
 }
 
 pkg_distclean() {
