@@ -1,17 +1,26 @@
 #!/bin/bash
 
-PkgHome="https://github.com/lsh123/xmlsec/"
+PkgHome="https://github.com/lsh123/xmlsec/tags"
 
 ConfigureOpts+=(
-    --enable-aes
-    --enable-gost
-    --with-openssl
-    --with-gcrypt
+    --enable-aes # enable AES support
+    # --enable-gost # enable GOST-2001 support (no)
+    --with-openssl="$Prefix" # openssl location
+    # --with-gcrypt="$Prefix" # gcrypt location (no,deprecated)
+    --with-man-dir="$ManDir"/man1 # path to installed man pages
+    --with-docs-dir="$DocDir"/tmp # path to installed docs
+        # to delete
 )
-#    --enable-gost2012 \
+
+MakeOpts=(all docs-build)
 
 pkg_pre_configure() {
     # digests.c:271:15: error: implicit declaration of function 'xmlSecOpenSSLEvpDigestSetLegacyDigest';
     # did you mean 'xmlSecOpenSSLEvpDigestExecute'? [-Wimplicit-function-declaration]
     pkg_add_cflags "-Wno-implicit-function-declaration"
+}
+
+pkg_post_install() {
+    # -docs
+    rm -rf "$DocDir2"/tmp
 }
