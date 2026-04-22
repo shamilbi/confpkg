@@ -1,0 +1,96 @@
+#!/bin/bash
+
+PkgHome+=(
+    "https://github.com/OpenPrinting/cups/tags"
+)
+
+# Slackware
+[[ $PAM ]] && ConfigureOpts+=(--enable-pam) || ConfigureOpts+=(--disable-pam)
+
+ConfigureOpts+=(
+    # Slackware
+    --with-pkgconfpath="$LibDir/pkgconfig"
+    --enable-cdsassl=no
+    --with-rundir=/run/cups # set transient run-time state directory
+
+    --with-tls=gnutls # use cdsa (macOS), gnutls, or openssl for TLS support
+    --enable-libpaper
+    #--with-dnssd=no # enable DNS Service Discovery support (avahi, mdnsresponder, no, yes)
+    #--enable-gssapi # enable (deprecated) GSSAPI/Kerberos support
+)
+
+MakeEnv=(
+    DBUSDIR="$ShareDir/dbus-1"
+)
+InstallEnv=(
+    "${MakeEnv[@]}"
+    BUILDROOT="$DestDir"
+    DOCDIR="$DocDir2"
+)
+
+pkg_pre_configure() {
+    # Slackware
+    # CUPS_SERVERBIN="$exec_prefix/lib/cups"
+    local f="configure"
+    if pkg_create_orig "$f"; then
+        #sed -i -r -e 's,(CUPS_SERVERBIN)=.*,\1="'"$LibDir"'/cups",' "$f"
+        sed -i -e 's#$exec_prefix/lib/cups#$libdir/cups#g' "$f"
+    fi
+}
+
+pkg_post_install() {
+    local i
+
+    # Slackware
+    # These files are lost with a restart, so don't package them:
+    rm -rf "$DestDir"/run
+    # PAM
+    if [[ $PAM ]]; then
+        # Allow pam config files to be edited by root:
+        chmod 644 "$Etc2"/pam.d/*
+    fi
+    # Remove files that overlap with the cups-filters package:
+    rm -f "$ShareDir2"/cups/banners/{classified,confidential,secret,standard,topsecret,unclassified}
+    rm -f "$ShareDir2"/cups/data/testprint
+    # Hey, what's with the gigantic test files?  Bloat is bad.
+    rm -f "$ShareDir2"/cups/ipptool/*.{pdf,ps,jpg}
+    # I've added so many things like /etc/init.d/ to Slackware that CUPS
+    # is now installing init scripts to the Red Hat locations.  We'll move
+    # them to the usual locations:
+    # Handle this as a config file, and non-executable in a default install:
+    pkg_mv_ff "$Etc2/init.d/cups" "$Etc2/rc.d/rc.cups"
+    chmod 644 "$Etc2/rc.d/rc.cups"
+    # Clear out the additions:
+    rm -rf "$Etc2/init.d" "$Etc2"/rc[0-9].d
+    # Move the dbus config file to the system directory
+    # DBUSDIR
+    #mkdir -p "$ShareDir2"/dbus-1/system.d/
+    #mv "$Etc2"/dbus-1/system.d/* "$ShareDir2"/dbus-1/system.d/
+    #rmdir --parents "$Etc2"/dbus-1/system.d/
+    # For full CUPS SMB support, you'll need to install the cups-samba
+    # package from the source in this directory.  There's no easy way
+    # to add that to a package build, and the requests aren't pouring in,
+    # so you'll have to install it yourself.  It's easy to do.
+    # However, this will get you the most useful SMB support for free.
+    # Thanks to Boris Kurktchiev for the tip.  :-)
+    i=$LibDir2/cups/backend/smb
+    if [[ ! -e $i ]]; then
+        ln -sfn "$Prefix"/bin/smbspool "$i"
+    fi
+    # Adjust/expand docs:
+    # /usr/doc/cups
+    ls -d "$DocDir2" | pkg_ln_ff "$Prefix2/doc/cups"
+    # I'm sorry, but PDF files are almost as bloated and annoying as
+    # MS Word documents.  We'll retain the HTML files in /usr/doc.
+    find "$DocDir2" -type f -name '*.pdf' -delete
+    # In /etc/cups/cupsd.conf, the IdleExitTimeout directive will throw an error
+    # in the logs if HAVE_ONDEMAND (systemd related...) is not defined. So if
+    # we see that situation, edit the conf file:
+    if grep -q "undef HAVE_ONDEMAND" config.h ; then
+        sed -i '/Timeout after cupsd exits if idle/d' "$Etc2"/cups/cupsd.conf
+        sed -i '/IdleExitTimeout/,+1d' "$Etc2"/cups/cupsd.conf
+        pkg_install_mff 644 "$Etc2"/cups/cupsd.conf "$Etc2"/cups/cupsd.conf.default
+    fi
+
+    :
+}
