@@ -1,0 +1,5 @@
+#!/bin/bash
+
+pkg_post_install() {
+    echo "$Prefix2/bin/sed" | pkg_mv_ln "$DestDir/bin"
+}
