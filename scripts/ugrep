@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PkgHome="https://github.com/Genivia/ugrep"
+PkgHome="https://github.com/Genivia/ugrep/tags"
 
 pkg_post_install() {
     (
