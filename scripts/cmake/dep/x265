@@ -1,0 +1,22 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://www.videolan.org/developers/x265.html"
+    "https://bitbucket.org/multicoreware/x265_git/downloads/"
+)
+
+SrcDir=$OrigSrcDir/source
+
+ConfigureOpts+=(
+    -DLIB_INSTALL_DIR="$LibDir" # Install location of libraries
+)
+
+pkg_pre_configure() {
+    local f1=$SrcDir/$Name.pc.in
+    # libdir=${exec_prefix}/@LIB_INSTALL_DIR@
+    sed -i -r -e 's,^(libdir)=.*,\1=@LIB_INSTALL_DIR@,' "$f1"
+}
+
+pkg_post_install() {
+    find "$LibDir2" -type f -name '*.a' -delete
+}
