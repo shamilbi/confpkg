@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PkgHome="https://github.com/Kitware/CMake/tags"
+
 # REQ: pyparsing
 
 # The C++ compiler does not support C++11 (e.g.  std::unique_ptr)
