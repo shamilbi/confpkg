@@ -1,0 +1,9 @@
+#!/bin/bash
+
+pkg_pre_configure() {
+    cat <<EOF
+it's not supposed for compile
+create empty dir tzdb-$Version
+EOF
+    return 1
+}

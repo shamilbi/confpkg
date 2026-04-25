@@ -17,7 +17,33 @@ CleanOpts=(clean)
 
 pkg_del_cflags '-std=gnu17'
 
+check_empty_src() {
+    if pkg_dir_empty "$SrcDir"; then
+        local d1=$SrcDir/../tzdata-$Version
+        local d2=$SrcDir/../tzcode-$Version
+        local i
+        for i in "$d1" "$d2"; do
+            if [[ ! -d $i ]]; then
+                echo "dir not found: $(realpath "$i")"
+                return 1
+            fi
+        done
+        # copy from tzdata
+        pkg_cp_dd "$d1" . || return 1
+        # copy from tzcode
+        local fn
+        for i in "$d2"/*; do
+            fn=${i##*/}
+            [[ -e $fn ]] && continue
+            cp -a "$i" . || return 1
+        done
+    fi
+}
+
 pkg_pre_configure() {
+    # tzdata, tzcode, tzdb
+    check_empty_src || return 1
+
     # Slackware
     pkg_add_cflags "-DHAVE_SNPRINTF=1"
     # Default to more bloated (but more compatible) "fat" format with zic.
