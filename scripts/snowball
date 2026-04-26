@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PkgHome="https://github.com/snowballstem/snowball"
+PkgHome="https://github.com/snowballstem/snowball/tags"
 
 CleanOpts=(clean)
 
@@ -17,4 +17,25 @@ pkg_pre_configure() {
 pkg_install() {
     pkg_install_mfd 644 include/libstemmer.h "$IncludeDir2"
     pkg_install_mfd 644 libstemmer.a "$LibDir2"
+
+    # python
+    local src=python/src/snowballstemmer
+    mkdir -p "$src" || return 1
+    local i fn
+    for i in algorithms/*.sbl; do
+        fn=${i##*/}
+	    ./snowball "$i" -py -o "$src/${fn%.*}"_stemmer || return 1
+    done
+	cp -a libstemmer/modules.txt python
+    cp -a doc/libstemmer_python_README python/README.rst
+    # basestemmer.py, among.py
+    cp -a python/snowballstemmer/*.py "$src"
+    # __init__.py
+    python3 python/create_init.py "$src" || return 1
+    (
+        cd python || exit 1
+        unset -v PythonVenvSystem PythonNoBuildIsolation PythonInstallLibs
+        PythonVenvSystem=1
+        pkg_python_install || exit 1
+    ) || return 1
 }
