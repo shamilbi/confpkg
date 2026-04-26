@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PkgHome="https://github.com/fltk/fltk"
+PkgHome="https://github.com/fltk/fltk/tags"
 
 MakeEnv=("docdir=$DocDir")
 InstallEnv+=("${MakeEnv[@]}")
