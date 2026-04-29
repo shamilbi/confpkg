@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PkgHome="https://github.com/htop-dev/htop/tags"
+
 ConfigureOpts+=(
     --enable-unicode
     --enable-cgroup
