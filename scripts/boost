@@ -24,14 +24,17 @@ b2_opts=(
 )
 
 pkg_pre_configure() {
-    # Slackware
-    # [PATCH] Add include for add_const:
-    local f1=$OrigSrcDir/boost/range/detail/any_iterator_interface.hpp
-    local s1='^#include .*iterator_categories.hpp>$'
-    local s2='#include <boost/type_traits/add_const.hpp>'
-    if pkg_create_orig "$f1"; then
-        sed -i -e "/$s1/a\
+    if (($(pkg_cmp_versions "$Version" "1.91") < 0)); then
+        # Slackware
+        # 9ac89e99.patch
+        # [PATCH] Add include for add_const:
+        local f1=$OrigSrcDir/boost/range/detail/any_iterator_interface.hpp
+        local s1='^#include .*iterator_categories.hpp>$'
+        local s2='#include <boost/type_traits/add_const.hpp>'
+        if pkg_create_orig "$f1"; then
+            sed -i -e "/$s1/a\
 $s2" "$f1"
+        fi
     fi
 }
 
