@@ -7,6 +7,7 @@ unset pkg_configure pkg_check DOC pkg_strip
 CleanOpts=(clean)
 
 check_llvm=1
+check_rust=1
 
 check_env() {
     [[ ! -f .config ]] &&
@@ -16,10 +17,16 @@ check_env() {
             return 1
         }
 
-    MakeEnv=()
+    unset -v MakeEnv
     local clang=$(command -v clang)
     if [[ $check_llvm && $clang ]]; then
-        MakeEnv=("LLVM=1")
+        MakeEnv=(LLVM=1)
+    fi
+
+    local rustc=$(command -v rustc)
+    local rustlib=rustc-$(rustc --version | cut -d' ' -f2)/library
+    if [[ $check_rust && $rustc && -d $rustlib ]]; then
+        MakeEnv+=(RUST_LIB_SRC="$(realpath "$rustlib")")
     fi
 }
 
