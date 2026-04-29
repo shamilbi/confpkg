@@ -1,6 +1,9 @@
 #!/bin/bash
 
-PkgHome="https://curl.se/"
+PkgHome=(
+    "https://curl.se/"
+    "https://github.com/curl/curl/tags"
+)
 
 ConfigureOpts+=(
     # Slackware
