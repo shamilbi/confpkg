@@ -1,0 +1,17 @@
+#!/bin/bash
+
+PkgHome="https://github.com/RsyncProject/rsync/tags"
+
+pkg_set_python python3
+
+pkg_pre_configure() {
+    # cmarkgfm
+    # You need python3 and either the cmarkgfm OR commonmark python3 lib in order
+    # to build manpages based on the git source (manpages are included in the
+    # official release tar files).
+    if [[ ! -d $PythonVenvDir ]]; then
+        "$Python" -m venv "$PythonVenvDir" --system-site-packages
+    fi
+    . "$PythonVenvDir"/bin/activate || return 1
+    pkg_pipv_install cmarkgfm || return 1
+}
