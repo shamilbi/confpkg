@@ -1,7 +1,6 @@
 #!/bin/bash
 
 PkgHome=(
-    "ftp://ftp.rarlab.com/rar/"
     "https://www.linuxfromscratch.org/blfs/view/svn/general/unrar.html"
     "${DebianSearchURL}unrar"
 )
