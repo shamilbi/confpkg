@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PkgHome="https://gitlab.com/gnutls/gnutls/"
+PkgHome="https://www.gnupg.org/ftp/gcrypt/gnutls/v${VersionArr[0]}.${VersionArr[1]}/"
 
 # REQ: nettle-3.x
 
