@@ -230,12 +230,21 @@ pkg_python_post_install() {
 
 PythonVenvDir=".venv"
 
+pkg_pipv_install() {
+    if [[ $(command -v pipv-install) ]]; then
+        pipv-install -v "$@"
+    else
+        python -m pip -v install --disable-pip-version-check --no-cache-dir "$@"
+    fi
+    return $?
+}
+
 pkg_python_install() {
     # inside current dir
     local newPrefix=$1 # /opt/conan
     local newPrefix2=$DestDir$newPrefix
 
-    local python lib d2 man doc f venv_opts pipv_opts pipv_install
+    local python lib d2 man doc f venv_opts pipv_opts
     local pwd=$(pwd)
     local libs0="$pwd/libs0.tmp"
     local libs1="$pwd/libs1.tmp"
@@ -251,20 +260,6 @@ pkg_python_install() {
     pipv_opts=()
     [[ $PythonNoBuildIsolation ]] && pipv_opts+=(--no-build-isolation)
 
-    if [[ $(command -v pipv-install) ]]; then
-        pipv_install=(pipv-install -v "${pipv_opts[@]}")
-    else
-        pipv_install=(
-            python
-            -m pip
-            -v
-            install
-            --disable-pip-version-check
-            --no-cache-dir
-            "${pipv_opts[@]}"
-        )
-    fi
-
     for python in "${BuildForPython[@]}"; do
         pkg_set_python "$python" || return 1
 
@@ -275,13 +270,13 @@ pkg_python_install() {
 
         (
             . "$PythonVenvDir/bin/activate" || exit 1
-            "${pipv_install[@]}" setuptools -U
-            "${pipv_install[@]}" pip -U
-            #"${pipv_install[@]}" wheel -U
+            pkg_pipv_install setuptools -U
+            pkg_pipv_install pip -U
+            #pkg_pipv_install wheel -U
 
             # auxilliary libs needed for build
             for i in "${PythonInstallLibs0[@]}"; do
-                "${pipv_install[@]}" -I "$i" || exit 1 # force reinstall
+                pkg_pipv_install -I "$i" || exit 1 # force reinstall
             done
 
             # install links - workaround re-installing existing libs
@@ -308,13 +303,13 @@ pkg_python_install() {
         (
             . "$PythonVenvDir/bin/activate" || exit 1
             for i in "${PythonInstallLibs[@]}"; do
-                "${pipv_install[@]}" -I "$i" || exit 1 # force reinstall
+                pkg_pipv_install -I "$i" || exit 1 # force reinstall
             done
             if [[ -f "setup.py" || -f "pyproject.toml" ]]; then
-                "${pipv_install[@]}" . || exit 1
+                pkg_pipv_install . || exit 1
             fi
             for i in "${PythonInstallLibs2[@]}"; do
-                "${pipv_install[@]}" "$i" --no-build-isolation || exit 1
+                pkg_pipv_install "$i" --no-build-isolation || exit 1
             done
         ) || return 1
 
