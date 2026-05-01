@@ -24,8 +24,12 @@ check_env() {
     fi
 
     local rustc=$(command -v rustc)
-    local rustlib=rustc-$(rustc --version | cut -d' ' -f2)/library
-    if [[ $check_rust && $rustc && -d $rustlib ]]; then
+    local rustlib=../rustc-$(rustc --version | cut -d' ' -f2)/library
+    if [[ $check_rust && $rustc ]]; then
+        if [[ ! -d $rustlib ]]; then
+            echo "dir not found: $rustlib"
+            return 1
+        fi
         MakeEnv+=(RUST_LIB_SRC="$(realpath "$rustlib")")
     fi
 }
