@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PkgHome="https://github.com/lxc/lxc/tags"
+
 # REQ: libpcap.a
 
 ConfigureOpts+=(
