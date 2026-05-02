@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PkgHome="https://github.com/aristocratos/btop"
+PkgHome="https://github.com/aristocratos/btop/tags"
 
 # CMake Error at /usr/share/cmake-4.0/Modules/CheckIPOSupported.cmake:84 (message):
 #   IPO is not supported (check failed to compile).
