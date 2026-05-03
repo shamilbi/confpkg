@@ -10,4 +10,5 @@ ConfigureOpts+=(
         -Daalib=disabled # auto, aalib text console video sink plugin
         -Dlibcaca=disabled # auto, libcaca text console video sink plugin
     )
+[[ ! $SPEEX ]] && ConfigureOpts+=(-Dspeex=disabled) # =auto, Speex audio codec plugin
 :
