@@ -1,0 +1,64 @@
+#!/bin/sh
+#
+# qemu-ga   This shell script takes care of starting and stopping
+#           qemu guest agent.
+#
+# qemu-ga is a daemon intended to be run within guest VMs.
+# It enables the host to perform various operations in the guest.
+
+[ ! -x /usr/bin/qemu-ga ] && exit 99
+
+qemuga_start() {
+  pid=$(pidof qemu-ga)
+  if [ -n "$pid" ]; then
+    echo -n "qemu guest agent already started!"
+      ps up $pid
+  else
+    echo -n "Starting qemu guest agent: "
+    /usr/bin/qemu-ga -d
+  fi
+echo    
+}
+
+qemuga_stop() {
+  echo -n "Shutting down qemu guest agent: "
+  pkill qemu-ga
+  echo
+}
+
+qemuga_restart() {
+  qemuga_stop
+  sleep 2
+  qemuga_start
+}
+
+qemuga_status() {
+  pid=$(pidof qemu-ga)
+  if [ -n "$pid" ]; then
+    echo "qemu guest agent (pid $pid) is running."
+    ps up $pid
+  else
+    echo "qemu guest agent is stopped."
+  fi
+}
+
+case "$1" in
+  start)
+    qemuga_start
+    ;;
+  stop)
+    qemuga_stop
+    ;;
+  restart)
+    qemuga_restart
+    ;;
+  status)
+    qemuga_status
+    ;;
+  *)
+    echo "Usage: $0 start|stop|restart|status"
+    exit 1
+    ;;
+esac
+
+exit 0
