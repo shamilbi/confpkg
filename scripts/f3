@@ -1,0 +1,9 @@
+#!/bin/bash
+
+PkgHome="https://github.com/AltraMayor/f3/tags"
+
+MakeEnv=(
+    PREFIX="$Prefix"
+)
+InstallEnv+=("${MakeEnv[@]}")
+CleanOpts=(clean)
