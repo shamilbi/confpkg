@@ -1,0 +1,7 @@
+#!/bin/bash
+
+PkgHome="https://gitlab.xiph.org/xiph/vorbis-tools/-/tags"
+
+if [[ ! $SPEEX ]]; then
+    ConfigureOpts+=(--without-speex) # Do not compile Speex support
+fi
