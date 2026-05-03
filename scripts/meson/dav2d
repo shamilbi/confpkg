@@ -1,0 +1,7 @@
+#!/bin/bash
+
+PkgHome="https://code.videolan.org/videolan/dav2d/-/tags"
+
+ConfigureOpts+=(
+    -Denable_tests=false # =true, Build dav2d tests
+)
