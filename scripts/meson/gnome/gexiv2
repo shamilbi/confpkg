@@ -11,11 +11,4 @@ pkg_pre_configure() {
 
 pkg_post_install() {
     "$Python" -m compileall "$PythonLibDir2"
-
-    # link: gexiv2.pc -> gexiv2-0.16.pc
-    local f1
-    while f1=$(pkg_read_exist); do
-        ln -sfnr "$f1" "$LibDir2"/pkgconfig/"$Name".pc
-        break
-    done < <(find "$LibDir2"/pkgconfig -type f -name "$Name-*.pc")
 }
