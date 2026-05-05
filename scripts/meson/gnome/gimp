@@ -26,4 +26,8 @@ pkg_pre_configure() {
     if [[ -d $d1 ]] && pkg_dir_empty "$d1"; then
         git clone --depth 1 "https://gitlab.gnome.org/GNOME/gimp-data" "$d1" || return 1
     fi
+
+    # Slackware
+    # Allow a newer gexiv2:
+    pkg_patch_f3 0001-build-macos-Do-not-require-gexiv2-0.14-on-homebrew.patch 1 || return 1
 }
