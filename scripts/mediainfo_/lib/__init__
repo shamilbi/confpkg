@@ -1,0 +1,5 @@
+#!/bin/bash
+
+PkgHome="https://github.com/MediaArea/MediaInfoLib/tags"
+
+SrcDir=$OrigSrcDir/Project/GNU/Library

@@ -1,5 +1,0 @@
-#!/bin/bash
-
-PkgHome="https://mediaarea.net/en/MediaInfo/Download/Source"
-
-SrcDir=$OrigSrcDir/Project/GNU/CLI
