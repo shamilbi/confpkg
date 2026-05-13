@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PkgHome="https://thekelleys.org.uk/gitweb/?p=dnsmasq.git;a=summary"
+
 Daemon=$Prefix/sbin/dnsmasq
 DaemonOpts=(-C /etc/dnsmasq.conf)
 # --dhcp-leasefile=/var/state/dnsmasq/dnsmasq.leases
