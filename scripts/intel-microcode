@@ -40,7 +40,7 @@ pkg_install() {
             #                   ^first
         intel-ucode
     )
-    "{opts[@]}" || return 1
+    "${opts[@]}" || return 1
 }
 
 pkg_install_doc() {
