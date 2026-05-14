@@ -1,0 +1,15 @@
+#!/bin/bash
+
+PkgHome="https://git.kernel.org/pub/scm/fs/xfs/xfsdump-dev.git/"
+
+ConfigureOpts+=(
+    # Slackware
+    --sbindir=/usr/sbin
+    --bindir=/usr/sbin
+    --enable-gettext=yes # Enable alternate language support default=yes
+)
+
+pkg_pre_configure() {
+    # install-sh
+    "${Make[@]}" configure
+}
