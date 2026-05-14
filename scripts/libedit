@@ -1,0 +1,18 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://www.thrysoee.dk/editline/"
+    "${DebianSearchURL}${Name,,}"
+)
+
+ConfigureOpts+=(
+    # Slackware
+    --enable-widec # deprecated, wide-character/UTF-8 is always enabled
+)
+
+pkg_post_install() {
+    # Slackware
+    # Remove files conflicting with readline
+    rm -f "$ManDir2"/man3/history.3*
+    :
+}
