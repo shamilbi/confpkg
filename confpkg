@@ -407,12 +407,12 @@ pkg_post_install2_() {
         find "$dir" -type f ! -perm 644 -exec chmod 644 {} \;
     fi
 
-    # /usr/doc/$Name --> /usr/doc/$FullName
-    dir=$DestDir/usr/doc/$Name
-    if [[ -d $dir && ! -L $dir ]]; then
-        pkg_cp_fd "$dir"/* "$DocDir2"
-        rm -rf "$dir"
-    fi
+    # # /usr/doc/$Name --> /usr/doc/$FullName
+    # dir=$DestDir/usr/doc/$Name
+    # if [[ -d $dir && ! -L $dir ]]; then
+    #     pkg_cp_fd "$dir"/* "$DocDir2"
+    #     rm -rf "$dir"
+    # fi
 
     # /usr/doc/* (files) --> /usr/doc/$FullName/
     dir=$Prefix2/doc
