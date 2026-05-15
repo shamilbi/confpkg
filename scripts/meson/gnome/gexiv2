@@ -4,8 +4,24 @@ BuildSteps=("${BuildForPython[@]}")
 [[ $BuildStep ]] && pkg_set_python "$BuildStep"
 
 pkg_pre_configure() {
+    local f1
+
+    if (($(pkg_cmp_versions "$Version" "0.16") < 0)); then
+        :
+    else
+        # Slackware
+        f1=gexiv2/meson.build
+        # 3d03a4ae6bcd90b9b0cb6e41e81979d3a94cec67.patch
+        # -export_packages : 'gexiv2',
+        # +export_packages : 'gexiv2-0.16',
+        if pkg_create_orig "$f1"; then
+            sed -i -re "s/(export_packages :) 'gexiv2',$/\1 'gexiv2-0.16',/" "$f1"
+        fi
+    fi
+
+    f1=meson.build
+    # python3 -> $BuildStep
     # python3 = import('python').find_installation('python3', modules: 'gi')
-    local f1=meson.build
     sed -i -re "s|find_installation\\('(python[0-9.]+)'|find_installation('$BuildStep'|" "$f1"
 }
 
