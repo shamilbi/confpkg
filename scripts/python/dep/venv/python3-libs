@@ -14,7 +14,7 @@ PythonInstallLibs=(
     build
     setuptools-rust
     #urllib3             # conan
-    requests            # conan, +urllib3
+    #requests            # conan, +urllib3
     python-dateutil     # conan
     pyparsing
     #"cython<4"
