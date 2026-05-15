@@ -208,6 +208,8 @@ pkg_set_python() {
 
     # /usr/lib/python3.12/site-packages
     PythonSitePackagesDir=$($Python -c 'import sysconfig as sc; print(sc.get_paths()["purelib"])')
+    # /usr/lib64/python3.12/site-packages
+    PythonPlatLibDir=$($Python -c 'import sysconfig as sc; print(sc.get_paths()["platlib"])')
 
     # /usr/lib/python3.12
     PythonLibDir=${PythonSitePackagesDir%/*}
@@ -221,6 +223,7 @@ pkg_set_python() {
 
     PythonLibDir2=$DestDir$PythonLibDir
     PythonSitePackagesDir2=$DestDir$PythonSitePackagesDir
+    PythonPlatLibDir2=$DestDir$PythonPlatLibDir
     PythonPlatDir2=$DestDir$PythonPlatDir
 }
 
@@ -244,7 +247,7 @@ pkg_python_install() {
     local newPrefix=$1 # /opt/conan
     local newPrefix2=$DestDir$newPrefix
 
-    local python lib d2 man doc f venv_opts pipv_opts
+    local python lib man doc f venv_opts pipv_opts
     local pwd=$(pwd)
     local libs0="$pwd/libs0.tmp"
     local libs1="$pwd/libs1.tmp"
@@ -337,8 +340,13 @@ pkg_python_install() {
         diff -y --suppress-common-lines "$libs1" "$libs0" |
             sed -r -e 's,[ \t]+(<$|\|.*),,' >"$libs2"
             # pip-24.2.dist-info \t* |\t pip-24.1.2.dist-info
+
+        # destdir
+        local d2
         if [[ $newPrefix ]]; then
             d2=$newPrefix2/lib/python$PythonV12/site-packages
+        elif [[ $(find "$PythonVenvDir/lib" -type f -name '*.so' -print -quit) ]]; then
+            d2=$PythonPlatLibDir2
         else
             d2=$PythonSitePackagesDir2
         fi
@@ -395,7 +403,13 @@ pkg_python_install() {
         pkg_cp_dd "$PythonVenvDir/share/man" "$ManDir2"
 
         # install doc
-        pkg_cp_dd "$PythonVenvDir/share/doc" "$DocDir2"
+        # d2=$(find "$PythonVenvDir/share/doc" -mindepth 1 -maxdepth 1 -type d -print -quit)
+        d2=$PythonVenvDir/share/doc
+        if ! pkg_dir_empty "$d2"; then
+            # del __pycache__/
+            find "$d2" -depth -type d -name __pycache__ -exec rm -rf {} \;
+            pkg_cp_dd "$d2" "$DestDir$DocDir0"
+        fi
 
         # remove bin/__pycache__/
         d2="$Prefix2/bin/__pycache__"
