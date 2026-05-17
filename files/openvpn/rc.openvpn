@@ -1,0 +1,67 @@
+#!/bin/bash
+
+pid=/run/openvpn.pid
+log=/var/log/openvpn.log
+
+_start() {
+    .  /etc/vpn/openvpn/default.sh || exit 1
+    # dir=/etc/vpn/openvpn/mullvad/default
+    # auth=$dir/mullvad_userpass.txt
+    # config=default.conf
+
+    if [[ ! -d $dir ]]; then
+        echo "dir not found: $dir"
+        exit 1
+    fi
+
+    local opts=(
+        # Slackware
+        --daemon
+        --writepid "$pid"
+        --user openvpn
+        --group openvpn
+        --config "$config"
+
+        --cd "$dir"
+        --auth-user-pass "$auth"
+        --auth-nocache
+        --mute-replay-warnings
+        --log "$log"
+    )
+    echo "Starting openvpn ..."
+    /usr/sbin/openvpn "${opts[@]}"
+    sleep 3
+    cat "$log"
+}
+
+_stop() {
+    # Slackware
+    # Note: OpenVPN has a bad habit of leaving stale pid files around when exiting.
+    # Maybe it would be better to just use killall unless called for one config?
+
+    if [[ -r $pid ]]; then
+        echo "Stopping openvpn ..."
+        kill $(cat "$pid")
+        rm -f "$pid"
+    fi
+}
+
+_restart() {
+    _stop
+    sleep 3
+    _start
+}
+
+case "$1" in
+    'start')
+        _start
+        ;;
+    'stop')
+        _stop
+        ;;
+    'restart')
+        _restart
+        ;;
+    *)
+    echo "usage: $(basename $0) (start|stop|restart)"
+esac

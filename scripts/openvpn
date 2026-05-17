@@ -1,16 +1,91 @@
 #!/bin/bash
 
+# openvpn:x:443:443:User for OpenVPN:/:/bin/false
+# openvpn:x:443:
+user=openvpn
+group=openvpn
+userId=443
+groupId=443
+userHome=/
+userShell=/bin/false
+userComment="User for OpenVPN"
+
+vpndir=/etc/vpn
+vpndir2=$DestDir$vpndir
+
+sysconfdir=$vpndir/openvpn
+sysconfdir2=$DestDir$sysconfdir
+
 ConfigureOpts+=(
     # Slackware
-    --sysconfdir=/etc/openvpn
+    # --sysconfdir=/etc/openvpn
     --enable-lzo
     --enable-iproute2
+
+    --sysconfdir="$sysconfdir"
 )
-[[ ! $PAM ]] && ConfigureOpts+=(--disable-plugin-auth-pam)
+
+# Slackware
+# Choose correct options depending on whether PAM is installed:
+[[ $PAM ]] && ConfigureOpts+=(--enable-plugin-auth-pam) ||
+    ConfigureOpts+=(--disable-plugin-auth-pam)
+
+pkg_pre_configure() {
+    pkg_check_group "$group" "$groupId" || return 1
+    pkg_check_user "$user" "$group" "$userId" "$userHome" "$userShell" "$userComment" || return 1
+}
 
 pkg_post_install() {
-    local i
-    for i in sample-keys sample-config-files sample-scripts; do
-        pkg_cp_fd "sample/$i" "$DocDir2"
+    local dir
+
+    # Slackware
+    # dir plugin/auth-pam not exist
+    # if [[ $PAM ]]; then
+    #     # Make openvpn-auth-pam.so:
+    #     make -C plugin/auth-pam
+    #     strip --strip-unneeded plugin/auth-pam/openvpn-auth-pam.so
+    #     mkdir -p $PKG/usr/lib${LIBDIRSUFFIX}
+    #     cp -a plugin/auth-pam/openvpn-auth-pam.so $PKG/usr/lib${LIBDIRSUFFIX}/
+    #     mv plugin/auth-pam/README plugin/auth-pam/README.pam
+    # fi
+    #
+    # vpn-configs.zip: file ca.crt and keys are already in there
+    # Create a decent config directory. openvpn doesn't have one by
+    # default, nor does it have a single config file.
+    # dir=("$Etc2"/openvpn/{certs,keys})
+    # dir=("$sysconfdir2"/{certs,keys})
+    # mkdir -p "${dir[@]}"
+    # chown root:"$group" "${dir[@]}"
+    # chmod 750 "${dir[@]}"
+    #
+    # it's not a Slackware script
+    # Install a startup script:
+    dir=$Etc2/rc.d
+    pkg_install_mfd 644 "$SupportDir"/rc.openvpn "$dir"
+    # Install a reasonably generic sample config file:
+    # (put this in with the other samples)
+    dir=$DocDir2/sample-config-files
+    pkg_install_mfd 644 "$SupportDir"/slackware.conf "$dir"
+
+    # mkdir $sysconfdir2
+    dir=("$sysconfdir2")
+    mkdir -pm 750 "${dir[@]}"
+    chown root:"$group" "${dir[@]}"
+    chmod 700 "$vpndir2"
+
+    # sample config files
+    for dir in sample-keys sample-config-files sample-scripts; do
+        pkg_cp_fd sample/"$dir" "$DocDir2"
     done
 }
+
+pkg_read2var pkg_post_installpkg <<EOF
+pkg_post_installpkg() {
+    chmod 700 "${vpndir#*/}"
+
+    local dir=("${sysconfdir#*/}")
+    chown root:"$group" "\${dir[@]}"
+    chmod 750 "\${dir[@]}"
+}
+pkg_post_installpkg
+EOF
