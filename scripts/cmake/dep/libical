@@ -1,0 +1,20 @@
+#!/bin/bash
+
+PkgHome="https://github.com/libical/libical/tags"
+
+ConfigureOpts+=(
+    # Slackware
+    -DGOBJECT_INTROSPECTION=true
+    -DICAL_GLIB_VAPI=true
+    # -DSHARED_ONLY=true
+        # The CMake option SHARED_ONLY has been removed.  Please refer to
+        # docs/MigrationGuide_to_4.md for more information.
+
+    -DLIBICAL_BUILD_TESTING=false
+    # -DICAL_BUILD_DOCS=false
+        # Cannot find gi-docgen.  Install it or disable documentation generation with
+        # -DLIBICAL_GLIB_BUILD_DOCS=False
+    -DLIBICAL_GLIB_BUILD_DOCS=false
+    -DLIBICAL_JAVA_BINDINGS=false # Build the Java bindings, Default=true
+)
+pkg_check=
