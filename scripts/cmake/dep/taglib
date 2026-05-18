@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PkgHome="https://github.com/taglib/taglib"
+PkgHome="https://github.com/taglib/taglib/tags"
 
 ConfigureOpts+=(
     # Slackware
