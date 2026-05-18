@@ -1,0 +1,12 @@
+#!/bin/bash
+
+PkgHome="https://github.com/libsigcplusplus/libsigcplusplus/tags"
+
+ConfigureOpts+=(
+    # Slackware
+    -Dmaintainer-mode=false
+
+    -Dbuild-documentation=false
+    -Dvalidation=false
+    -Dbuild-examples=false
+)
