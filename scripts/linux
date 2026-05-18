@@ -9,6 +9,16 @@ CleanOpts=(clean)
 check_llvm=1
 check_rust=1
 
+check_command() {
+    local cmd=$1
+    [[ ! $cmd ]] && return 1
+    if [[ ! $(command -v "$cmd") ]]; then
+        echo "command not found: $cmd"
+        return 1
+    fi
+    return 0
+}
+
 check_env() {
     [[ ! -f .config ]] &&
         {
@@ -18,14 +28,15 @@ check_env() {
         }
 
     unset -v MakeEnv
-    local clang=$(command -v clang)
-    if [[ $check_llvm && $clang ]]; then
+
+    if [[ $check_llvm ]]; then
+        check_command clang || return 1
         MakeEnv=(LLVM=1)
     fi
 
-    local rustc=$(command -v rustc)
-    local rustlib=../rustc-$(rustc --version | cut -d' ' -f2)/library
-    if [[ $check_rust && $rustc ]]; then
+    if [[ $check_rust ]]; then
+        check_command rustc || return 1
+        local rustlib=../rustc-$(rustc --version | cut -d' ' -f2)/library
         if [[ ! -d $rustlib ]]; then
             echo "dir not found: $rustlib"
             return 1
