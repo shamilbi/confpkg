@@ -1,5 +1,0 @@
-#!/bin/bash
-
-PkgHome="https://github.com/libusb/libusb"
-
-pkg_check=

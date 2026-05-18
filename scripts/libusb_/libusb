@@ -1,0 +1,5 @@
+#!/bin/bash
+
+PkgHome="https://github.com/libusb/libusb/tags"
+
+pkg_check=
