@@ -1,0 +1,11 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://sourceforge.net/projects/procinfo-ng/files/"
+    "${DebianSearchURL}procinfo"
+)
+
+ConfigureOpts+=(
+    # Slackware
+    --enable-maintainer-mode
+)

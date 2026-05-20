@@ -1,0 +1,16 @@
+#!/bin/bash
+
+PkgHome=(
+    "http://www.kozmix.org/src/"
+    "${DebianSearchURL}${Name,,}"
+)
+
+unset pkg_configure pkg_make
+
+pkg_install() {
+    # Slackware
+    # Now install a couple of scripts from the original procinfo package.
+    pkg_install_mff 755 lsdev.pl "$Prefix2"/bin/lsdev
+    pkg_install_mff 755 socklist.pl "$Prefix2"/bin/socklist
+    pkg_install_mfd 644 lsdev.8 socklist.8 "$ManDir2"/man8
+}
