@@ -1,0 +1,25 @@
+#!/bin/bash
+
+PkgHome="https://github.com/jirka-h/haveged/tags"
+
+# Slackware
+# LDFLAGS="-static" to avoid introducing a shared library that would be used
+# by nothing else.
+export LDFLAGS="-static"
+
+ConfigureOpts+=(
+    # Slackware
+    --sbindir=/sbin
+    --libdir=/"$LibName"
+)
+
+pkg_configure_del --enable-shared --disable-static
+
+pkg_post_install() {
+    # Slackware
+    # Remove library/include/.la file cruft, since (to my knowledge) nothing
+    # else will want it.
+    rm -rf "$DestDir/$LibName" "$IncludeDir2" "$ManDir2"/man3
+    # rc.haveged
+    pkg_install_mfd 755 "$SupportDir"/rc.haveged "$Etc2"/rc.d
+}
