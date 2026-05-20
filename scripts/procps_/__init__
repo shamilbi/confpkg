@@ -1,0 +1,84 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://gitlab.com/procps-ng/procps/-/tags"
+    "${DebianSearchURL}procps"
+)
+
+# w/o psmisc, procinfo-ng, procinfo
+
+SupportDir=$FilesDir/procps
+
+ConfigureOpts+=(
+    # Slackware
+    --prefix=/
+    --bindir=/bin
+    --sbindir=/sbin
+    --datarootdir="$ShareDir"
+    --disable-silent-rules
+    --disable-rpath
+    --enable-watch8bit
+    --enable-skill
+    --enable-sigwinch
+    --enable-w-from
+    --disable-kill
+    --without-systemd
+    --with-elogind
+    --disable-modern-top
+)
+
+pkg_pre_configure() {
+    # Slackware
+    # Fix for wide-only ncurses:
+    local f1=src/watch.c
+    if pkg_create_orig "$f1"; then
+        sed 's:<ncursesw/:<:g' -i "$f1"
+    fi
+}
+
+pkg_post_install() {
+    local fn files
+
+    # Slackware
+    # Move the shared library to $PKG/lib${LIBDIRSUFFIX}:
+    ls -d "$LibDir2"/libproc* | pkg_mv_ln "$DestDir/$LibName"
+    # It seems that upstream has shuffled the location of many tools with the
+    # 3.3.11 release.  To me, this just doesn't make sense to break any existing
+    # scripts that might be using an absolute path, or to move tools that might
+    # be needed before /usr is mounted into /usr.  So, we will make sure that
+    # everything is moved back to where the Slackware locations have always been.
+    # These tools belong in /bin:
+    local bin=$DestDir/bin
+    for fn in free killall ps; do
+        find "$DestDir" -type f -name "$fn" | pkg_mv_d "$bin"
+    done
+    # These tools belong in /sbin:
+    local sbin=$DestDir/sbin
+    for fn in pidof sysctl ; do
+        find "$DestDir" -type f -name "$fn" | pkg_mv_d "$sbin"
+    done
+    # These tools belong in /usr/bin:
+    local usr_bin=$Prefix2/bin
+    files=(
+        fuser lsdev peekfd pgrep pkill pmap procinfo prtstat pstree pwdx skill
+        slabtop snice socklist tload top uptime vmstat w watch
+    )
+    for fn in "${files[@]}"; do
+        find "$DestDir" -type f -name "$fn" | pkg_mv_d "$usr_bin"
+    done
+    # These symlinks belong in /bin:
+    ln -sfnr "$sbin"/pidof "$bin"
+    # These symlinks belong in /usr/bin:
+    ln -sfnr "$sbin"/pidof "$usr_bin"
+    for fn in free ps; do
+        ln -sfnr "$bin/$fn" "$usr_bin"
+    done
+    # WTF changing the name of this
+    ln -sfnr "$bin"/pidwait "$bin"/pwait
+    ln -sfnr "$ManDir2"/man1/pidwait.1 "$ManDir2"/man1/pwait.1
+    ln -sfnr "$ManDir2"/man1/pgrep.1 "$ManDir2"/man1/pkill.1
+    # Create /etc/sysctl.d:
+    mkdir -p "$DestDir"/etc/sysctl.d
+    # Add the default file for sysctl:
+    pkg_install_mff 644 "$SupportDir"/sysctl.default "$Etc2"/default/sysctl
+}
