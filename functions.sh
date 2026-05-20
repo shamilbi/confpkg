@@ -307,7 +307,7 @@ pkg_mv_d() {
     local d=$1 f
     pkg_mkdir "$d" || return 1
     while f=$(pkg_read_exist); do
-        mv "$f" "$d" || return 1
+        mv "$f" "$d" # don't return 1: $f == $d/$f
     done
 }
 
