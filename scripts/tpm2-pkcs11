@@ -11,9 +11,11 @@ pkg_pre_configure() {
     fi
 
     file=bootstrap
-    # git describe --tags --always --dirty > VERSION
-    # --> #git ...
-    sed -i -e 's,^git ,#git ,' "$file"
+    if [[ -x $file ]]; then
+        # git describe --tags --always --dirty > VERSION
+        # --> #git ...
+        sed -i -e 's,^git ,#git ,' "$file"
 
-    ./bootstrap
+        ./bootstrap
+    fi
 }
