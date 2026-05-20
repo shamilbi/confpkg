@@ -1,0 +1,14 @@
+#!/bin/bash
+
+PkgHome="${DebianSearchURL}adjtimex"
+
+CleanOpts=(veryclean)
+InstallEnv+=(
+    bindir="$DestDir"/sbin
+    mandir="$ManDir2"/man8
+)
+
+pkg_pre_install() {
+    mkdir -p "$DestDir/sbin"
+    mkdir -p "$ManDir2/man8"
+}
