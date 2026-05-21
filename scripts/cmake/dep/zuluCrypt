@@ -1,0 +1,9 @@
+#!/bin/bash
+
+PkgHome="https://github.com/mhogomchungu/zuluCrypt/tags"
+
+ConfigureOpts+=(
+    -DLIB_SUFFIX="$LibName"
+    -DNOGUI=ON
+)
+unset pkg_check
