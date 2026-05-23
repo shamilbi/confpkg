@@ -1,0 +1,19 @@
+#!/bin/bash
+
+PkgHome="${DebianSearchURL}bridge-utils"
+
+pkg_configure_del2 static
+
+ConfigureOpts+=(
+    # Slackware
+    --with-linux-headers="$IncludeDir"
+)
+pkg_check=
+
+pkg_post_install() {
+    # Slackware
+    pkg_install_mfd 644 libbridge/libbridge.h "$IncludeDir2"
+    pkg_install_mfd 644 libbridge/libbridge.a "$LibDir2"
+    # /sbin/brctl
+    ls -d "$Prefix2"/sbin/brctl | pkg_mv_ln "$DestDir"/sbin
+}
