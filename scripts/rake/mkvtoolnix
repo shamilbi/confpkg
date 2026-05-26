@@ -2,7 +2,7 @@
 
 PkgHome=(
     "https://mkvtoolnix.download/source.html"
-    "https://gitlab.com/mbunkus/mkvtoolnix"
+    # "https://gitlab.com/mbunkus/mkvtoolnix"
     "https://mkvtoolnix.download/sources/"
 )
 
