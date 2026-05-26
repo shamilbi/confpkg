@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PkgHome="https://sourceforge.net/projects/giflib/files/"
+
 unset -v pkg_configure
 
 MakeEnv=(
@@ -42,10 +44,7 @@ pkg_pre_install() {
 
 pkg_post_install() {
     # Slackware
-    # Install manpages, not xml:
-    find "$ManDir2" -type f -name '*.xml' -delete
-    pkg_install_mfd 644 doc/*.1 "$ManDir2/man1"
-    # -*.a
+    # Don't ship static library:
     find "$LibDir2" -type f -name '*.a' -delete
     # Make some compatibility symlinks
     (
@@ -66,4 +65,7 @@ pkg_post_install() {
             pkg_install_mfd 755 "$obsolete" "$Prefix2"/bin
         fi
     done
+    # del *.xml
+    rm "$DocDir2"/html/{Makefile*,*.in,*.1,*.xml}
+    :
 }
