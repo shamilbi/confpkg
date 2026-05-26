@@ -1,0 +1,85 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://kbd-project.org/"
+    #"https://www.kernel.org/pub/linux/utils/kbd/"
+    "https://github.com/legionus/kbd/tags"
+)
+
+ConfigureOpts+=(
+    # Slackware
+    # --localedir="$ShareDir"/locale/
+    --datadir="$ShareDir"/kbd
+    --enable-nls
+    --enable-optional-progs
+    --enable-libkeymap
+    --disable-tests
+)
+
+pkg_check=1
+
+pkg_pre_configure() {
+    # Slackware
+    # Thanks, LFS
+    pkg_patch_f3 kbd-1.15-backspace-1.patch.gz 1 || return 1
+    # Thanks, Arch
+    pkg_patch_f3 fix-euro2.patch.gz 1 || return 1
+    # Don't include resizecons or manpage:
+    # "it requires the defunct svgalib to provide the video mode files - for
+    # normal use setfont sizes the console appropriately"
+    # Thanks again LFS
+    sed -i '/RESIZECONS_PROGS=/s/yes/no/' configure
+    sed -i 's/resizecons.8 //' docs/man/man8/Makefile.in
+    # 7-bit maps are obsolete; so are non-euro maps
+    cp -fav data/keymaps/i386/qwerty/pt-latin9.map \
+            data/keymaps/i386/qwerty/pt.map
+    cp -fav data/keymaps/i386/qwerty/sv-latin1.map \
+            data/keymaps/i386/qwerty/se-latin1.map
+    mv -fv data/keymaps/i386/azerty/fr.map \
+           data/keymaps/i386/azerty/fr-old.map
+    cp -fav data/keymaps/i386/azerty/fr-latin9.map \
+            data/keymaps/i386/azerty/fr.map
+    # legacy alias
+    cp -fav data/keymaps/i386/azerty/fr-latin9.map \
+            data/keymaps/i386/azerty/fr-latin0.map
+    # Rename conflicting keymaps
+    mv -fv data/keymaps/i386/colemak/en-latin9.map \
+           data/keymaps/i386/colemak/colemak.map
+    mv -fv data/keymaps/i386/fgGIod/trf.map \
+           data/keymaps/i386/fgGIod/trf-fgGIod.map
+    mv -fv data/keymaps/i386/olpc/es.map \
+           data/keymaps/i386/olpc/es-olpc.map
+    mv -fv data/keymaps/i386/olpc/pt.map \
+           data/keymaps/i386/olpc/pt-olpc.map
+    mv -fv data/keymaps/i386/qwerty/cz.map \
+           data/keymaps/i386/qwerty/cz-qwerty.map
+}
+
+pkg_post_install() {
+    # Slackware
+    # ro_win.map.gz is useless:
+    rm -f "$ShareDir2"/kbd/keymaps/i386/qwerty/ro_win.map.gz
+    # Move vlock to vlock.new:
+    #mv $PKG/etc/pam.d/vlock $PKG/etc/pam.d/vlock.new
+    # Add some extra fonts:
+    tar xf "$SupportDir"/extraf.tgz -C "$DestDir"
+    # Make sure kbdinfo manpage is installed:
+    if [[ ! -r $ManDir2/man1/kbdinfo.1 ]]; then
+        pkg_install_mfd 644 docs/man/man1/kbdinfo.1 "$ManDir2"/man1
+    fi
+    # Install the setup script that will be run from the Slackware installer:
+    pkg_install_mfd 755 "$SupportDir"/setup.setconsolefont "$DestDir"/var/log/setup
+    pkg_install_mfd 755 "$SupportDir"/setconsolefont "$Prefix2"/bin
+    # Create the default run control script which will set the
+    # console font to the "default"...  though this might not be
+    # the same state as if setfont were not used at all.
+    # For that reason, default the script to non-executable.
+    pkg_install_mff 644 "$Etc2"/rc.d/rc.font <<EOF
+#!/bin/sh
+#
+# This selects your default screen font from among the ones in
+# /usr/share/kbd/consolefonts.
+#
+setfont -v
+EOF
+}
