@@ -18,7 +18,7 @@ PythonInstallLibs=(
     python-dateutil     # conan
     pyparsing
     #"cython<4"
-    lxml
+    #lxml
     #psutil              # glances
     pyyaml              # conan
     pyxdg
