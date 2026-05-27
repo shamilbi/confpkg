@@ -1,5 +1,8 @@
 #!/bin/bash
 
-PkgHome="https://github.com/exfatprogs/exfatprogs"
+PkgHome="https://github.com/exfatprogs/exfatprogs/tags"
 
-ConfigureOpts+=(--sbindir=/sbin)
+ConfigureOpts+=(
+    # Slackware
+    --sbindir=/sbin
+)
