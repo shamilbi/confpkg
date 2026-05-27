@@ -8,8 +8,6 @@ BuildSteps=("${BuildForPython[@]}")
 [[ $BuildStep ]] && pkg_set_python "$BuildStep"
 
 ConfigureOpts+=(
-    -Dstatic-build=false # false, Build static binaries
-        # doesn't work
     -Dtests=false # true, Build tests
 )
 
@@ -18,11 +16,22 @@ pkg_pre_configure() {
         pkg_patch_f3 dtc-1.7.2-glibc_fixes-1.patch 1 || return 1
     fi
 
-    # #!/usr/bin/env python3
-    # ->
-    # #!$Python
-    pkg_create_orig setup.py
-    sed -i -e "1s,.*,#!$Python," setup.py
+    if (($(pkg_cmp_versions "$Version" "1.8") < 0)); then
+        # #!/usr/bin/env python3
+        # ->
+        # #!python3.12
+        pkg_create_orig setup.py
+        sed -i -e "1s,.*,#!python$PythonV12," setup.py
+    else
+        # meson.build
+        # py = py.find_installation(required: get_option('python'))
+        # ->
+        # py = py.find_installation('python3.12', required: get_option('python'))
+        pkg_create_orig meson.build
+        local s1='(py\.find_installation)\((.*)(required:.*)'
+        local s2="\\1('python$PythonV12', \\3"
+        sed -i -re "s|$s1|$s2|" meson.build
+    fi
 }
 
 pkg_post_install() {
