@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PkgHome="https://github.com/AOMediaCodec/libavif"
+PkgHome="https://github.com/AOMediaCodec/libavif/tags"
 
 ConfigureOpts+=(
     -DAVIF_LIBYUV=LOCAL # (to fetch and build it locally)
