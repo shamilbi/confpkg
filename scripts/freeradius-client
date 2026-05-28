@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# Slackware: ppp
+
+PkgHome="https://github.com/FreeRADIUS/freeradius-client/tags"
+
+unset -v ProtectDirs
+ProtectFiles=(
+    /etc/radiusclient/{issue,radiusclient.conf,realms,servers}
+)
+
+pkg_post_install() {
+    # Slackware
+    local dir=$Etc2/radiusclient
+    mkdir -p "$dir"
+    gzip -dc "$SupportDir"/radius.msdict.gz >"$dir"/dictionary.microsoft
+    gzip -dc $SupportDir/realms.gz >"$dir"/realms
+    chmod 600 "$dir"/{realms,servers}
+}
+
+pkg_install_doc() {
+    # Slackware
+    local files=(
+        BUGS
+        CHANGES
+        COPYRIGHT
+        README
+        README.radexample
+        doc/instop.html
+    )
+    pkg_install_mfd 64  "${files[@]}" "$DocDir2"
+}
