@@ -1,0 +1,30 @@
+#!/bin/bash
+
+PkgHome="https://github.com/mtrojnar/stunnel/tags"
+
+unset -v ProtectDirs
+ProtectFiles=(
+    /etc/stunnel/openssl.cnf
+)
+
+MakeEnv=(
+    docdir="$DocDir"
+)
+InstallEnv+=("${MakeEnv[@]}")
+
+pkg_post_install() {
+    # Slackware
+    # This used to be installed in /usr/sbin, so it would probably be nice to
+    # link from there:
+    find "$Prefix2/bin" -type f | pkg_ln_d "$Prefix2/sbin"
+    #
+    mkdir -p "$DestDir"/var/run/stunnel
+    # Get rid of key, so nobody tries to use it:
+    rm -f "$Etc2"/stunnel/stunnel.pem
+    # Add cnf:
+    pkg_install_mfd 644 tools/openssl.cnf "$Etc2"/stunnel
+    pkg_install_mfd 755 "$SupportDir"/generate-stunnel-key.sh "$Etc2"/stunnel
+    # The 4.15 version of stunnel caused some bizarre perms, so
+    # we'll protect against that:
+    chmod 0755 "$DestDir"/var/lib
+}
