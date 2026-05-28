@@ -1,0 +1,16 @@
+#!/bin/bash
+
+unset -v ProtectDirs
+
+ConfigureOpts+=(
+    # Slackware
+    -Dclass=true
+    -Dserial=true
+)
+
+pkg_post_install() {
+    # Slackware
+    # Install the udev rules since this is not done automatically:
+    mkdir -p $PKG/lib/udev/rules.d
+    pkg_install_mfd 644 src/92_pcscd_ccid.rules "$DestDir"/lib/udev/rules.d
+}
