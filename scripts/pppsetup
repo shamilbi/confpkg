@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Slackware: ppp
+
+PkgHome="$SlackwareMirrorUrl/n/ppp"
+
+unset -v pkg_configure pkg_make
+
+pkg_install() {
+    # Slackware
+    pkg_patch_f3 pppsetup-1.98.slack.diff.gz 1 || return 1
+    pkg_patch_f3 pppsetup-1.98.pppoff.diff.gz 0 || return 1
+    pkg_patch_f3 pppsetup-1.98.moredevs.diff.gz 1 || return 1
+    pkg_patch_f3 pppsetup-1.98.backupfiles.diff.gz 1 || return 1
+    pkg_install_mfd 755 ppp-off pppsetup "$Prefix2"/sbin
+}
+
+pkg_install_doc() {
+    # Slackware
+    mkdir -p $PKG/usr/doc/pppsetup
+    local files=(
+        README.pppsetup
+        ppp-compile.txt
+        pppsetup-"$Version".README
+        pppsetup-"$Version".lsm
+    )
+    pkg_install_mfd 644 "${files[@]}" "$DocDir2"
+}
