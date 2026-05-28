@@ -1,0 +1,42 @@
+# /etc/ppp/options
+# 
+
+# async character map -- 32-bit hex; each bit is a character
+# that needs to be escaped for pppd to receive it.  0x00000001
+# represents '\x01', and 0x80000000 represents '\x1f'.
+asyncmap 0
+
+# Use hardware flow control (i.e. RTS/CTS) to control the flow of data
+# on the serial port.
+crtscts
+
+# Specifies that pppd should use a UUCP-style lock on the serial device
+# to ensure exclusive access to the device.
+lock
+
+# Use the modem control lines.  On Ultrix, this option implies hardware
+# flow control, as for the crtscts option.  (This option is not fully
+# implemented.)
+modem
+
+# Add an entry to this system's ARP [Address Resolution Protocol]
+# table with the IP address of the peer and the Ethernet address of this
+# system.
+proxyarp
+
+# If this option is given, pppd will send an LCP echo-request frame to
+# the peer every n seconds. Under Linux, the echo-request is sent when
+# no packets have been received from the peer for n seconds. Normally
+# the peer should respond to the echo-request by sending an echo-reply.
+# This option can be used with the lcp-echo-failure option to detect
+# that the peer is no longer connected.
+lcp-echo-interval 30
+
+# If this option is given, pppd will presume the peer to be dead if n
+# LCP echo-requests are sent without receiving a valid LCP echo-reply.
+# If this happens, pppd will terminate the connection.  Use of this
+# option requires a non-zero value for the lcp-echo-interval parameter.
+# This option can be used to enable pppd to terminate after the physical
+# connection has been broken (e.g., the modem has hung up) in
+# situations where no hardware modem control lines are available.
+lcp-echo-failure 4

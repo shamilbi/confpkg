@@ -1,0 +1,40 @@
+#!/bin/bash
+
+PkgHome="https://github.com/ppp-project/ppp/tags"
+
+unset -v ProtectDirs
+ProtectFiles=(
+    /etc/ppp/chap-secrets
+    /etc/ppp/options
+    /etc/ppp/pap-secrets
+    /etc/ppp/peers
+    /etc/pam.d/ppp
+)
+
+pkg_check=
+CleanOpts=(dist-clean)
+# InstallEnv=("INSTROOT=$DestDir")
+# InstallOpts+=(install-etcppp)
+
+pkg_post_install() {
+    # Slackware
+    # Install PPP config files:
+    local etc_ppp=$Etc2/ppp
+    rm -f "$etc_ppp"/*
+    pkg_cp_dd etc.ppp "$etc_ppp"
+    local file
+    for file in "$etc_ppp"/*.example; do
+        mv "$file" "${file%.*}" # x.example -> x
+    done
+    chmod 600 "$etc_ppp"/*secrets
+    touch "$etc_ppp"/peers
+    pkg_install_mff 644 "$SupportDir"/options.new "$etc_ppp"/options
+    pkg_install_mff 644 pppd/ppp.pam "$Etc2"/pam.d/ppp
+    # The Makefile doesn't error out if building pppoe.so fails, so check for it:
+    if [[ ! -r $LibDir2/pppd/$Version/pppoe.so ]]; then
+        echo "FATAL: $LibDir/pppd/$Version/pppoe.so failed to build."
+        return 1
+    fi
+
+    pkg_cp_fd scripts "$ShareDir2/$Name"
+}
