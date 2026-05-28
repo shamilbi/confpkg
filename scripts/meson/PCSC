@@ -1,0 +1,63 @@
+#!/bin/bash
+
+PkgHome="https://github.com/LudovicRousseau/PCSC/tags"
+
+# Slackware
+# pcscd:x:257:257:User for pcsc-lite:/var/run/pcscd:/bin/false
+# pcscd:x:257:
+user=pcscd
+group=pcscd
+userId=257
+groupId=257
+userHome=/var/run/pcscd
+userShell=/bin/false
+userComment="User for pcsc-lite"
+
+ConfigureOpts+=(
+    # Slackware
+    -Dipcdir=/var/run/pcscd # =/run/pcscd, Direcrory for pcsc-lite internal communication socket
+    -Dusbdropdir="$LibDir"/pcsc/drivers # =/usr/lib/pcsc/drivers, Path for USB drivers
+    -Dserialconfdir=/etc/reader.conf.d # =/etc/reader.conf.d, Path for serial configuration files
+    -Dlibsystemd=false # Use systemd for daemon auto start
+)
+
+pkg_pre_configure() {
+    pkg_check_group "$group" "$groupId" || return 1
+    pkg_check_user "$user" "$group" "$userId" "$userHome" "$userShell" "$userComment" || return 1
+
+    # Slackware
+    # disabling/enabling card's automatic power off
+    sed -i "s|^\/\* #define DISABLE_ON_DEMAND_POWER_ON \*\/|#define DISABLE_ON_DEMAND_POWER_ON|" \
+        src/pcscd.h.in
+}
+
+pkg_post_install() {
+    # Slackware
+    rm -r "$ShareDir2"/doc
+    # Create the directory for drivers and such (not included with this package):
+    mkdir -p "$LibDir2"/pcsc/{drivers,services}
+    # Install init script:
+    pkg_install_mfd 644 "$SupportDir"/rc.pcscd "$Etc2"/rc.d
+    # Default options file:
+    pkg_install_mff 644 "$SupportDir"/pcscd.default "$Etc2"/default/pcscd
+    # formaticc manpage is not automatically installed:
+    if [[ ! -r $ManDir2/man1/formaticc.1 ]]; then
+        pkg_install_mfd 644 doc/formaticc.1 "$ManDir2"/man1
+    fi
+    # Correct manpages in reader.conf.5 and pcscd.8:
+    sed -i "s|@confdir@|/etc/reader.conf.d|g" "$ManDir2"/man5/reader.conf.5 || return 1
+    sed -i "s|@sysconfdir_exp@/init.d/pcscd|/etc/rc.d/rc.pcscd|g" $ManDir2/man8/pcscd.8 || return 1
+    sed -i "s|@sysconfdir_exp@|/etc/reader.conf.d|g" $ManDir2/man8/pcscd.8 || return 1
+
+    # libconfig: <lib> is not a symbolic link
+    # libpcscspy.so.0 libpcsclite_real.so.1 libpcsclite.so.1
+    local i i2 i3
+    for i in libpcscspy libpcsclite_real libpcsclite; do
+        i2=$(find "$LibDir2" -maxdepth 1 -type f -name "$i.so.*" | grep -m1 -Ee '\.so\.[0-9]+$')
+        if [[ $i2 ]]; then
+            i3=$i2.$Version # *.so.1 -> *.so.1.2.5.0
+            mv "$i2" "$i3"
+            ln -sfnr "$i3" "$i2"
+        fi
+    done
+}
