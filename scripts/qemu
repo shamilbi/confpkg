@@ -2,7 +2,7 @@
 
 PkgHome="https://github.com/qemu/qemu"
 
-# REQ: libfdt (dtc), kernel (+IO_URING)
+# REQ: dtc (libfdt), kernel (+IO_URING)
 
 UseBuildDir=1
 Configure=$OrigSrcDir/configure
