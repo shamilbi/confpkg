@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PkgHome="https://dri.freedesktop.org/libdrm/?C=M;O=D"
+
 ConfigureOpts+=(
     #Slackware
     -Dudev=true # Enable support for using udev instead of mknod
