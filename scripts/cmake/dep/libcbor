@@ -1,6 +1,9 @@
 #!/bin/bash
 
-pkg_pre_configure() {
-    # subdirs(examples)
-    sed -i -re 's,^(subdirs\(examples\)),# \1,' "$SrcDir"/CMakeLists.txt
-}
+PkgHome="https://github.com/PJK/libcbor/tags"
+
+ConfigureOpts+=(
+    # Slackware
+    -Wno-dev
+    -DBUILD_TESTS=1
+)
