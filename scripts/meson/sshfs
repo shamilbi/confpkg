@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PkgHome="https://github.com/deadbeefsociety/sshfs"
+PkgHome="https://github.com/libfuse/sshfs/tags"
 
 ConfigureOpts+=(
     --bindir=bin
