@@ -1,0 +1,38 @@
+#!/bin/bash
+
+PkgHome="https://github.com/alsa-project/alsa-utils/tags"
+
+ConfigureOpts+=(
+    # Slackware
+    --disable-alsaconf # Disable alsaconf packaging
+)
+
+# pkg_pre_configure() {
+#     # udevd[1524]: GOTO 'alsa_restore_std' has no matching label in: '/lib/udev/rules.d/90-alsa-restore.rules'
+#     # https://www.pclinuxos.com/forum/index.php/topic,162354.msg1405231.html#msg1405231
+#     local fn=90-alsa-restore.rules.in
+#     local f1=alsactl/$fn
+#     if pkg_create_orig "$f1"; then
+#         pkg_install_mff 644 "$SupportDir/$fn" "$f1"
+#     fi
+# }
+
+pkg_post_install() {
+    # Slackware
+    gzip -dc "$SupportDir"/rc.alsa.gz | pkg_install_mff 644 "$Etc2"/rc.d/rc.alsa
+    gzip -d "$SupportDir"/rc.alsa-oss.gz | pkg_install_mff 644 "$Etc2"/rc.d/rc.alsa-oss
+}
+
+pkg_read2var pkg_post_installpkg <<EOF
+pkg_post_installpkg() {
+    # Slackware
+    if [[ -r etc/asound.state && ! -r var/lib/alsa/asound.state && ! -L etc/asound.state ]]; then
+        mv etc/asound.state var/lib/alsa
+    fi
+    # Better a dangling symlink than for nobody to know where this went:
+    # rm -f etc/asound.state
+    # ( cd etc && ln -sf ../var/lib/alsa/asound.state . )
+    ln -sfnr var/lib/alsa/asound.state etc/asound.state
+}
+pkg_post_installpkg
+EOF

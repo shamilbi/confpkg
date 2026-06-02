@@ -1,0 +1,7 @@
+#!/bin/bash
+
+unset pkg_configure pkg_make
+
+pkg_install() {
+    pkg_cp_fd topology "$ShareDir2"/alsa
+}

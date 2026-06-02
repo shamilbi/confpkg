@@ -1,0 +1,32 @@
+#!/bin/bash
+
+unset ProtectDirs
+
+ConfigureOpts+=(
+    # Slackware
+    --enable-mixer-modules # enable the additional mixer modules (experimental)
+    --enable-topology # enabled, the DSP topology component
+    --enable-ucm # enabled, the use-case-manager component
+)
+
+pkg_pre_configure() {
+    # Slackware
+    # Fix file missing in 1.1.6:
+    if [[ ! -r src/conf/smixer.conf ]]; then
+        pkg_install_mfd 644 "$SupportDir"/smixer.conf src/conf
+    fi
+    if (($(pkg_cmp_versions "$Version" "1.2.16") < 0)); then
+        if [[ $Version = "1.2.15" ]]; then
+            # Patch regressions in 1.2.15:
+            pkg_patch_f3 a6238053c4fa518b214f99d91a01b96c5ef6e3ca.diff 1 || return 1
+            pkg_patch_f3 d83af363f1fc17e2b3e7cf2a0f848722f6643a9a.patch 1 || return 1
+        fi
+        # This helps compiling older code:
+        pkg_patch_f3 alsa-lib-1.2.13-seq-ump-headers.patch 1 || return 1
+    fi
+}
+
+pkg_post_install() {
+    # etc/asound.conf examples
+    pkg_install_mfd 644 "$SupportDir"/asound.conf.* "$DocDir2"
+}

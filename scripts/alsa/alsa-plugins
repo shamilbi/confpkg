@@ -1,0 +1,9 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    --with-speex=lib
+    --enable-maemo-plugin
+)
+[[ ! $PULSE ]] && ConfigureOpts+=(--disable-pulseaudio)
+[[ ! $JACK ]] && ConfigureOpts+=(--disable-jack)
+:
