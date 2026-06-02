@@ -37,7 +37,7 @@ PythonInstallLibs=(
     jinja2              # fwupd, conan
     #versioneer          # pandas
     #ply                 # mesa: for intel vulkan ray-tracing
-    docutils            # sphinx, rst2pdf
+    "docutils<0.23"     # sphinx, rst2pdf
     #packaging           # meson, ninja
     typing-extensions
 )
