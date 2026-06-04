@@ -1,0 +1,23 @@
+#!/bin/bash
+
+pkg_pre_configure() {
+    local dir url
+
+    # [submodule "spice-common"]
+    #     path = subprojects/spice-common
+    #     url = ../spice-common.git
+    # [submodule "keycodemapdb"]
+    #     path = subprojects/keycodemapdb
+    #     url = https://gitlab.com/keycodemap/keycodemapdb.git
+    dir=subprojects/spice-common
+    url="https://gitlab.freedesktop.org/spice/spice-common"
+    if pkg_dir_empty "$dir"; then
+        git clone --depth 1 "$url" "$dir"
+    fi
+
+    dir=subprojects/keycodemapdb
+    url="https://gitlab.com/keycodemap/keycodemapdb"
+    if pkg_dir_empty "$dir"; then
+        git clone --depth 1 "$url" "$dir"
+    fi
+}
