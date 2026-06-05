@@ -4,15 +4,23 @@ PkgHome="https://github.com/sqlite/sqlite/tags"
 
 pkg_configure_del --docdir --localedir
 
+tclsh=$(readlink -f "$(command -v tclsh)")
+
+tcl=$(sed -e 's,^tclsh,tcl,' <<<"${tclsh##*/}") # tcl8.6
+tcllibdir=$LibDir/$tcl/sqlite3
+tcllibdir2=$DestDir$tcllibdir
+
 ConfigureOpts+=(
     # Slackware
     --enable-threadsafe
+    --with-tempstore=yes
     --enable-load-extension
     --enable-fts3
     --enable-fts4
     --enable-fts5
     --enable-rtree
     --enable-session
+    --with-tclsh="$tclsh"
     --soname=legacy # SONAME for libsqlite3.so.
         # "none", or not using this flag, sets no soname.
         # "legacy" sets it to its historical value of libsqlite3.so.0.
@@ -23,28 +31,13 @@ ConfigureOpts+=(
     --enable-readline
 )
 
-if (($(pkg_cmp_versions "$Version" "3.49") < 0)); then
-    ConfigureOpts+=(
-        # Slackware
-        --enable-tempstore=yes
-        --enable-dynamic-extensions
-    )
-fi
-
-# Slackware
-#tclsh=$(readlink -f "$(which tclsh)")
-#ConfigureOpts+=(--with-tclsh="$tclsh")
-    # Error: Unknown option --with-tclsh
-
-# make: *** No rule to make target 'dbdump'.  Stop.
-#MakeOpts+=(
-#    all
-#
-#    # Slackware
-#    dbdump dbhash dbtotxt index_usage scrub showdb showjournal
-#    showshm showstat4 showwal sqldiff sqlite3_analyzer
-#    sqlite3_checker sqlite3_expert sqlite3_rsync sqltclsh
-#)
+MakeOpts+=(
+    # Slackware
+    # Build extra tools:
+    dbdump dbhash dbtotxt index_usage showdb showjournal
+    showshm showstat4 showwal sqldiff sqlite3_analyzer
+    sqlite3_expert sqlite3_rsync sqltclsh
+)
 
 pkg_pre_configure() {
     # Slackware
@@ -78,24 +71,30 @@ pkg_pre_configure() {
     #sed -i "s|\$(OPT_FEATURE_FLAGS)|\${OPT_FEATURE_FLAGS}|g" ./configure
     export CPPFLAGS="$CFLAGS $(icu-config --cppflags)"
     export LDFLAGS="$(icu-config --ldflags)"
-    #local tcl_version=$(readlink "$(which tclsh)" | sed -e 's,^[a-z]*,,') # 8.6
-    #export TCLLIBDIR="$LibDir"/tcl$tcl_version/sqlite3
+    # We'll need this further down to clean up since we won't be including
+    # the TCL library in this package.
+    export TCLLIBDIR=$tcllibdir
 }
 
 pkg_post_install() {
     # Slackware
     # Install extra tools:
-    #local files=(
-    #    dbdump dbhash dbtotxt index_usage scrub showdb
-    #    showjournal showshm showstat4 showwal sqldiff sqlite3_expert
-    #    sqlite3_rsync
-    #)
-    #pkg_install_mfd 755 "${files[@]}" "$Prefix2"/bin
-    # Avoid taking the name of a well-known tool:
-    #mv "$Prefix2"/bin/scrub "$Prefix2"/bin/sqlite3_scrub
+    local files=(
+        dbdump dbhash dbtotxt index_usage showdb
+        showjournal showshm showstat4 showwal sqldiff sqlite3_expert
+        sqlite3_rsync
+    )
+    pkg_install_mfd 755 "${files[@]}" "$Prefix2"/bin
+    # Don't ship the TCL stuff. Now that we have our soname back, the
+    # stuff bundled with TCL should work again:
+    rm -rf "$tcllibdir2"
     # Add missed man page:
-    pkg_install_mfd 644 *.1 "$ManDir2/man1"
+    pkg_install_mfd 644 *.1 "$ManDir2"/man1
     # Fix up the pkgconfig file
-    #sed -i 's|Libs: -L${libdir} -lsqlite3|Libs: -L${libdir} -lsqlite3 -ldl|g' \
-    #  "$LibDir2"/pkgconfig/sqlite3.pc
+    # sed -i 's|Libs: -L${libdir} -lsqlite3|Libs: -L${libdir} -lsqlite3 -ldl|g' \
+    #     $PKG/usr/lib${LIBDIRSUFFIX}/pkgconfig/sqlite3.pc
+    sed -i -re 's|^(Libs:) (.*)|\1 \2 -ldl|g' "$LibDir2"/pkgconfig/sqlite3.pc
+
+    # del empty dirs
+    find "$LibDir2" -depth -type d -empty -delete
 }
