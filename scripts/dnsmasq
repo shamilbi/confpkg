@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PkgHome="https://thekelleys.org.uk/gitweb/?p=dnsmasq.git;a=summary"
+PkgHome="https://thekelleys.org.uk/dnsmasq/?C=M;O=D"
 
 Daemon=$Prefix/sbin/dnsmasq
 DaemonOpts=(-C /etc/dnsmasq.conf)
