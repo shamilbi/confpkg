@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PkgHome="https://www.greenwoodsoftware.com/less/download.html"
+PkgHome="https://github.com/gwsw/less/tags"
 
 ConfigureOpts+=(
     --with-editor=vim # use PROGRAM as the default editor [vi]
