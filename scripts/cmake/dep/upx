@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PkgHome="https://github.com/upx/upx"
+PkgHome="https://github.com/upx/upx/tags"
 
 pkg_pre_configure() {
     # submodules
