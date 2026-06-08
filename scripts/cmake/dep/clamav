@@ -2,7 +2,7 @@
 
 # DEPENDS ON: libcurl.so.4
 
-PkgHome="https://github.com/Cisco-Talos/clamav"
+PkgHome="https://github.com/Cisco-Talos/clamav/tags"
 
 Daemon=$Prefix/sbin/clamd
 
