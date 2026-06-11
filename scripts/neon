@@ -1,0 +1,10 @@
+#!/bin/bash
+
+PkgHome="https://github.com/notroj/neon/tags"
+
+ConfigureOpts+=(
+    # Slackware
+    --with-ssl=openssl # openssl|gnutls, enable SSL support (default OpenSSL)
+)
+
+pkg_check=
