@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PkgHome="https://github.com/vivien/i3blocks"
+PkgHome="https://github.com/vivien/i3blocks/tags"
 
 Make=(make)
 
