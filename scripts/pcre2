@@ -1,6 +1,9 @@
 #!/bin/bash
 
-PkgHome="https://pcre.org/"
+PkgHome=(
+    "https://pcre.org/"
+    "https://github.com/PCRE2Project/pcre2/tags"
+)
 
 ConfigureOpts+=(
     # Slackware
