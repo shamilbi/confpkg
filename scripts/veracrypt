@@ -2,7 +2,7 @@
 
 PkgHome=(
     "https://veracrypt.fr/"
-    "https://github.com/veracrypt/VeraCrypt"
+    "https://github.com/veracrypt/VeraCrypt/tags"
 )
 
 SrcDir=$OrigSrcDir/src
@@ -12,6 +12,18 @@ MakeEnv=(
 )
 InstallEnv+=("${MakeEnv[@]}")
 CleanOpts=(clean)
+
+pkg_pre_configure() {
+    # SOURCE_DATE_EPOCH
+    local tsfrom=$OrigSrcDir/.git
+    if [[ ! -d $tsfrom ]]; then
+        tsfrom=$OrigSrcDir/SOURCE_DATE_EPOCH.tmp
+        if [[ ! -f $tsfrom ]]; then
+            tsfrom=$OrigSrcDir
+        fi
+        export SOURCE_DATE_EPOCH=$(stat -c '%Z' "$tsfrom")
+    fi
+}
 
 pkg_install() {
     pkg_install_mfd 755 Main/veracrypt "$Prefix2/bin"
