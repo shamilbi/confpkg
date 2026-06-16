@@ -1,0 +1,95 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://www.darwinsys.com/file/"
+    "https://astron.com/pub/file/?C=M;O=D"
+    "https://github.com/file/file/tags"
+    "${DebianSearchURL}file"
+)
+
+ConfigureOpts+=(
+    # Slackware
+    --datadir=/etc
+    --enable-fsect-man5
+    #--disable-libseccomp
+)
+
+MakeEnv=(
+    # Slackware
+    # Make the default data directory /etc/file like it has always been:
+    # file.etc.file.diff.gz
+    pkgdatadir="$Etc/file"
+)
+InstallEnv+=("${MakeEnv[@]}")
+
+unset ProtectDirs
+
+pkg_pre_configure() {
+    # Slackware
+    # Keep the output format for ELF binaries the same as it was in earlier
+    # versions of file to avoid breaking existing scripts:
+    # file.short.diff.gz
+    # -#define	NT_GNU_VERSION		1
+    # +#define	NT_GNU_VERSION		0
+    local f
+    f="src/readelf.h"
+    if pkg_create_orig "$f"; then
+        sed -i -r -e 's,^(#define\t+NT_GNU_VERSION\t+)1$,\10,' "$f"
+    fi
+    ## Output on ELF objects should be "dynamically linked" for PT_DYNAMIC too, not
+    ## just for PT_INTERP:
+    #pkg_patch_f3 file.PT_DYNAMIC.is.dynamically.linked.diff.gz 1 -E -b -z .orig || return 1
+    # Add zisofs and crda regulatory bin detection
+    f="file.zisofs.magic.gz.tmp"
+    if [[ ! -f $f ]]; then
+        touch "$f"
+        gzip -dc "$SupportDir"/file.zisofs.magic.gz >> magic/Magdir/compress
+        gzip -dc "$SupportDir"/file.crdaregbin.magic.gz >> magic/Magdir/crdaregbin
+    fi
+    pkg_autoreconf -v
+}
+
+pkg_pre_make() {
+    # Slackware
+    # The generated $TMP/file-$VERSION/libtool is buggy.  I don't know if this is supposed
+    # to work, but it certainly does, so... :-)
+    cat "$(command -v libtool)" >libtool
+
+    # fix: fakeroot
+    # $(FILE_COMPILE) -C -m magic
+    # Bad system call
+    # -> file -S ...
+    local f=magic/Makefile
+    if pkg_create_orig "$f"; then
+        local s1='^(.*) (-C -m magic).*'
+        sed -i -r -e 's,'"$s1"',\1 -S \2,' magic/Makefile
+    fi
+}
+
+pkg_post_make() {
+    # magic.mgc
+    (
+        cd magic || exit 1
+        [[ -d magic ]] && rm -rf magic
+        cp -al Magdir magic
+        cp -pl Header Localstuff magic
+        ../src/file -S -C -m magic
+            # fakeroot
+            # Bad system call
+            # -> file -S ...
+    ) || return 1
+    [[ -f magic/magic.mgc ]]
+}
+
+pkg_post_install() {
+    # Slackware
+    # IMHO, moving this sort of thing does not make sense.
+    # We'll support both the traditional and new locations.
+    # I hate to squat on a name as generic as "/etc/misc/",
+    # but it wasn't my idea.
+    ln -sfnr "$Etc2"/file "$Etc2"/misc
+
+    chmod 755 magic/magic
+    chmod 644 magic/magic/*
+    pkg_cp_dd magic/magic "$Etc2"/file/magic
+}
