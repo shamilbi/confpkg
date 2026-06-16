@@ -1,0 +1,87 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://github.com/openssl/openssl/tags"
+    "https://github.com/kzalewski/openssl-1.1.1/tags"
+)
+
+# recompile: openssh
+
+Configure=./config
+
+# These are the known patent issues with OpenSSL:
+# name   #         expires
+# MDC-2: 4,908,861  2007-03-13, not included.
+# IDEA:  5,214,703  2010-05-25, not included.
+#
+# Although all of the above are expired, it's still probably
+# not a good idea to include them as there are better
+# algorithms to use.
+ConfigureOpts=(
+    # Slackware
+    --prefix="$Prefix"
+    --openssldir=/etc/ssl
+    zlib
+    enable-camellia
+    enable-seed
+    enable-rfc3779
+    enable-cms
+    enable-md2
+    enable-ktls
+    enable-rc5
+    enable-ssl3
+    enable-ssl3-method
+    no-weak-ssl-ciphers
+    no-mdc2
+    no-ec2m
+    no-sm2
+    no-sm4
+    # no-sse2
+    shared
+)
+
+CheckOpts=(test)
+CleanOpts=(clean clean-shared)
+MakeOpts=(depend all)
+MakeEnv=(
+    MANDIR="$ManDir"
+    LIBDIR="$LibName"
+    ENGINESDIR="$LibDir/engines-${VersionArr[0]}"
+    DOCDIR="$DocDir"
+)
+InstallEnv+=("${MakeEnv[@]}")
+
+# So that ls has the right field counts for parsing...
+export LC_ALL=C
+
+pkg_pre_configure() {
+    # Configure
+    pkg_create_orig Configure
+    if [[ $Arch = "i686" ]]; then
+        # Slackware
+        sed -i "/linux-elf/s/fomit-frame-pointer/fomit-frame-pointer -march=pentium4 -mtune=generic/g" Configure
+    elif [[ $Arch = "x86_64" ]]; then
+        :
+    fi
+
+    # Slackware
+    # Patch openssl.cnf to remove useless FIPS documentation, and to provide
+    # examples for enabling legacy algorithms. These are considered weaker, but
+    # some applications may still require them.
+    pkg_patch_f3 0024-load-legacy-prov.patch.gz 1 || return 1
+}
+
+pkg_post_install() {
+    #Slackware
+    # No thanks on the static libraries:
+    find "$LibDir2" -type f -name '*.a' -delete
+    # Move libraries, as they might be needed by programs that bring a network
+    # mounted /usr online:
+    find "$LibDir2" -maxdepth 1 -type f | pkg_mv_ln "$DestDir/$LibName"
+    # No thanks on manpages duplicated as html:
+    local dir=$DocDir2/html
+    [[ -d $dir ]] && rm -rf "$dir"
+    # Remove duplicate config file:
+    find "$Etc2"/ssl -type f -name '*.cnf.dist' -delete
+    :
+}
