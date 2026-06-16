@@ -1,7 +1,5 @@
 #!/bin/bash
 
-PkgHome="https://github.com/LudovicRousseau/PCSC/tags"
-
 # Slackware
 # pcscd:x:257:257:User for pcsc-lite:/var/run/pcscd:/bin/false
 # pcscd:x:257:
