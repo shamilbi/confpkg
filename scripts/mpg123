@@ -1,0 +1,63 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://www.mpg123.org/"
+    "https://sourceforge.net/projects/mpg123/files/mpg123/"
+)
+
+ConfigureOpts+=(
+    # Slackware
+    --with-optimization=2
+)
+
+# Slackware
+audio="alsa,oss,sdl"
+if [[ $PULSE ]]; then
+    audio+=",pulse"
+    ConfigureOpts+=(
+        --with-default-audio=pulse
+    )
+else
+    ConfigureOpts+=(
+        --with-default-audio=alsa
+    )
+fi
+ConfigureOpts+=(
+    --with-audio="$audio"
+)
+
+# Slackware
+cpu=
+case $Arch in
+    i686)
+        cpu="sse"
+        ;;
+    x86_64)
+        cpu="x86-64"
+        ;;
+    arm)
+        cpu="arm_nofpu"
+        ;;
+esac
+ConfigureOpts+=(
+    --with-cpu="$cpu"
+)
+
+pkg_pre_configure() {
+    # Slackware
+    # Search for modules in lib64 first, then lib. This should work on pure 64-bit,
+    # pure 32-bit, and multilib.
+    pkg_patch_f3 mpg123.lib64.diff.gz 1 || return 1
+}
+
+pkg_post_install() {
+    # Slackware
+    (
+        cd "$Prefix2/bin" || exit 1
+        ln -sfn mpg123 mpg321
+    )
+    (
+        cd "$ManDir2/man1" || exit 1
+        ln -sfn mpg123.1 mpg321.1
+    )
+}
