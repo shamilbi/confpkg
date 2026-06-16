@@ -1,0 +1,102 @@
+#!/bin/bash
+
+PkgHome="https://invisible-mirror.net/archives/lynx/tarballs/?C=M;O=D"
+
+unset -v ProtectDirs
+ProtectFiles=(
+    # Slackware
+    /etc/lynx.cfg
+)
+
+pkg_configure_del --docdir --localedir
+ConfigureOpts+=(
+    # Slackware
+    --libdir="$LibDir"/lynx
+    --datadir="$ShareDir"/lynx
+    --enable-default-colors
+    --with-screen=ncursesw
+    --enable-widec
+    --enable-gzip-help
+    --with-zlib
+    --enable-read-eta
+    --enable-scrollbar
+    --with-ssl
+    --enable-ipv6
+    --enable-color-style
+    --enable-prettysrc
+    --enable-source-cache
+    --enable-nsl-fork
+	--enable-nls
+    --enable-persistent-cookies
+    --enable-vertrace
+    --disable-full-paths
+    --enable-addrlist-page
+    --enable-charset-choice
+    --enable-cjk
+    --enable-htmlized-cfg
+    --enable-justify-elts
+    --enable-locale-charset
+    --enable-externs
+    --enable-cgi-links
+    --enable-change-exec
+    --enable-exec-links
+    --enable-exec-scripts
+    --enable-internal-links
+    --with-bzlib
+
+    #--with-gnutls
+	#--disable-finger
+	#--disable-gopher
+    --with-pkg-config
+    #--with-socks5 # {=path} link with socks5 library if available
+)
+
+InstallOpts=(
+    # Slackware
+    install
+    install-help
+    install-doc
+
+    # install-full
+)
+
+pkg_pre_configure() {
+    # Slackware
+    pkg_patch_f3 lynx-CVE-2008-4690.patch.gz 1 || return 1
+    # Change default colors:
+    pkg_patch_f3 lynx.cfg.diff.gz 1 || return 1
+}
+
+pkg_post_install() {
+    # Slackware
+    # Correct $DESTDIR brokenness:
+    local lynx_help=$ShareDir2/lynx/lynx_help
+    # rm -f "$lynx_help"/{COPYHEADER,COPYING}
+    local lynx_doc=$ShareDir2/lynx/lynx_doc
+    ln -sfnr "$lynx_doc"/COPYHEADER "$lynx_help"
+    ln -sfnr "$lynx_doc"/COPYING "$lynx_help"
+    # Add documentation symlinks:
+    ln -sfnr "$lynx_doc" "$DocDir2"
+    ln -sfnr "$lynx_help" "$DocDir2"
+
+    # local i d1 d2
+
+    # # link from /usr/doc/$Name/
+    # d1=$ShareDir2/$Name/${Name}_doc
+    # while IFS= read -r i; do
+    #     ln -sfnr "$DocDir2/$(basename "$i")" "$i"
+    # done < <(find "$d1" -maxdepth 1 -type f ! -name '*.asc')
+    # d2=$ShareDir2/$Name/${Name}_help    # $d2/C*
+    # while IFS= read -r i; do
+    #     ln -sfnr "$DocDir2/$(basename "$i")" "$i"
+    # done < <(ls "$d2"/C*)
+
+    # # /usr/share/$Name/$Name_{doc,help} --> /usr/doc/$Name/
+    # #for i in "$d2" "$d1"; do
+    # #    ln -sfnr "$i" "$DocDir2"
+    # #done
+    # ls -d "$d1" "$d2" | pkg_ln_d "$DocDir2"
+
+    # # del *.orig
+    # find "$DestDir" -type f -name '*.orig' -delete
+}
