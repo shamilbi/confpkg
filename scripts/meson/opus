@@ -1,6 +1,9 @@
 #!/bin/bash
 
-PkgHome="https://github.com/xiph/opus"
+PkgHome=(
+    "https://github.com/xiph/opus/tags"
+    "https://gitlab.xiph.org/xiph/opus/-/tags"
+)
 
 ConfigureOpts+=(
     # Slackware
