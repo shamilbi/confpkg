@@ -1,7 +1,5 @@
 #!/bin/bash
 
-PkgHome="https://github.com/xiph/libao/tags"
-
 [[ ! $PULSE ]] && ConfigureOpts+=(--disable-pulse)
 
 MakeEnv=(

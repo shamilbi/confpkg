@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# The Speex codec has been obsoleted by Opus.
+# It will continue to be available, but since Opus is better than Speex in all aspects, users are encouraged to switch
+
+PkgHome+=(
+    "https://www.speex.org/"
+)
+
+pkg_pre_configure() {
+    if [[ ! $SPEEX ]]; then
+        echo "speex disabled, env.sh: SPEEX="
+        return 1
+    fi
+}
+
+pkg_post_install() {
+    make "${InstallEnv[@]}" -C src install-man
+}

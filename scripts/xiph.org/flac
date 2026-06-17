@@ -1,0 +1,17 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    # Slackware
+    --disable-silent-rules
+
+    --disable-xmms-plugin
+)
+pkg_check=
+
+pkg_post_install() {
+    # Slackware
+    # we're not putting 3MB of API docs in the binary package...
+    rm -rf "$DocDir2"/{api,*.tag}
+
+    rm -rf "$DocDir2"/{images,*.html}
+}

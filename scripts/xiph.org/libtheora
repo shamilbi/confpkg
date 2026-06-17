@@ -1,0 +1,9 @@
+#!/bin/bash
+
+PkgHome[1]="https://gitlab.xiph.org/xiph/theora/-/tags"
+PkgHome[2]="https://github.com/xiph/theora/tags"
+
+ConfigureOpts+=(
+    --disable-examples
+    --disable-spec
+)

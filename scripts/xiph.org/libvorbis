@@ -1,0 +1,4 @@
+#!/bin/bash
+
+PkgHome[1]="https://gitlab.xiph.org/xiph/vorbis/-/tags"
+PkgHome[2]="https://github.com/xiph/vorbis/tags"

@@ -1,0 +1,7 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://www.xiph.org/downloads/"
+    "https://gitlab.xiph.org/xiph/${Name,,}/-/tags"
+    "https://github.com/xiph/${Name,,}/tags"
+)

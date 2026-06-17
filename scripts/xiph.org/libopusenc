@@ -1,7 +1,5 @@
 #!/bin/bash
 
-PkgHome="https://github.com/xiph/libopusenc/tags"
-
 pkg_post_install() {
     rm -rf "$DocDir2"/html
 }
