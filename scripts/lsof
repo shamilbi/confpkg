@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PkgHome="https://github.com/lsof-org/lsof/tags"
+
 pkg_configure() {
     # Slackware
     echo n | ./Configure linux
