@@ -1,6 +1,9 @@
 #!/bin/bash
 
-PkgHome="https://download.samba.org/pub/linux-cifs/cifs-utils/?C=M;O=D"
+PkgHome=(
+    "https://download.samba.org/pub/linux-cifs/cifs-utils/?C=M;O=D"
+    "$SlackwareMirrorUrl/n/cifs-utils/?C=M&O=D"
+)
 
 ConfigureOpts+=(
     --enable-cifsacl # Create get/set cifsacl binary [default=yes]
