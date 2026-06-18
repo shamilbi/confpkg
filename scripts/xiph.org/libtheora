@@ -7,3 +7,8 @@ ConfigureOpts+=(
     --disable-examples
     --disable-spec
 )
+
+pkg_post_install() {
+    rm -rf "$DocDir2"/{html,latex,*.stamp}
+    :
+}
