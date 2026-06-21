@@ -12,5 +12,7 @@ ConfigureOpts+=(
 
 pkg_pre_configure() {
     # Slackware
-    pkg_patch_f3 compile_against_qt6_ge_6.9.0.patch 1 || return 1
+    if (($(pkg_cmp_versions "$Version" "0.10") < 0)); then
+        pkg_patch_f3 compile_against_qt6_ge_6.9.0.patch 1 || return 1
+    fi
 }
