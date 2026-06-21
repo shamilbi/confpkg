@@ -398,7 +398,7 @@ pkg_filter_doc() {
             SConstruct | SConscript | Kbuild | Kconfig | Jambase | Jamroot | PKGBUILD | WORKSPACE)
                 continue
                 ;;
-            ChangeLog.pre* | NEWS.pre*)
+            ChangeLog.pre* | NEWS.pre* | ChangeLog.old)
                 # gimp-3.x
                 continue
                 ;;
