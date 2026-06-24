@@ -8,7 +8,7 @@
 # daemon: /usr/libexec/fwupd/fwupd
 # client: /usr/bin/fwupdmgr [get-devices | get-updates | update | refresh]
 
-PkgHome="https://github.com/fwupd/fwupd"
+PkgHome="https://github.com/fwupd/fwupd/tags"
 
 ConfigureOpts+=(
     # Slackware
@@ -34,23 +34,6 @@ ConfigureOpts+=(
     -Dplugin_modem_manager=disabled # deprecated, ModemManager support
         # plugins/modem-manager/fu-mm-device.c:1592:22: warning: nested extern declaration of ‘fu_mm_device_mbim_switch_to_edl’ [-Wnested-externs]
 )
-
-# 2.0.7
-# meson.build:1:0: ERROR: Unknown options: "plugin_amdgpu, plugin_logitech_bulkcontroller"
-if (($(pkg_cmp_versions "$Version" "2.0.7") < 0)); then
-    ConfigureOpts+=(
-        # Slackware
-        -Dplugin_amdgpu=disabled
-
-        -Dplugin_logitech_bulkcontroller=disabled # Logitech bulk controller support
-            # This plugin can upgrade the firmware on Logitech Video Collaboration products
-            # (Rally Bar and RallyBar Mini), using USB bulk transfer.
-            # FAILED: plugins/logitech-bulkcontroller/libfu_plugin_logitech_bulkcontroller.a.p/antiflicker.pb-c.c plugins/logitech-bulkcontroller/libfu_plugin_logitech_bulkcontroller.a.p/antiflicker.pb-c.h 
-            # /usr/bin/protoc --proto_path=../plugins/logitech-bulkcontroller/proto --c_out=plugins/logitech-bulkcontroller/libfu_plugin_logitech_bulkcontroller.a.p ../plugins/logitech-bulkcontroller/proto/antiflicker.proto
-            # protoc-gen-c: symbol lookup error: protoc-gen-c: undefined symbol: _ZN6google8protobuf2io7Printer9PrintImplESt17basic_string_viewIcSt11char_traitsIcEEN4absl12lts_202407224SpanIKNSt7__cxx1112basic_stringIcS5_SaIcEEEEENS2_12PrintOptionsE
-            # --c_out: protoc-gen-c: Plugin failed with status code 127.
-    )
-fi
 
 pkg_post_install() {
     local dir fn
