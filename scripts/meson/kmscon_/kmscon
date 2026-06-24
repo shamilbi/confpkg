@@ -1,5 +1,13 @@
 #!/bin/bash
 
-ConfigureOpts+=(
-    -Delogind=enabled # disabled, Prefer elogind over systemd
-)
+# seat management
+
+if (($(pkg_cmp_versions "$Version" "10") < 0)); then
+    ConfigureOpts+=(
+        -Delogind=enabled # disabled, Prefer elogind over systemd
+    )
+else
+    ConfigureOpts+=(
+        -Dlibseat=enabled # =auto, Use libseat to integrate with systemd-logind, elogind, or seatd
+    )
+fi
