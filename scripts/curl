@@ -14,12 +14,11 @@ ConfigureOpts+=(
     --with-ca-path=/etc/ssl/certs
     --with-nghttp2="$Prefix"
     --with-nghttp3="$Prefix"
-    --with-openssl-quic
+    # --with-openssl-quic
+    --with-ngtcp2="$Prefix" # Enable ngtcp2 usage
     --with-openssl="$Prefix"
 
     --without-gnutls
-    --with-ngtcp2="$Prefix" # Enable ngtcp2 usage
-        # configure: error: nghttp3 enabled without a QUIC library; enable ngtcp2
 )
 [[ ! $RTMP ]] && ConfigureOpts+=(--without-librtmp)
 
