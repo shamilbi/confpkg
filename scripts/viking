@@ -1,0 +1,37 @@
+#!/bin/bash
+
+PkgHome="https://github.com/viking-gps/viking/tags"
+
+ConfigureOpts+=(
+    --enable-realtime-gps-tracking=no
+    --enable-gtk-doc-html=no
+    --enable-bing=no
+    --enable-google=no
+    --enable-geoclue=no
+    --enable-oauth=no
+    --enable-mapnik=no
+    --disable-nova
+)
+
+pkg_pre_make() {
+    local f1
+
+    # @YELP_HELP_RULES@
+    # Makefile:640: *** missing separator.  Stop.
+    f1=help/Makefile
+    pkg_create_orig "$f1"
+    sed -i -e 's,@YELP_HELP_RULES@,,' "$f1"
+
+    # help
+    f1=Makefile
+    pkg_create_orig "$f1"
+    sed -i -e 's,\<help\>,,' "$f1"
+}
+
+pkg_post_install() {
+    # viking.1
+    make -C help
+    local f1=help/viking.1
+    [[ -f $f1 ]] && pkg_install_mfd 644 "$f1" "$ManDir2"/man1
+    :
+}
