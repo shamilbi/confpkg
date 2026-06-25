@@ -1,0 +1,29 @@
+#!/bin/bash
+
+PkgHome="https://github.com/libass/libass/tags"
+
+ConfigureOpts+=(
+    # Slackware
+    --disable-silent-rules
+)
+InstallOpts=(
+    # Slackware
+    install-strip
+)
+
+# pkg_pre_configure() {
+#     local f1=configure.ac
+#     if pkg_create_orig "$f1"; then
+#         # PKG_CHECK_MODULES([FREETYPE], freetype2 >= 9.10.3, [
+#         # ->
+#         # PKG_CHECK_MODULES([FREETYPE], freetype2, [
+#         sed -i -r -e \
+#             's|^(PKG_CHECK_MODULES.*FREETYPE.*, freetype2) >= [0-9.]+(.*)|\1\2|' \
+#             "$f1"
+#         # pkg_requires="freetype2 >= 9.10.3"
+#         # ->
+#         # pkg_requires="freetype2"
+#         sed -i -r -e 's|^(pkg_requires="freetype2) .*"|\1"|' "$f1"
+#         pkg_autoreconf
+#     fi
+# }
