@@ -1,0 +1,51 @@
+#!/bin/bash
+
+PkgHome="https://github.com/rockdaboot/libpsl/tags"
+
+list_url="https://publicsuffix.org/list/public_suffix_list.dat"
+
+suffix_list=public_suffix_list.dat
+local_suffix_list=list/$suffix_list
+
+publicsuffix=$ShareDir/publicsuffix
+publicsuffix2=$ShareDir2/publicsuffix
+
+ConfigureOpts+=(
+    # Slackware
+    --disable-silent-rules
+    --enable-man
+    # --enable-gtk-doc
+    --enable-builtin=libicu
+    --enable-runtime=libidn2
+    # --with-psl-distfile=$publicsuffix/public_suffix_list.dafsa
+        # .dafsa: may be error?
+        # path to distribution-wide PSL file
+    --with-psl-file="$publicsuffix"/effective_tld_names.dat # path to PSL file
+    --with-psl-testfile="$publicsuffix"/test_psl.txt # path to PSL test file
+
+    --with-psl-distfile="$publicsuffix/$suffix_list"
+)
+
+pkg_pre_configure() {
+    # update $local_suffix_list
+    if [[ ! -f $local_suffix_list.tmp ]]; then
+        wget "$list_url" -O "$local_suffix_list" || return 1
+        touch "$local_suffix_list.tmp"
+    fi
+}
+
+pkg_post_install() {
+    local dir=$publicsuffix2
+
+    # usr/share/publicsuffix/public_suffix_list.dat
+    pkg_install_mfd 644 "$local_suffix_list" "$dir" || return 1
+
+    # libpsl.3
+    pkg_install_mfd 644 docs/libpsl/libpsl.3 "$ManDir2"/man3
+
+    # Slackware
+    # usr/share/publicsuffix/effective_tld_names.dat
+    ln -sfnr "$dir/$suffix_list" "$dir"/effective_tld_names.dat
+    # /usr/share/publicsuffix/test_psl.txt
+    pkg_install_mff 644 list/tests/tests.txt "$dir"/test_psl.txt
+}
