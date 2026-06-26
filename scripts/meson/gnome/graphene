@@ -1,0 +1,8 @@
+#!/bin/bash
+
+PkgHome+=("https://github.com/ebassi/graphene/tags")
+
+ConfigureOpts+=(
+    -Dtests=false
+    -Dinstalled_tests=false
+)
