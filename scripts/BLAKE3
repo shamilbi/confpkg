@@ -1,0 +1,37 @@
+#!/bin/bash
+
+PkgHome="https://github.com/BLAKE3-team/BLAKE3/tags"
+
+# SrcDir=$OrigSrcDir/b3sum
+
+unset -v pkg_configure pkg_make
+
+pkg_install() {
+    # b3sum
+    (
+        cd b3sum || exit 1
+        cargo build --release || exit 1
+        pkg_install_mfd 755 target/release/b3sum "$Prefix2"/bin
+    ) || return 1
+
+    # libblake3
+    (
+        cd c || exit 1
+        opts=(
+            -DCMAKE_BUILD_TYPE=Release
+            -DBUILD_SHARED_LIBS=ON
+            -DCMAKE_C_FLAGS="$CFLAGS"
+            -DCMAKE_CXX_FLAGS="$CFLAGS"
+
+            -DCMAKE_INSTALL_PREFIX="$Prefix"
+            -DCMAKE_INSTALL_MANDIR="$ManDir"
+            -DCMAKE_INSTALL_DOCDIR="$DocDir"
+            -DCMAKE_INSTALL_LIBDIR="$LibDir"
+        )
+        mkdir -p build
+        cmake -S . -B build "${opts[@]}" || return 1
+
+        export DESTDIR=$DestDir
+        cmake --build build --target install
+    )
+}
