@@ -7,8 +7,11 @@ PkgHome=(
 
 # unset ProtectDirs
 
-# MakeEnv=(
-#     rulesdir=/lib/udev/rules.d
-#     installed_modulesdir=/etc/modules-load.d
-# )
-# InstallEnv+=("${MakeEnv[@]}")
+MakeEnv=(
+    # Slackware
+    # Put the udev rules in the right place:
+    rulesdir=/lib/udev/rules.d
+
+    # installed_modulesdir=/etc/modules-load.d
+)
+InstallEnv+=("${MakeEnv[@]}")
