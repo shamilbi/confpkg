@@ -1,16 +1,16 @@
 #!/bin/bash
 
-# REQ: python-pkcs11
+PkgHome="https://github.com/tpm2-software/${Name,,}/tags"
 
-PkgHome="https://github.com/tpm2-software/tpm2-pkcs11/tags"
-
-pkg_pre_configure() {
+check_VERSION() {
     local file=VERSION
     if [[ ! -f $file ]]; then
         echo "$Version" >"$file"
     fi
+}
 
-    file=bootstrap
+check_bootstrap() {
+    local file=bootstrap
     if [[ -x $file ]]; then
         # git describe --tags --always --dirty > VERSION
         # --> #git ...

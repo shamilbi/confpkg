@@ -1,0 +1,11 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    --disable-hardening
+        # configure: error: Cannot enable -Wformat-security, consider configuring with --disable-hardening
+)
+
+pkg_pre_configure() {
+    check_VERSION
+    check_bootstrap
+}

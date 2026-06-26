@@ -1,0 +1,12 @@
+#!/bin/bash
+
+pkg_pre_configure() {
+    check_VERSION
+    check_bootstrap
+
+    # src/tpm2-tss-engine-rsa.c:112:5: warning:
+    #   ‘RSA_get_ex_data’ is deprecated: Since OpenSSL 3.0 [-Wdeprecated-declarations]
+    # src/tpm2-tss-engine-ecc.c:864:46: error:
+    #   passing argument 2 of ‘EVP_PKEY_meth_get_copy’ from incompatible pointer type [-Wincompatible-pointer-types]
+    pkg_add_cflags -Wno-deprecated-declarations -Wno-incompatible-pointer-types
+}

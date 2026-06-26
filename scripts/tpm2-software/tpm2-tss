@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# https://slackbuilds.org/uid_gid.txt
+user=tss
+group=tss
+userId=374
+groupId=374
+userHome=/dev/null
+userShell=/bin/false
+userComment="$Name"
+
+ConfigureOpts+=(
+    --with-udevrulesdir=/lib/udev/rules.d
+    --with-udevrulesprefix=60-
+    --disable-doxygen-doc
+)
+
+pkg_pre_configure() {
+    # Ensure user:group exists before building:
+    pkg_check_group "$group" "$groupId" || return 1
+    pkg_check_user "$user" "$group" "$userId" "$userHome" "$userShell" "$userComment" || return 1
+
+    check_VERSION
+    check_bootstrap
+}
+
+pkg_post_install() {
+    # *.pc: Version: --> $Version
+    sed -i -e 's,^Version: \+$,Version: '"$Version"',' "$LibDir2/pkgconfig"/*.pc
+    return 0
+}

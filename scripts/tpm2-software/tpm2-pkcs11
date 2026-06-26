@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# REQ: python-pkcs11
+
+pkg_pre_configure() {
+    check_VERSION
+    check_bootstrap
+}
