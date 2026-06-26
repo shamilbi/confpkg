@@ -17,6 +17,24 @@ ConfigureOpts+=(
     -Dinstall-docs=false # true, Install documentation for API and specification
 )
 
+pkg_pre_configure() {
+    if [[ $Version = "1.1.2" ]]; then
+        # v1.1.2
+        # ../compose/asc-font.c:207:20: error: implicit declaration of function ‘FcFreeTypeQuery’ [-Wimplicit-function-declaration]
+        # ../compose/asc-font.c:207:18: error: assignment to ‘FcPattern *’ from ‘int’ makes pointer from integer without a cast [-Wint-conversion]
+        pkg_add_cflags -Wno-implicit-function-declaration -Wno-int-conversion
+    fi
+
+    # v1.1.3
+    # docs/meson.build:16:8: ERROR: Problem encountered: Unable to find Docbook XSL stylesheets for man pages
+    # manpages_xsl = 'http://docbook.sourceforge.net/release/xsl-ns/current/manpages/docbook.xsl'
+    # ->
+    # manpages_xsl = 'http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl'
+    local f1=docs/meson.build
+    pkg_create_orig "$f1"
+    sed -i -re "s,(manpages_xsl = .*)/xsl-ns/(.*),\1/xsl/\2," "$f1"
+}
+
 pkg_post_install() {
     # Slackware
     # Add bash-completion support manually:
