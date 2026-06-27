@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PkgHome="https://github.com/tmux/tmux"
+PkgHome="https://github.com/tmux/tmux/tags"
 
 # on any make error: recompile libevent
 
