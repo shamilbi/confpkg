@@ -1,6 +1,9 @@
 #!/bin/bash
 
-PkgHome="https://repo.or.cz/socat.git"
+PkgHome=(
+    "https://repo.or.cz/socat.git"
+    "$SlackwareMirrorUrl/n/socat/?C=M&O=D"
+)
 
 ConfigureOpts+=(
     # Slackware
