@@ -13,6 +13,7 @@ ConfigureOpts+=(
     -Dbash-completion=false
         # -Dbash-completion=false since we don't want to require it to be installed
         # at build time.
+    # -Dblake3-support=false
 
     -Dinstall-docs=false # true, Install documentation for API and specification
 )
