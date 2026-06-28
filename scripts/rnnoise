@@ -1,0 +1,8 @@
+#!/bin/bash
+
+PkgHome="https://github.com/xiph/rnnoise/tags"
+
+pkg_post_install() {
+    # -html/
+    rm -rf "$DocDir2"/html
+}
