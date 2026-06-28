@@ -2,7 +2,8 @@
 
 PkgHome="https://github.com/mltframework/mlt"
 
-python=1
+BuildSteps=("${BuildForPython[@]}")
+[[ $BuildStep ]] && pkg_set_python "$BuildStep"
 
 ConfigureOpts+=(
     #Slackware
@@ -12,14 +13,20 @@ ConfigureOpts+=(
     -DMOD_RUBBERBAND=OFF
     -DMOD_GLXANIMATE=ON
     -DMOD_GLXANIMATE_QT6=ON
+
+    -DSWIG_PYTHON=ON
 )
 
-if [[ $python ]]; then
-    ConfigureOpts+=(-DSWIG_PYTHON=ON)
-    pkg_set_python python3
-fi
-
 pkg_pre_configure() {
+    local f1=$OrigSrcDir/CMakeLists.txt
+    # find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
+    # ->
+    # find_package(Python3 "3.12...3.12.13" REQUIRED COMPONENTS Interpreter Development)
+    pkg_create_orig "$f1"
+    local s1='(find_package\(Python3).* (REQUIRED.*)'
+    local s2='\1 "'"$PythonV12...$PythonV123"'" \2'
+    sed -i -re "s,$s1,$s2," "$f1"
+
     # -libpostproc (ffmpeg-7.1)
     local f1=$OrigSrcDir/cmake/FindFFmpeg.cmake
     if pkg_create_orig "$f1"; then
@@ -29,7 +36,5 @@ pkg_pre_configure() {
 }
 
 pkg_post_install() {
-    if [[ $python ]]; then
-        pkg_python_compileall "$LibDir2"
-    fi
+    pkg_python_compileall "$LibDir2/python$PythonV12"
 }
