@@ -216,7 +216,9 @@ pkg_set_python() {
 
     PythonV1=$("$Python" -c 'import sys; print(sys.version_info[0])')
     PythonV2=$("$Python" -c 'import sys; print(sys.version_info[1])')
+    PythonV3=$("$Python" -c 'import sys; print(sys.version_info[2])')
     PythonV12="$PythonV1.$PythonV2"
+    PythonV123="$PythonV12.$PythonV3"
 
     #PythonPrefix=$("$Python" -c "import sys; print(sys.prefix)")
     # /usr
