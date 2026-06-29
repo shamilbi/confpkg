@@ -1,0 +1,4 @@
+#!/bin/bash
+
+BinDir=$Prefix/sbin
+RustInstallBins=(trip)
