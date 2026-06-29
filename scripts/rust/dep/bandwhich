@@ -1,8 +1,4 @@
 #!/bin/bash
 
 PkgHome="https://github.com/imsnif/bandwhich/tags"
-# BinDir=$Prefix/sbin
-
-pkg_post_install() {
-    mv "$Prefix2"/bin "$Prefix2"/sbin
-}
+BinDir=$Prefix/sbin
