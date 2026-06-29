@@ -1,16 +1,18 @@
 #!/bin/bash
 
-# BinDir=$Prefix/bin
+BinDir=$Prefix/bin
 MakeOpts=(
     --color never
     --release
 )
-InstallOpts=(
-    --color never
-    -f
-    --no-track
-    --path .
-)
+RustInstallBins=()
+
+# InstallOpts=(
+#     --color never
+#     -f
+#     --no-track
+#     --path .
+# )
 
 unset -v pkg_configure
 
@@ -20,18 +22,27 @@ pkg_make() {
 }
 
 pkg_install() {
-    # (
-    #     cd target/release || exit 1
-    #     while IFS= read -r f; do
-    #         t=$(pkg_filetype "$f")
-    #         if [[ $t == "so" ]]; then
-    #             pkg_install_mfd 755 "$f" "$LibDir2"
-    #         else
-    #             pkg_install_mfd 755 "$f" "${DestDir}${BinDir}"
-    #         fi
-    #     done < <(find -maxdepth 1 -type f -perm /111)
-    # )
-    cargo install --root "$Prefix2" "${InstallOpts[@]}"
+    local dir=target/release
+    local bindir=${DestDir}${BinDir}
+    local f1
+    if ((${#RustInstallBins[*]})); then
+        for f1 in "${RustInstallBins[@]}"; do
+            pkg_install_mfd 755 "$dir/$f1" "$bindir" || return 1
+        done
+    else
+        while IFS= read -r f1; do
+            t=$(pkg_filetype "$f1")
+            if [[ $t == "so" ]]; then
+                pkg_install_mfd 755 "$f1" "$LibDir2"
+            else
+                pkg_install_mfd 755 "$f1" "$bindir"
+            fi
+        done < <(find "$dir" -maxdepth 1 -type f -perm /111)
+    fi
+
+    # trippy
+    # error: found a virtual manifest at `<dir>/Cargo.toml` instead of a package manifest
+    # cargo install --root "$Prefix2" "${InstallOpts[@]}"
 }
 
 pkg_distclean() {
