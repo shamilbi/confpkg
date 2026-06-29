@@ -2,7 +2,7 @@
 
 PkgHome="https://github.com/shadowsocks/shadowsocks-rust"
 
-#BinDir=$Prefix/sbin
+BinDir=$Prefix/sbin
 MakeOpts+=(-F "local-tun") # experimental feature
 
 user="shadowsocks"
@@ -30,7 +30,6 @@ pkg_pre_make() {
 }
 
 pkg_post_install() {
-    mv "$Prefix2"/bin "$Prefix2"/sbin
     pkg_cp_fd examples configs debian "$DocDir2"
 
     # example conf
