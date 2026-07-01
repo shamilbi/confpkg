@@ -1,3 +1,6 @@
 #!/bin/bash
 
-PkgHome="https://www.alsa-project.org/"
+PkgHome=(
+    "https://www.alsa-project.org/"
+    "https://github.com/alsa-project/${Name,,}/tags"
+)
