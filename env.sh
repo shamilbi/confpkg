@@ -17,6 +17,7 @@ WAYLAND=1
 KDE=
 ALSA=1
 WEBKIT=
+GTK2=
 DOC=1 # /usr/doc
 GTK_DOC= # /usr/share/gtk-doc
 GPL3=1 # GPL v3 is acceptable
