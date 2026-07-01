@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PkgHome="https://github.com/axboe/liburing"
+PkgHome="https://github.com/axboe/liburing/tags"
 
 ConfigureOpts=(
     # Slackware
