@@ -12,15 +12,27 @@ ConfigureOpts+=(
     -Dman=enabled # disabled, Manual pages
     -Dffmpeg=enabled # disabled, Enable ffmpeg spa plugin integration
     -Dvulkan=enabled # disabled, Enable vulkan spa plugin integration
-    #-Djack=disabled
-    #-Dpipewire-jack=disabled
+    # -Dpipewire-jack=enabled
+    # -Djack-devel=true
+    # -Dgsettings-pulse-schema=enabled # Install gsettings schema for pulseaudio', value: 'auto'
     -Dsession-managers=[] # [wireplumber], Session managers to build (can be [] for none or an absolute path)
 
     -Dexamples=disabled # enabled, Build examples
     -Dtests=disabled # enabled, Build tests
 )
-[[ ! $PULSE ]] && ConfigureOpts+=(-Dlibpulse=disabled)
-[[ ! $JACK ]] && ConfigureOpts+=(-Djack=disabled -Dpipewire-jack=disabled)
+
+if [[ $PULSE ]]; then
+    # Slackware
+    ConfigureOpts+=(-Dgsettings-pulse-schema=enabled)
+else
+    ConfigureOpts+=(-Dlibpulse=disabled -Dgsettings-pulse-schema=disabled)
+fi
+if [[ $JACK ]]; then
+    # Slackware
+    ConfigureOpts+=(-Dpipewire-jack=enabled -Djack-devel=true)
+else
+    ConfigureOpts+=(-Djack=disabled -Dpipewire-jack=disabled)
+fi
 
 if (($(pkg_cmp_versions "$Version" "1.6") < 0)); then
     ConfigureOpts+=(
@@ -39,7 +51,8 @@ pkg_post_install() {
     mkdir -p "$Etc2/$Name"
     # Add sample configuation files:
     pkg_install_mfd 644 "$SupportDir"/*.desktop.sample "$Etc2/xdg/autostart"
-    pkg_install_mfd 755 "$SupportDir"/pipewire*.sh "$Prefix2/sbin"
+    pkg_install_mfd 755 "$SupportDir"/pipewire-{enable,disable}.sh "$Prefix2/sbin"
+    pkg_install_mfd 755 "$SupportDir"/pipewire.{sh,csh} "$Etc2/profile.d"
 
     rm -f "$Etc2/xdg/autostart"/*media-session*
 }
