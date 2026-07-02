@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PkgHome="https://github.com/qemu/qemu"
+PkgHome="https://github.com/qemu/qemu/tags"
 
 # REQ: dtc (libfdt), kernel (+IO_URING)
 
