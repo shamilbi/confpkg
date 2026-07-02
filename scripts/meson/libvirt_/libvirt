@@ -26,7 +26,7 @@ pkg_post_install() {
         pkg_doinst_add_config "$fpath"
     done < <(find "$DestDir" -type f -name '*.conf')
 
-    rm -rf "$DocDir2"/html
+    rm -rf "$DocDir2"/{html,examples}
     rm -rf "$DestDir"/run
     :
 }
