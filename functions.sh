@@ -609,7 +609,7 @@ pkg_cp_d() {
 
     local f
     while f=$(pkg_read_exist); do
-        cp -a "$f" "$dir"
+        cp -aP "$f" "$dir" # P=no-dereference, to copy links
     done
 }
 
