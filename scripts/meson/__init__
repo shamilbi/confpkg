@@ -1,5 +1,7 @@
 #!/bin/bash
 
+UseBuildDir=1
+
 ConfigureOpts=(
     --prefix="$Prefix"
     --libdir="$LibDir"
@@ -16,19 +18,24 @@ pkg_configure() {
     local d=$SrcDir/_tmp
     mkdir -pm 700 "$d"
     export TMPDIR=$d
-    meson setup "${ConfigureOpts[@]}" _build || return 1
+    # meson setup "${ConfigureOpts[@]}" _build || return 1
+    meson setup "${ConfigureOpts[@]}" "$BuildDir" "$SrcDir" || return 1
 }
 
 pkg_make() {
-    ninja -C _build
+    # ninja -C _build
+    ninja -C "$BuildDir"
 }
 
 pkg_install() {
-    DESTDIR="$DestDir" ninja -C _build install
+    # DESTDIR="$DestDir" ninja -C _build install
+    DESTDIR="$DestDir" ninja -C "$BuildDir" install
 }
 
 pkg_distclean() {
-    if [[ -d _build ]]; then
-        rm -rf _build
+    # local dir=_build
+    local dir=$BuildDir
+    if [[ -d $dir ]]; then
+        rm -rf "$dir"
     fi
 }
