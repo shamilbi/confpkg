@@ -2,6 +2,10 @@
 
 # seat management
 
+ConfigureOpts+=(
+    -Dtests=false # true, Build unit tests
+)
+
 if (($(pkg_cmp_versions "$Version" "10") < 0)); then
     ConfigureOpts+=(
         -Delogind=enabled # disabled, Prefer elogind over systemd
