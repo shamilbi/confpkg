@@ -1,0 +1,13 @@
+#!/bin/bash
+
+PkgHome="https://gitlab.com/libtiff/libtiff/-/tags"
+
+ConfigureOpts+=(
+    -Djbig=OFF # use ISO JBIG compression (requires JBIT-KIT library)
+)
+
+pkg_post_install() {
+    rm -rf "$DocDir2"/manual
+    gzip -9 "$DocDir2"/ChangeLog
+    :
+}
