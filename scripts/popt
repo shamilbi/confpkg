@@ -1,0 +1,16 @@
+#!/bin/bash
+
+PkgHome="https://github.com/rpm-software-management/popt/tags"
+
+ConfigureOpts+=(
+    # Slackware
+    --enable-static
+)
+
+pkg_post_install() {
+    # Slackware
+    # Move the binary and shared library to /sbin and /lib(64)
+    local dir=$DestDir/$LibName
+    find "$LibDir2" -type l -name '*.so.*' | pkg_cp_d "$dir" # libpopt.so.0
+    find "$LibDir2" -type f -name '*.so.*' | pkg_mv_ln "$dir" # libpopt.so.0.0.2
+}
