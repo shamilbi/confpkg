@@ -1,0 +1,11 @@
+#!/bin/bash
+
+PkgHome="https://download.savannah.nongnu.org/releases/attr/?C=M&O=D"
+
+pkg_post_install() {
+    # Slackware
+    # Move libraries, as they might be needed by programs that bring a network
+    # mounted /usr online:
+    # /usr/lib64/libattr* -> /lib64/
+    find "$LibDir2" -maxdepth 1 -name 'libattr*' | pkg_mv_ln "$DestDir/$LibName"
+}
