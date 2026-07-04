@@ -1,8 +1,14 @@
 #!/bin/bash
 
-PkgHome="https://rpm.org/download.html"
+PkgHome=(
+    "https://rpm.org/download.html"
+    "$SlackwareMirrorUrl/ap/rpm/?C=M&O=D"
+)
 
 # REQ: rpm-sequoia (pgp)
+
+BuildSteps=("${BuildForPython[@]}")
+[[ $BuildStep ]] && pkg_set_python "$BuildStep"
 
 UseClang=
     # clang: error: unknown argument: '-fhardened'
@@ -19,6 +25,17 @@ ConfigureOpts+=(
     -DENABLE_TESTSUITE=OFF
 )
 [[ ! $SELINUX ]] && ConfigureOpts+=(-DWITH_SELINUX=OFF)
+
+pkg_pre_configure() {
+    local f1=$OrigSrcDir/CMakeLists.txt
+    # find_package(Python3 COMPONENTS Interpreter Development)
+    # ->
+    # find_package(Python3 "3.12...3.12.13" COMPONENTS Interpreter Development)
+    pkg_create_orig "$f1"
+    local s1='(find_package\(Python3).* (COMPONENTS.*)'
+    local s2='\1 "'"$PythonV12...$PythonV123"'" \2'
+    sed -i -re "s,$s1,$s2," "$f1"
+}
 
 pkg_post_install() {
     # Slackware
@@ -39,14 +56,16 @@ pkg_post_install() {
     # Initialize a dummy package database
     dir=$localstatedir2/tmp
     pkg_install_mfd 644 "$SupportDir"/Packages.gz "$dir"
-    gzip -d "$dir"/Packages.gz
+    gzip -f -d "$dir"/Packages.gz
 
     # -doc/API
     rm -rf "$DocDir2"/API
-    :
+
+    # python compileall
+    pkg_python_compileall "$PythonPlatLibDir2"
 }
 
-read -r -d '' pkg_post_installpkg <<EOF
+pkg_read2var pkg_post_installpkg <<EOF
 pkg_post_installpkg() {
     # Slackware
     local d1=${localstatedir:1}
@@ -57,9 +76,6 @@ pkg_post_installpkg() {
         cp -a "\$f2" "\$f1"
     fi
     [[ -d \$d2 ]] && rm -rf "\$d2"
-    :
 }
 pkg_post_installpkg
 EOF
-
-:
