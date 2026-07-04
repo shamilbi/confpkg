@@ -1,0 +1,35 @@
+#!/bin/bash
+
+PkgHome="https://gitlab.com/graphviz/graphviz/-/tags"
+
+pkg_set_python python3
+
+[[ $X ]] && ConfigureOpts+=(--with-x) || ConfigureOpts+=(--without-x)
+
+pkg_post_install() {
+    # Slackware
+    # Install config file for PHP:
+    pkg_install_mfd 644 "$SupportDir"/graphviz.ini "$Etc2"/php.d
+    # Remove empty directories of language bindings that are absent:
+    find "$LibDir2"/graphviz -depth -type d -empty -delete
+    # Own the config6 file. This will be generated with actual content by
+    # the installation script:
+    #echo "# foo" >"$LibDir2"/graphviz/config6
+
+    # clean doc dir
+    find "$DocDir2" -name '*.[0-9].pdf' -delete
+    find "$DocDir2" -name '*.3*.pdf' -delete
+    find "$DocDir2" -name '*.html' -delete
+    find "$DocDir2" -depth -type d -empty -delete
+
+    return 0
+}
+
+pkg_read2var pkg_post_installpkg <<EOF
+pkg_post_installpkg() {
+    # Slackware
+    # Configure plugins (/usr/lib*/graphviz/%CONFIG%):
+    chroot . /usr/bin/dot -c &>/dev/null
+}
+pkg_post_installpkg
+EOF
