@@ -1,0 +1,70 @@
+#!/bin/bash
+
+PkgHome="https://sourceware.org/pub/bzip2/?C=M;O=D"
+
+pkg_pre_configure() {
+    # Slackware
+    # # This should be ok, since libbz2.so.1.0 will still exist.
+    # zcat $CWD/bzip2.saneso.diff.gz | patch -p1 || exit
+    make -f Makefile-libbz2_so
+
+    # $(PREFIX)/lib -> $(PREFIX)/lib64
+    local f1=Makefile
+    if [[ $LibName != "lib" ]] && pkg_create_orig "$f1"; then
+        sed -i -e 's,$(PREFIX)/\<lib\>,$(PREFIX)/'"$LibName"',g' "$f1"
+    fi
+}
+
+pkg_install() {
+    # Slackware
+    local libdir2=$DestDir/$LibName # /lib64
+    local bindir2=$DestDir/bin # /bin
+    local f1 fn fn2 fn3
+    # bzlib.h
+    pkg_install_mfd 644 bzlib.h "$IncludeDir2"
+    # libbz2.so.1.0.8 -> libbz2.so.1.0 -> libbz2.so.1
+    f1=$(find . -maxdepth 1 -type f -name 'libbz2.so.*.*.*' -print -quit)
+    pkg_install_mfd 755 "$f1" "$libdir2"
+    fn=${f1##*/} # libbz2.so.1.0.8
+    fn2=${fn%.*} # libbz2.so.1.0
+    ln -sfn "$fn" "$libdir2/$fn2"
+    fn3=${fn2%.*} # libbz2.so.1
+    ln -sfn "$fn2" "$libdir2/$fn3"
+    ln -sfn "$fn3" "$libdir2"/libbz2.so
+    # bzip2.pc
+    pkg_install_mff 644 "$LibDir2"/pkgconfig/bzip2.pc <<EOF
+prefix=$Prefix
+exec_prefix=$Prefix
+bindir=$Prefix/bin
+libdir=$LibDir
+includedir=$IncludeDir
+
+Name: bzip2
+Description: A file compression library
+Version: $Version
+Libs: -L\${libdir} -lbz2
+Cflags: -I\${includedir}
+EOF
+    # bzip2, bzip2recover
+    pkg_install_mff 755 bzip2-shared "$bindir2"/bzip2
+    pkg_install_mfd 755 bzip2recover "$bindir2"
+    # bzip2.1
+    pkg_install_mfd 644 bzip2.1 "$ManDir2"/man1
+    pkg_install_mff 644 "$ManDir2"/man1/bzip2recover.1 <<<".so man1/bzip2.1"
+    # Link up them links
+    ls -d "$libdir2"/libbz2.so* | pkg_ln_d "$LibDir2" # /usr/lib64
+    ln -sfnr "$bindir2"/bzip2 "$bindir2"/bunzip2
+    ln -sfnr "$bindir2"/bzip2 "$bindir2"/bzcat
+    ls -d "$bindir2"/{bzip2,bunzip2,bzcat} | pkg_ln_d "$Prefix2"/bin # /usr/bin
+    ln -sfn bzmore "$Prefix2"/bin/bzless
+    # Here are some optional scripts:
+    for fn in bzdiff bzgrep bzmore; do
+        pkg_install_mfd 755 "$fn" "$Prefix2"/bin
+        pkg_install_mfd 644 "$fn".1 "$ManDir2"/man1
+    done
+}
+
+pkg_install_doc() {
+    # Slackware
+    pkg_install_mfd 644 CHANGES LICENSE README* bzip2.txt *.html "$DocDir2"
+}
