@@ -1,0 +1,27 @@
+#!/bin/bash
+
+PkgHome="https://ftp.gnu.org/gnu/make/?C=M;O=D"
+
+ConfigureOpts+=(
+    --with-guile=no
+)
+
+unset LC_MESSAGES
+
+pkg_pre_configure() {
+    pkg_autoreconf
+}
+
+pkg_post_install() {
+    # Slackware
+    # This has been here so long that it should probably stay.
+    # Trying to get rid of ginstall didn't go well, so...  :-)
+    ln -sfn make "$Prefix2"/bin/gmake
+}
+
+pkg_install_doc() {
+    # Slackware
+    pkg_install_mfd 644 AUTHORS* COPYING* ChangeLog NEWS* README* "$DocDir2"
+
+    gzip -9 "$DocDir2"/ChangeLog
+}
