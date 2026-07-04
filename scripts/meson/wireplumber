@@ -1,0 +1,44 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://gitlab.freedesktop.org/pipewire/wireplumber/-/tags"
+    "https://github.com/PipeWire/wireplumber/tags"
+    "$SlackwareMirrorUrl/l/wireplumber/?C=M&O=D"
+)
+
+unset ProtectDirs
+
+ConfigureOpts+=(
+    # Slackware
+    -Dsystem-lua=true # false, Use lua from the system instead of the bundled one
+        # system-lua + lua-5.5.x -> wireplumber error
+
+    -Dtests=false # true, Build the test suite
+    -Ddbus-tests=false # true, Enable running tests that need a dbus-daemon
+    -Delogind=enabled # auto, Enable elogind integration
+    -Dsystemd=disabled # auto, Enable installing systemd units & logind integration
+)
+
+pkg_pre_configure() {
+    # meson.build
+    # wireplumber_doc_dir = get_option('prefix') / get_option('datadir') / 'doc' / 'wireplumber'
+    local f1=$OrigSrcDir/meson.build
+    sed -i -re "s,^(wireplumber_doc_dir) =.*,\1 = '$DocDir'," "$f1"
+}
+
+pkg_post_install() {
+    # Slackware
+    # Add sample configuation files:
+    pkg_install_mfd 644 \
+        "$SupportDir"/wireplumber.desktop "$Etc2"/xdg/autostart
+}
+
+pkg_read2var pkg_post_installpkg <<EOF
+pkg_post_installpkg() {
+    # Slackware
+    # Toss redundant sample files:
+    local f1=etc/xdg/autostart/wireplumber.desktop
+    cmp -s "\$f1" "\$f1".sample && rm "\$f1".sample
+}
+pkg_post_installpkg
+EOF
