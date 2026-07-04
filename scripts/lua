@@ -1,0 +1,98 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://www.lua.org/download.html"
+    "$SlackwareMirrorUrl/d/lua/?C=M&O=D"
+)
+
+# lua-5.5.0:
+#   wireplumber error:
+#   Jan  2 14:17:17 home kernel: wireplumber[8117]:
+#   segfault at 2edf44a8 ip 000076ab600bafed sp 00007ffe41d1dd30 error 4
+#   in liblua.so.5.5.0[8fed,76ab600ba000+30000] likely on CPU 5 (core 5, socket 0)
+#   -> non-Slackware: -soname,liblua.so.5.4 instead of liblua.so.5 (to prevent lua-5.5.x error)
+
+luaVersion1=${VersionArr[0]} # 5
+luaVersion2=$luaVersion1.${VersionArr[1]} # 5.4
+luaVersion3=${luaVersion2}.${VersionArr[2]} # 5.4.8
+pkg_check=1
+
+MakeEnv=(
+    # Slackware
+    MYCFLAGS="$CFLAGS"
+    INSTALL_TOP="$Prefix"
+    INSTALL_LIB="$LibDir"
+    INSTALL_LMOD="$ShareDir/lua/$luaVersion2"
+    INSTALL_CMOD="$LibDir/lua/$luaVersion2"
+)
+MakeOpts=(linux)
+CheckOpts=(test)
+InstallEnv=(
+    MYCFLAGS="$CFLAGS"
+    INSTALL_TOP="$Prefix2"
+    INSTALL_LIB="$LibDir2"
+    INSTALL_LMOD="$ShareDir2/lua/$luaVersion2"
+    INSTALL_CMOD="$LibDir2/lua/$luaVersion2"
+)
+InstallOpts=(linux install)
+CleanOpts=(clean)
+
+pkg_pre_configure() {
+    # Slackware
+    # Also search paths under /usr/local:
+    pkg_patch_f3 lua.usr.local.patch 1 || return 1
+    # Fix luaconf.h header to use lib$LIBDIRSUFFIX:
+    sed -i "s|lib/lua|$LibName/lua|" src/luaconf.h || return 1
+}
+
+pkg_post_install() {
+    # Slackware
+    # Now let's build the shared library
+    mkdir -p shared
+    (
+        cd shared || exit 1
+        ar -x "$LibDir2"/liblua.a || exit 1
+        lib=liblua.so.$luaVersion3
+        # non-Slackware: -soname,liblua.so.5.4 instead of liblua.so.5 (to prevent lua-5.5.x error)
+        gcc -ldl -lreadline -lhistory -lncurses -lm -shared -Wl,-soname,liblua.so."$luaVersion2" *.o -o "$lib" || exit 1
+        cp -a "$lib" "$LibDir2" || exit 1
+        (
+            cd "$LibDir2" || exit 1
+            ln -s "$lib" "liblua.so.$luaVersion2"
+            ln -s "liblua.so.$luaVersion2" "liblua.so.$luaVersion1"
+            ln -s "liblua.so.$luaVersion1" liblua.so
+        ) || exit 1
+    ) || return 1
+
+    pkg_install_mfd 644 doc/*.html doc/*.gif doc/*.css "$DocDir2/html"
+
+    # lua.pc
+    pkg_install_mff 644 "$LibDir2"/pkgconfig/lua.pc <<EOF
+V=$luaVersion2
+R=$luaVersion3
+
+prefix=$Prefix
+INSTALL_BIN=\${prefix}/bin
+INSTALL_INC=\${prefix}/include
+INSTALL_LIB=$LibDir
+INSTALL_MAN=\${prefix}/man/man1
+INSTALL_LMOD=\${prefix}/share/lua/\${V}
+INSTALL_CMOD=$LibDir/lua/\${V}
+
+exec_prefix=\${prefix}
+libdir=$LibDir
+includedir=\${prefix}/include
+
+Name: Lua
+Description: An Extensible Extension Language
+Version: \${R}
+Requires:
+Libs: -L\${libdir} -llua -lm
+Cflags: -I\${includedir}
+EOF
+
+    # /usr/share/lua/5.4/
+    local dir=$ShareDir2/lua/$luaVersion2
+    mkdir -p "$dir"
+    touch "$dir"/keep.tmp
+}
