@@ -1,0 +1,9 @@
+#!/bin/bash
+
+pkg_post_install() {
+    # Slackware
+    # Move libraries, as they might be needed by programs that bring a network
+    # mounted /usr online:
+    # /usr/lib64/libacl* -> /lib64/
+    find "$LibDir2" -maxdepth 1 -name 'libacl*' | pkg_mv_ln "$DestDir/$LibName"
+}
