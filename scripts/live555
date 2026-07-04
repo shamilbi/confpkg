@@ -1,0 +1,36 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://download.live555.com/?C=M;O=D"
+    "https://github.com/live555-mirror/live555-mirror"
+)
+
+pkg_check=
+
+pkg_configure() {
+    local f
+
+    if [[ "$LibName" = "lib64" ]]; then
+        ./genMakefiles linux-64bit
+
+        # BasicTaskScheduler.cpp:191:40: error: ‘struct std::atomic_flag’ has no member named ‘test’
+        # https://github.com/rgaufman/live555/issues/45
+        # CPLUSPLUS_FLAGS=... -std=c++2a
+        f=BasicUsageEnvironment/Makefile
+        if [[ -f $f && ! -f $f.tmp ]]; then
+            # -std=c++2a
+            sed -i -r -e 's,^(CPLUSPLUS_FLAGS[ \t]*=[ \t*](.*)),\1 -std=c++2a,' "$f"
+            touch "$f.tmp"
+        fi
+    else
+        ./genMakefiles linux
+    fi
+}
+
+pkg_install() {
+    local i
+    for i in BasicUsageEnvironment UsageEnvironment groupsock liveMedia; do
+        pkg_install_mfd 644 "$i"/include/* "$IncludeDir2/$i" || return 1
+        pkg_install_mfd 644 "$i"/*.a "$LibDir2" || return 1
+    done
+}
