@@ -1,0 +1,48 @@
+#!/bin/bash
+
+PkgHome="$SlackwareMirrorUrl/l/lmdb/?C=M&O=D"
+
+MakeEnv=(
+    # Slackware
+    XCFLAGS="$CFLAGS"
+
+    mandir="$ManDir"
+)
+InstallEnv+=("${MakeEnv[@]}")
+
+pkg_pre_configure() {
+    # Slackware
+    local f1=Makefile
+    if pkg_create_orig "$f1"; then
+        # lmdb-s390-check.patch.gz
+        # ./mtest && ./mdb_stat testdb
+        # ->
+        # ./mtest && sleep 1 && ./mdb_stat testdb
+        local s1='\./mtest && \./mdb_stat testdb'
+        local s2='./mtest && sleep 1 && ./mdb_stat testdb'
+        sed -i -e "s,$s1,$s2," "$f1"
+        #
+        sed -i "s|/usr/local|/usr|g" "$f1"
+        sed -i "s|\$(exec_prefix)/lib|\$(exec_prefix)/$LibName|g" "$f1"
+    fi
+}
+
+pkg_post_install() {
+    # Slackware
+    # Install pkgconfig file:
+    pkg_install_mff "$LibDir2"/pkgconfig/lmdb.pc <<EOF
+prefix=$Prefix
+exec_prefix=\${prefix}
+libdir=$LibDir
+includedir=$IncludeDir
+
+Name: liblmdb
+Description: Lightning Memory-mapped key-value database
+URL: http://symas.com/mdb/
+Version: $Version
+Libs: -L\${libdir} -llmdb
+Cflags: -I\${includedir}
+EOF
+    # Don't package the static library:
+    find "$LibDir2" -type f -name '*.a' -delete
+}
