@@ -1,0 +1,20 @@
+#!/bin/bash
+
+PkgHome=(
+    #"https://www.darktable.org/install/"
+    "https://github.com/darktable-org/darktable/tags"
+)
+
+# REQ: lensfun
+
+unset pkg_check
+
+pkg_pre_configure() {
+    if [[ $Version = "5.2.1" ]]; then
+        # fix build error:
+        # https://github.com/darktable-org/darktable/pull/19038/commits/3edee833b9524c216c9a88580898595eded5c675
+        # data/kernels/CMakeLists.txt
+        local f1=$SupportDir/5.2.1-CMakeLists.txt
+        pkg_install_mff 644 "$f1" "$OrigSrcDir"/data/kernels/CMakeLists.txt || return 1
+    fi
+}
