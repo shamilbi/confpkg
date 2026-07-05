@@ -1,6 +1,17 @@
 #!/bin/bash
 
-PkgHome="$SlackwareMirrorUrl/l/lmdb/?C=M&O=D"
+PkgHome=(
+    "https://github.com/LMDB/lmdb/tags"
+    "$SlackwareMirrorUrl/l/lmdb/?C=M&O=D"
+)
+
+version1=${VersionArr[0]} # 0
+version2=$version1.${VersionArr[1]} # 0.9
+version3=$version2.${VersionArr[2]} # 0.9.35
+
+lib=liblmdb.so
+lib1=$lib.$version1 # liblmdb.so.0
+lib2=$lib.$version2 # liblmdb.so.0.9
 
 MakeEnv=(
     # Slackware
@@ -8,6 +19,11 @@ MakeEnv=(
 
     mandir="$ManDir"
 )
+if (($(pkg_cmp_versions "$Version" "1") < 0)); then
+    MakeEnv+=(
+        SOEXT=.so."$version2" # liblmdb.so.0.9
+    )
+fi
 InstallEnv+=("${MakeEnv[@]}")
 
 pkg_pre_configure() {
@@ -19,11 +35,21 @@ pkg_pre_configure() {
         # ->
         # ./mtest && sleep 1 && ./mdb_stat testdb
         local s1='\./mtest && \./mdb_stat testdb'
-        local s2='./mtest && sleep 1 && ./mdb_stat testdb'
+        local s2='./mtest \&\& sleep 1 \&\& ./mdb_stat testdb'
         sed -i -e "s,$s1,$s2," "$f1"
         #
         sed -i "s|/usr/local|/usr|g" "$f1"
         sed -i "s|\$(exec_prefix)/lib|\$(exec_prefix)/$LibName|g" "$f1"
+
+        # non-Slackware
+        if (($(pkg_cmp_versions "$Version" "1") < 0)); then
+            # $(CC) $(LDFLAGS) -pthread -shared -o $@ mdb.lo midl.lo $(SOLIBS)
+            # ->
+            # $(CC) $(LDFLAGS) -pthread -shared -Wl,-soname,liblmdb.so.0 -o $@ mdb.lo midl.lo $(SOLIBS)
+            local s1='-shared -o'
+            local s2='-shared -Wl,-soname,'"$lib2"' -o' # liblmdb.so.0.9
+            sed -i -e "s|$s1|$s2|" "$f1"
+        fi
     fi
 }
 
@@ -45,4 +71,11 @@ Cflags: -I\${includedir}
 EOF
     # Don't package the static library:
     find "$LibDir2" -type f -name '*.a' -delete
+
+    # non-Slackware
+    if (($(pkg_cmp_versions "$Version" "1") < 0)); then
+        # liblmdb.so.0.9 -> liblmdb.so.0 -> liblmdb.so
+        ln -sfn "$lib2" "$LibDir2/$lib1"
+        ln -sfn "$lib1" "$LibDir2/$lib"
+    fi
 }
