@@ -1,0 +1,22 @@
+#!/bin/bash
+
+PkgHome+=(
+    "https://github.com/OpenPrinting/cups-browsed"
+)
+
+ConfigureOpts+=(
+    # Slackware
+    --with-cups-rundir=/run/cups # set transient run-time state directory of CUPS
+    --with-browseremoteprotocols=none
+)
+MakeEnv=(
+    INITDDIR="$Etc"/rc.d
+)
+InstallEnv+=("${MakeEnv[@]}")
+
+pkg_post_install() {
+    rm -rf "$Etc2"/rc[0-9]*
+
+    # rc.cups-browsed
+    mv "$Etc2"/rc.d/cups-browsed "$Etc2"/rc.d/rc.cups-browsed
+}

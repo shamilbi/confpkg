@@ -1,0 +1,8 @@
+#!/bin/bash
+
+PkgHome="https://github.com/OpenPrinting"
+
+ConfigureOpts+=(
+    # Slackware
+    --with-cups-rundir=/run/cups # set transient run-time state directory of CUPS
+)

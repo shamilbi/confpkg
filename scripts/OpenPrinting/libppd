@@ -1,0 +1,15 @@
+#!/bin/bash
+
+PkgHome+=(
+    "https://github.com/OpenPrinting/libppd"
+)
+
+ConfigureOpts+=(
+    # Slackware
+    --disable-mutool # Disable filters using mutool
+    --enable-ppdc-utils # enable ppdc utilities, to build PPD files from
+                        # driver information files (*.drv).
+
+    --enable-genstrings # enable genstrings, GNU gettext message generator for
+                        # the libppd PPD Compiler.
+)
