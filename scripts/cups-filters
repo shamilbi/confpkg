@@ -1,0 +1,57 @@
+#!/bin/bash
+
+PkgHome="https://github.com/OpenPrinting/cups-filters/tags"
+
+ConfigureOpts+=(
+    # --disable-avahi
+    --disable-mutool
+
+    --with-cups-config=cups-config
+)
+
+pkg_pre_configure() {
+    if (( ${VersionArr[0]} < 2 )); then
+        pkg_patch_f3 CVE-2023-24805.patch.gz 1 || return 1
+
+        ConfigureOpts+=(
+            --with-test-font-path=/usr/share/fonts/TTF/DejaVuSans.ttf
+            --without-php
+            --with-browseremoteprotocols=cups
+            --with-pdftops=pdftops
+            --enable-opvp
+            --enable-ijs
+
+            --disable-avahi
+        )
+    fi
+}
+
+pkg_post_install()
+{
+    (
+        cd "$LibDir2/cups/filter" || exit 1
+        ln -sfn gstoraster pstoraster
+    ) || return 1
+
+    local dir=$Etc2
+    if [[ -d $dir ]]; then
+        (
+            cd "$dir" || exit 1
+            # init.d rc[0-9].d --> /etc/rc.d/
+            #mv init.d rc[0-5]*.d $(mk_dir rc.d)
+            ls -d init.d rc[0-5]*.d | pkg_mv_d rc.d
+
+            # /etc/rc.d/rc.cups-browsed
+            f1=rc.d/init.d/cups-browsed
+            f2=rc.d/rc.cups-browsed
+            mv "$f1" "$f2" && ln -sfnr "$f2" "$f1"
+
+            # /etc/fonts/conf.avail/* --> /etc/fonts/conf.d/
+            if [[ -d fonts/conf.d ]]; then
+                #mv fonts/conf.d/* $(mk_dir fonts/conf.avail)
+                ls -d fonts/conf.d/* | pkg_mv_d fonts/conf.avail
+                ln -sfnr fonts/conf.avail/* fonts/conf.d
+            fi
+        )
+    fi
+}
