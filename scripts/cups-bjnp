@@ -1,0 +1,18 @@
+#!/bin/bash
+
+PkgHome="https://sourceforge.net/projects/cups-bjnp/files/cups-bjnp/"
+
+# Configure: http://localhost:631/printers/Canon_MP640_series
+# Description:	Canon MP640 series
+# Location:
+# Driver:	Canon MP640 series - CUPS+Gutenprint v5.3.4 (color, 2-sided printing)
+# Connection:	bjnp://printer:8611
+# Defaults:	job-sheets=none, none media=iso_a4_210x297mm sides=two-sided-long-edge
+
+ConfigureOpts+=(
+    --with-cupsbackenddir="$LibDir/cups/backend"
+)
+
+pkg_post_install() {
+    ls -d "$LibDir2/cups/backend/bjnp" | pkg_ln_d "$Prefix2/bin"
+}
