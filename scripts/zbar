@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PkgHome="https://github.com/mchehab/zbar"
+PkgHome="https://github.com/mchehab/zbar/tags"
 
 ConfigureOpts+=(
     --with-python=python3
