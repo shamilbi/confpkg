@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PkgHome="https://github.com/ImageMagick/ImageMagick"
+PkgHome="https://github.com/ImageMagick/ImageMagick/tags"
 
 # REQ BY: zbar
 # avif REQ: libheif
@@ -61,11 +61,11 @@ pkg_post_install() {
     rm -f "$etc"/policy.xml
 }
 
-pkg_del_la() {
-    # Slackware
-    # .la files in /usr/lib${LIBDIRSUFFIX}/ should be removed.
-    # Other .la files should be left alone, as ImageMagick uses them internally
-    # to locate modules.
-    rm -f "$LibDir2"/*.la
-    :
-}
+# pkg_del_la() {
+#     # Slackware
+#     # .la files in /usr/lib${LIBDIRSUFFIX}/ should be removed.
+#     # Other .la files should be left alone, as ImageMagick uses them internally
+#     # to locate modules.
+#     rm -f "$LibDir2"/*.la
+#     :
+# }
