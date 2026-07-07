@@ -9,3 +9,14 @@ PkgHome=(
 ConfigureOpts+=(
     --enable-gui=no
 )
+
+pkg_del_cflags "${GccFlags[@]}"
+
+pkg_pre_configure() {
+    # -tests
+    local f1=Rakefile
+    if pkg_create_orig "$f1"; then
+        # targets << ($run_unit_tests ? 'tests:run_unit' : 'tests:unit') if $have_gtest
+        sed -i -e 's,targets << .*tests:.*,# \0,' "$f1"
+    fi
+}
