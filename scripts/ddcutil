@@ -15,3 +15,9 @@ MakeEnv=(
     # installed_modulesdir=/etc/modules-load.d
 )
 InstallEnv+=("${MakeEnv[@]}")
+
+pkg_post_install() {
+    # Slackware
+    # Fix rules:
+    pkg_patch_f "$SupportDir"/ddcutil-fix-udev-rules.diff 1 "$DestDir"/lib/udev/rules.d || return 1
+}
