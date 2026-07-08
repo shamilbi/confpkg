@@ -1,6 +1,29 @@
 #!/bin/bash
 
-PkgHome="https://github.com/xiph/rnnoise/tags"
+PkgHome=(
+    "https://github.com/xiph/rnnoise/tags"
+    "$SlackwareMirrorUrl/l/rnnoise/?C=M&O=D"
+)
+
+# REQ: rnnoise-v0.2.tar.gz
+data_url="$SlackwareMirrorUrl/l/rnnoise/rnnoise_data-0b50c45.tar.lz"
+
+ConfigureOpts+=(
+    # Slackware
+    --enable-x86-rtcd
+)
+
+pkg_pre_configure() {
+    # download data
+    if [[ ! -d models ]]; then
+        echo "download data $data_url ..."
+        local opts=(
+            -s # silent
+            --capath=/etc/ssl/certs
+        )
+        curl "${opts[@]}" "$data_url" | tar xf - --lzip || return 1
+    fi
+}
 
 pkg_post_install() {
     # -html/
