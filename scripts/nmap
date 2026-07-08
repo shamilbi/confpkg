@@ -1,0 +1,68 @@
+#!/bin/bash
+
+PkgHome="https://nmap.org/download#source"
+
+# python REQ: setuptools-gettext
+
+ConfigureOpts+=(
+    # Slackware
+    --with-libpcap="$Prefix" # Look for pcap in DIR/include and DIR/libs.
+    --with-libpcre="$Prefix"
+    --with-zlib="$Prefix"
+    --with-libssh2="$Prefix"
+    --with-liblua="$Prefix"
+    --without-ndiff # Skip installation of the Ndiff utility
+    --without-nmap-update
+        # --without-nmap-update is needed below to avoid depending on apr and subversion libraries.
+        # It's not worth the feature IMHO.
+
+    # non-Slackware
+    --enable-static
+        # /usr/bin/ld: cannot find ./libdnet-stripped/src/.libs/libdnet.a: No such file or directory
+    --without-zenmap # Skip installation of the Zenmap graphical frontend
+        # pkg_post_install
+)
+
+pkg_pre_configure() {
+    # Slackware
+    # Do not use bundled deps:
+    rm -rf liblua libpcap libpcre macosx mwin32 libssh2 libz
+    # # Don't require a network connection to build zenmap:
+    # pkg_patch_f3 nmap.no.internet.requirement.for.build.diff 1 || return 1
+    # # Don't try to link nping against (non-existent) libpcap.a:
+    # cat $CWD/nmap.nping.system.libpcap.diff | patch -p1 --verbose || exit 1
+    # Fix build:
+    sed -e '/strlcat/d' -i libdnet-stripped/acconfig.h
+}
+
+pkg_post_install() {
+    local f1 f2
+
+    # zenmap
+    (
+        cd "zenmap" || exit 1
+        unset -v PythonVenvSystem PythonNoBuildIsolation PythonInstallLibs
+        PythonVenvSystem=1
+        BuildForPython=(python3)
+        pkg_python_install || exit 1
+    ) || return 1
+    # original zenmap
+    pkg_install_mfd 755 zenmap/zenmap "$Prefix2/bin"
+    # zenmap.1
+    pkg_install_mfd 644 docs/zenmap.1 "$ManDir2/man1"
+    # zenmap.desktop
+    f1=zenmap/install_scripts/unix/zenmap.desktop
+    pkg_install_mfd 644 "$f1" "$ShareDir2/applications"
+
+    # Slackware
+    # Make sure zenmap has an icon:
+    f1=$ShareDir2/pixmaps/zenmap.png
+    f2=zenmap/zenmapCore/data/pixmaps/zenmap.png
+    if [[ ! -r $f1 && -r $f2 ]]; then
+        pkg_install_mfd 644 "$f2" "$ShareDir2"/pixmaps
+    fi
+    # zenmap -> nmapfe, xnmap
+    for f1 in nmapfe xnmap; do
+        ln -sfnr "$Prefix2"/bin/zenmap "$Prefix2"/bin/"$f1"
+    done
+}
