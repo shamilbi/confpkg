@@ -1,0 +1,12 @@
+#!/bin/bash
+
+PkgHome="https://sourceforge.net/projects/libwpd/files/librevenge/"
+
+ConfigureOpts+=(
+    # Slackware
+    --disable-tests
+    --disable-werror
+
+    # --enable-tests # Build and run unit tests
+    --without-docs
+)
