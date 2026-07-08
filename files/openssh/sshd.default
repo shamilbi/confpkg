@@ -1,0 +1,14 @@
+# Optional arguments to start sshd with.
+#
+# Note that using the -p flag causes any Port directives 
+# in sshd_config(5) to be ignored.
+#
+# If you want to run sshd on non-standard port(s), use:
+#SSHD_OPTS="-p 12345 -p 6789"
+#
+# If you want to use non-standard sshd_config, use:
+#SSHD_OPTS="-f /some/other/sshd_config"
+#
+# If you don't want the sshd listener automatically restarted when the package
+# is upgraded, then uncomment this line:
+#SSHD_LISTENER_AUTO_RESTART_ON_UPGRADE=no

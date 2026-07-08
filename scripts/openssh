@@ -1,0 +1,102 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://www.openssh.com/portable.html"
+    "https://mirror.leaseweb.com/pub/OpenBSD/OpenSSH/portable/?C=M&O=D"
+)
+
+ConfigureOpts+=(
+    # Slackware
+	--sysconfdir="$Etc"/ssh
+    --with-pam # Enable PAM support
+    --with-kerberos5 # Enable Kerberos 5 support
+    #--enable-dsa-keys
+    --with-libedit
+    #--with-tcp-wrappers
+    --with-default-path=/usr/local/sbin:/usr/sbin:/sbin:/usr/local/bin:/usr/bin:/bin
+    --with-privsep-path=/var/empty
+    --with-privsep-user=sshd
+    --with-security-key-builtin
+
+    --without-openssl-header-check # Disable OpenSSL version consistency check
+    #--without-ssh1
+)
+
+pkg_check=
+
+pkg_pre_configure() {
+    # Slackware
+    # Restore support for tcpwrappers:
+    #pkg_patch_f3 openssh.tcp_wrappers.diff.gz 1 || return 1
+    #
+    # <10.2p1
+    # don't reuse c->isatty for signalling that the remote
+    # channel has a tty attached as this causes side effects,
+    # e.g. in channel_handle_rfd().  bz3872
+    #pkg_patch_f3 beae06f56e0d0a66ca535896149d5fb0b2e8a1b4.patch 1 || return 1
+    #
+    # Enable PAM in sshd_config:
+    # sshd_config-pam.diff.gz
+    # sshd_config: #UsePAM no --> UsePAM yes
+    sed -i -e 's,#UsePAM no,UsePAM yes,' sshd_config
+
+    pkg_autoreconf
+}
+
+pkg_pre_install() {
+    local f1=Makefile
+    pkg_create_orig "$f1"
+    sed -i -e 's/ check-config/ #check-config/' "$f1"
+
+    mkdir -p "$ManDir2/man1"
+}
+
+pkg_post_install() {
+    # Slackware
+    # Install directory used with PrivilegeSeparation option:
+    mkdir -pm 755 "$DestDir"/var/empty
+    # Install defaults file
+    pkg_install_mff 644 "$SupportDir"/sshd.default "$Etc2"/default/sshd
+    # Install also 'ssh-copy-id' and its manpage from contrib:
+    pkg_install_mfd 755 contrib/ssh-copy-id "$Prefix2"/bin || return 1
+    pkg_install_mfd 644 contrib/ssh-copy-id.1 "$ManDir2"/man1 || return 1
+    # Add the init script:
+    pkg_install_mfd 755 "$SupportDir"/rc.sshd "$Etc2"/rc.d
+    # Add the pam stuff:
+    pkg_install_mff 644 "$SupportDir"/sshd.pam "$Etc2"/pam.d/sshd
+}
+
+pkg_read2var pkg_post_installpkg <<EOF
+pkg_post_installpkg() {
+    # Slackware
+    # If the sshd user/group/shadow don't exist, add them:
+    if ! grep -q "^sshd:" etc/passwd ; then
+        echo "sshd:x:33:33:sshd:/:" >> etc/passwd
+    fi
+    if ! grep -q "^sshd:" etc/group ; then
+        echo "sshd::33:sshd" >> etc/group
+    fi
+    if ! grep -q "^sshd:" etc/shadow ; then
+        echo "sshd:*:9797:0:::::" >> etc/shadow
+    fi
+    # Add a btmp file to store login failure if one doesn't exist:
+    if [[ ! -r var/log/btmp ]]; then
+        ( cd var/log ; umask 077 ; touch btmp )
+    fi
+    # Restart sshd if it is safe to do so:
+    . etc/default/sshd
+    if [[ \$SSHD_LISTENER_AUTO_RESTART_ON_UPGRADE != "no" && ! -x /usr/lib/setup/setup ]]; then
+        local script
+        read -r -d '' script <<EOF2
+if sshd -t &>/dev/null; then
+    if [[ -x /etc/rc.d/rc.sshd ]]; then
+        sh /etc/rc.d/rc.sshd restart &>/dev/null
+    fi
+fi
+EOF2
+        chroot . /bin/bash -c "\$script"
+    fi
+    unset SSHD_OPTS SSHD_LISTENER_AUTO_RESTART_ON_UPGRADE
+}
+pkg_post_installpkg
+EOF
