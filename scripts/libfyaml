@@ -1,0 +1,10 @@
+#!/bin/bash
+
+PkgHome="https://github.com/pantoniou/libfyaml/tags"
+
+pkg_pre_configure() {
+    # Slackware
+    pkg_patch_f3 0982fcefc6a16d4c8cb5b06747d3fc8e630de3ae.patch 1 || return 1
+    pkg_patch_f3 238082d09eb2453a9b6e98f359fb0eed05086694.patch 1 || return 1
+    pkg_patch_f3 e7f1b117d458e202498f0a3862761661c26ca7ae.patch 1 || return 1
+}
