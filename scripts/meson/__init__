@@ -19,7 +19,7 @@ pkg_configure() {
     mkdir -pm 700 "$d"
     export TMPDIR=$d
     # meson setup "${ConfigureOpts[@]}" _build || return 1
-    meson setup "${ConfigureOpts[@]}" "$BuildDir" "$SrcDir" || return 1
+    meson setup "${ConfigureOpts[@]}" "$BuildDir" "$OrigSrcDir" || return 1
 }
 
 pkg_make() {
