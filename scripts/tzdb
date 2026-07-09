@@ -1,5 +1,10 @@
 #!/bin/bash
 
+PkgHome=(
+    "https://ftp.iana.org/tz/releases/?C=M;O=D"
+    "$SlackwareMirrorUrl/a/glibc-zoneinfo/?C=M&O=D"
+)
+
 MakeEnv=(
     TOPDIR="$Prefix"
     TZDIR="$ShareDir"/zoneinfo
@@ -76,4 +81,11 @@ pkg_post_install() {
 
     # del empty dirs
     find "$DestDir" -depth -type d -empty -delete
+}
+
+pkg_install_doc() {
+    # exclude *.[0-9].txt
+    pkg_install_mfd 644 [A-Z]* *.html "$DocDir2"
+    rm -f "$DocDir2"/Makefile
+    :
 }
