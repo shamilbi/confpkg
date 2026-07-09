@@ -1,6 +1,9 @@
 #!/bin/bash
 
-PkgHome="https://gitlab.freedesktop.org/pipewire/pipewire/-/tags"
+PkgHome=(
+    "https://gitlab.freedesktop.org/pipewire/pipewire/-/tags"
+    "$SlackwareMirrorUrl/l/pipewire/?C=M&O=D"
+)
 
 # REQ: rst2man (python docutils)
 # subproject/wireplumber is fetched from
