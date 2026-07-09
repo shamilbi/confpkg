@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2022  Patrick J. Volkerding, Sebeka, Minnesota, USA
+# Copyright 2022, 2026  Patrick J. Volkerding, Sebeka, Minnesota, USA
 # All rights reserved.
 #
 # Redistribution and use of this script, with or without modification, is
@@ -22,6 +22,15 @@
 # This script will attempt to disable pipewire as the default audio server,
 # changing it back to pulseaudio.
 
+# Sanity check:
+if [ ! -x /usr/bin/pulseaudio ]; then
+  echo "error: can't switch to pulseaudio because /usr/bin/pulseaudio does not exist."
+  exit 1
+fi
+
+# Make sure the pipewire profile script is disabled:
+chmod 644 /etc/profile.d/pipewire.*
+
 # Remove or rename the XDG autostart files:
 for file in /etc/xdg/autostart/wireplumber.desktop /etc/xdg/autostart/pipewire-pulse.desktop /etc/xdg/autostart/pipewire.desktop ; do
   if [ -r ${file}.sample ]; then
@@ -32,6 +41,9 @@ for file in /etc/xdg/autostart/wireplumber.desktop /etc/xdg/autostart/pipewire-p
 done
 
 # Enable pulseaudio.desktop:
+if [ ! -r /etc/xdg/autostart/pulseaudio.desktop ]; then
+  cp -a /etc/xdg/autostart/pulseaudio.desktop.sample /etc/xdg/autostart/pulseaudio.desktop
+fi
 if grep -q "^Hidden=true$" /etc/xdg/autostart/pulseaudio.desktop ; then
   grep -v "^Hidden=true$" /etc/xdg/autostart/pulseaudio.desktop > /etc/xdg/autostart/pulseaudio.desktop.new
   mv /etc/xdg/autostart/pulseaudio.desktop.new /etc/xdg/autostart/pulseaudio.desktop

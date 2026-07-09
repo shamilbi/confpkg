@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2022  Patrick J. Volkerding, Sebeka, Minnesota, USA
+# Copyright 2022, 2026  Patrick J. Volkerding, Sebeka, Minnesota, USA
 # All rights reserved.
 #
 # Redistribution and use of this script, with or without modification, is
@@ -21,6 +21,12 @@
 
 # This script will attempt to enable pipewire as the default audio server.
 
+# Sanity check:
+if [ ! -x /usr/bin/pipewire ]; then
+  echo "error: can't switch to pipewire because /usr/bin/pipewire does not exist."
+  exit 1
+fi
+
 # Disable this, as it is almost certainly left over from when pipewire
 # used to store its config file in this location:
 if [ -f /etc/pipewire/pipewire.conf ]; then
@@ -28,6 +34,9 @@ if [ -f /etc/pipewire/pipewire.conf ]; then
     mv ${file} ${file}.obsolete
   done
 fi
+
+# Make sure the pipewire profile script is enabled:
+chmod 755 /etc/profile.d/pipewire.*
 
 # Rename the XDG autostart files:
 for file in /etc/xdg/autostart/wireplumber.desktop.sample /etc/xdg/autostart/pipewire-pulse.desktop.sample /etc/xdg/autostart/pipewire.desktop.sample ; do
