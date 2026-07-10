@@ -1,0 +1,7 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    --with-xorg-conf-dir="$Etc"/X11/xorg.conf.d # Default xorg.conf.d directory, default=${prefix}/share/X11/xorg.conf.d
+        # 40-libinput.conf
+        # WARNING: potential conflict with 10-evdev.conf
+)

@@ -1,0 +1,16 @@
+#!/bin/bash
+
+pkg_post_install() {
+    (
+        cd "$LibDir2" || exit 1
+        while read fn; do
+            fn=${fn:2} # ./x -> x
+            # echo "fn=$fn"
+            for i in atom event; do
+                fn2=libxcb-$i.${fn:12}
+                ln -sfnr "$fn" "$fn2"
+            done
+            ln -sfnr "$fn" libxcb-aux.so.0
+        done < <(find . -name 'libxcb-util.so.*' | grep -Ee '\.so\.[0-9]+$')
+    )
+}

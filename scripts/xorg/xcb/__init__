@@ -1,0 +1,3 @@
+#!/bin/bash
+
+PkgHome="https://xorg.freedesktop.org/archive/individual/xcb/?C=M;O=D"
