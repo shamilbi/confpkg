@@ -5,6 +5,10 @@ PkgHome=(
     "${DebianSearchURL}lame"
 )
 
+# v3.101
+# id3tag.c:661:48: error:
+# passing argument 4 of 'id3v2_add_utf8_lng' from incompatible pointer type [-Wincompatible-pointer-types]
+
 ConfigureOpts+=(
     # Slackware
     --htmldir="$DocDir"/html
@@ -17,5 +21,9 @@ MakeEnv=(
 InstallEnv+=("${MakeEnv[@]}")
 
 pkg_post_install() {
-    gzip -9 "$DocDir2"/ChangeLog
+    # gzip -9 "$DocDir2"/ChangeLog
+
+    # del old ChangeLog
+    # <= 2021-03-09 10:52
+    rm -f "$DocDir2"/ChangeLog
 }
