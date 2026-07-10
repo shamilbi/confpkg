@@ -35,9 +35,6 @@ if [ -f /etc/pipewire/pipewire.conf ]; then
   done
 fi
 
-# Make sure the pipewire profile script is enabled:
-chmod 755 /etc/profile.d/pipewire.*
-
 # Rename the XDG autostart files:
 for file in /etc/xdg/autostart/wireplumber.desktop.sample /etc/xdg/autostart/pipewire-pulse.desktop.sample /etc/xdg/autostart/pipewire.desktop.sample ; do
   if [ -r $file ]; then

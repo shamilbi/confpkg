@@ -22,6 +22,8 @@ ConfigureOpts+=(
 
     -Dexamples=disabled # enabled, Build examples
     -Dtests=disabled # enabled, Build tests
+    -Dlibsystemd=disabled # Enable code that depends on libsystemd, =auto
+    -Dlogind-provider=libelogind # ['libelogind', 'libsystemd'], =libsystemd, Provider for logind integration
 )
 
 if [[ $PULSE ]]; then
@@ -37,38 +39,50 @@ else
     ConfigureOpts+=(-Djack=disabled -Dpipewire-jack=disabled)
 fi
 
-if (($(pkg_cmp_versions "$Version" "1.6") < 0)); then
-    ConfigureOpts+=(
-        -Dsystemd=disabled
-    )
-else
-    ConfigureOpts+=(
-        -Dlibsystemd=disabled # Enable code that depends on libsystemd, =auto
-        -Dlogind-provider=libelogind # ['libelogind', 'libsystemd'], =libsystemd, Provider for logind integration
-    )
-fi
-
 pkg_post_install() {
+    local dir
+
     # Slackware
     # Create system config file override directory:
-    mkdir -p "$Etc2/$Name"
-    # Add sample configuation files:
-    pkg_install_mfd 644 "$SupportDir"/*.desktop.sample "$Etc2/xdg/autostart"
-    pkg_install_mfd 755 "$SupportDir"/pipewire-{enable,disable}.sh "$Prefix2/sbin"
-    pkg_install_mfd 755 "$SupportDir"/pipewire.{sh,csh} "$Etc2/profile.d"
+    mkdir -p "$Etc2"/pipewire
+    # Add configuation files:
+    dir=$Etc2/xdg/autostart
+    pkg_install_mfd 644 "$SupportDir"/pipewire.desktop "$dir"
+    pkg_install_mfd 644 "$SupportDir"/pipewire-pulse.desktop "$dir"
+    dir=$Prefix2/sbin
+    pkg_install_mfd 755 "$SupportDir"/pipewire-disable.sh "$dir"
+    pkg_install_mfd 755 "$SupportDir"/pipewire-enable.sh "$dir"
+    dir=$Etc2/profile.d
+    pkg_install_mfd 755 "$SupportDir"/pipewire.sh "$dir"
+    pkg_install_mfd 755 "$SupportDir"/pipewire.csh "$dir"
+    # Add pipewire-jack libraries to the ld.so path:
+    if [[ $JACK ]]; then
+        dir=$Etc2/ld.so.conf.d
+        pkg_install_mfd 644 "$SupportDir"/pipewire-jack-$LibName.conf "$dir"
+    fi
 
-    rm -f "$Etc2/xdg/autostart"/*media-session*
+    # rm -f "$Etc2/xdg/autostart"/*media-session*
 }
 
 pkg_read2var pkg_post_installpkg <<EOF
 pkg_post_installpkg() {
     # Slackware
     # Toss redundant sample files:
-    local d=etc/xdg/autostart
+    local dir=etc/xdg/autostart
     local file
     for file in pipewire.desktop pipewire-pulse.desktop; do
-        cmp -s "\$d/\$file" "\$d/\$file.sample" && rm -f "\$d/\$file.sample"
+        cmp -s "\$dir/\$file" "\$dir/\$file.sample" && rm -f "\$dir/\$file.sample"
     done
+    # Disable pulseaudio.desktop:
+    file=etc/xdg/autostart/pulseaudio.desktop
+    if [[ -r \$file ]]; then
+        if ! grep -q "^Hidden=true$" "\$file" ; then
+            echo "Hidden=true" >> "\$file"
+        fi
+    fi
+    # Pipewire is now the default multimedia server, so if we see pulseaudio
+    # running let's kill it so that it doesn't interfere:
+    killall --ns \$\$ /usr/bin/pulseaudio &>/dev/null
 }
 pkg_post_installpkg
 EOF

@@ -6,22 +6,24 @@
 if [ ! -x /usr/bin/daemon -o ! -x /usr/bin/wireplumber -o ! -x /usr/bin/pipewire-pulse -o ! -x /usr/bin/pipewire ]; then
   return 0
 fi
-# Start pipeware daemons.
-# Continue only if the user has a seat:
+# Leave if pulseaudio is in use:
+grep -q '^autospawn *= *yes' /etc/pulse/client.conf && return 0
+[ -x /etc/rc.d/rc.pulseaudio ] && return 0
+# Continue only if the user has a seat
 if loginctl | grep -q " $USER \+seat" ; then
   # Leave if pipewire is already running
   daemon --pidfiles=~/.run --name=pipewire --running && return 0
-  # A subshell waiting for the pipewire socket (timeout 10 seconds: -t 10)
-  # Only after the socket has been created, start other daemons
-  ( inotifywait -m -t 10 --format %f -e create $XDG_RUNTIME_DIR 2>/dev/null |\
-    while IFS= read -r F ; do
-      if [ "$F" = pipewire-0 ]; then
-        daemon -rB --pidfiles=~/.run --name=wireplumber /usr/bin/wireplumber
-        daemon -rB --pidfiles=~/.run --name=pipewire-pulse /usr/bin/pipewire-pulse
-        return 0
-      fi
-    done 
-    return 0 ) &
-  # start pipewire
+  # Start pipewire:
   daemon -rB --pidfiles=~/.run --name=pipewire /usr/bin/pipewire
+  # wait for the pipewire socket in background and start the other daemons
+  (setsid bash -c '
+    timeout=100
+    while [ $timeout -gt 0 ]; do
+      [ -S "$XDG_RUNTIME_DIR"/pipewire-0 ] && break
+      sleep 0.2
+      timeout=$((timeout-1))
+    done
+    daemon -rB --pidfiles=~/.run --name=wireplumber /usr/bin/wireplumber
+    daemon -rB --pidfiles=~/.run --name=pipewire-pulse /usr/bin/pipewire-pulse
+  ' < /dev/null > /dev/null 2>&1 &) 
 fi

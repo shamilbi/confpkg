@@ -28,9 +28,6 @@ if [ ! -x /usr/bin/pulseaudio ]; then
   exit 1
 fi
 
-# Make sure the pipewire profile script is disabled:
-chmod 644 /etc/profile.d/pipewire.*
-
 # Remove or rename the XDG autostart files:
 for file in /etc/xdg/autostart/wireplumber.desktop /etc/xdg/autostart/pipewire-pulse.desktop /etc/xdg/autostart/pipewire.desktop ; do
   if [ -r ${file}.sample ]; then
