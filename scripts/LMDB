@@ -38,6 +38,10 @@ pkg_pre_configure() {
         local s2='./mtest \&\& sleep 1 \&\& ./mdb_stat testdb'
         sed -i -e "s,$s1,$s2," "$f1"
         #
+        if [[ $Version = 1.0.* ]]; then
+            pkg_patch_f3 900.patch 3 || return 1
+        fi
+        #
         sed -i "s|/usr/local|/usr|g" "$f1"
         sed -i "s|\$(exec_prefix)/lib|\$(exec_prefix)/$LibName|g" "$f1"
 
@@ -56,7 +60,7 @@ pkg_pre_configure() {
 pkg_post_install() {
     # Slackware
     # Install pkgconfig file:
-    pkg_install_mff "$LibDir2"/pkgconfig/lmdb.pc <<EOF
+    pkg_install_mff 644 "$LibDir2"/pkgconfig/lmdb.pc <<EOF
 prefix=$Prefix
 exec_prefix=\${prefix}
 libdir=$LibDir
