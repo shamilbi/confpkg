@@ -22,9 +22,11 @@ pkg_pre_configure() {
     # the console from being properly cleared when detaching from a screen session:
     pkg_patch_f3 60-revert-screenrc-change.diff 1 || return 1
     #
-    pkg_patch_f3 screen.texinfo.typofix.diff 1 || return 1
-    # Keep UTF-8 combining sequences on UTF-8 displays:
-    pkg_patch_f3 preserve-utf8-combining.patch 1 || return 1
+    if (($(pkg_cmp_versions "$Version" "5.0.2") < 0)); then
+        pkg_patch_f3 screen.texinfo.typofix.diff 1 || return 1
+        # Keep UTF-8 combining sequences on UTF-8 displays:
+        pkg_patch_f3 preserve-utf8-combining.patch 1 || return 1
+    fi
 }
 
 pkg_pre_make() {
