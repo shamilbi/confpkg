@@ -1,0 +1,49 @@
+#!/bin/bash
+
+PkgHome="https://github.com/pkgconf/pkgconf/tags"
+
+# DEPRECATION: The autotools build system will be dropped after the 3.0 release.
+# Building pkgconf with muon is recommended for early bootstrap and meson in later
+# stages of bootstrap.
+
+pkg_pre_configure() {
+    # install_data('AUTHORS', install_dir: 'share/doc/pkgconf')
+    local f1=$OrigSrcDir/meson.build
+    pkg_create_orig "$f1"
+    sed -i -e "s,share/doc/pkgconf,doc/pkgconf-$Version," "$f1"
+}
+
+pkg_post_install() {
+    local dir i
+
+    # Slackware
+    # Add pkg-config compatibility symlinks:
+    dir=$Prefix2/bin
+    ln -sfnr "$dir"/pkgconf "$dir"/pkg-config
+    dir=$ManDir2/man1
+    ln -sfnr "$dir"/pkgconf.1 "$dir"/pkg-config.1
+    # Add profile.d scripts:
+    dir=$Etc2/profile.d
+    for i in pkgconfig.sh pkgconfig.csh; do
+        pkg_install_mfd 755 "$SupportDir/$i" "$dir" || return 1
+        sed -i -e "s#/lib/#/$LibName/#g" "$dir/$i"
+    done
+}
+
+pkg_read2var pkg_post_installpkg <<EOF
+pkg_post_installpkg() {
+    # Slackware
+    # Break the /usr/share/pkgconfig symlinks, if it exists.
+    # Then move the .pc files to the standard location.
+    local dir=usr/share/pkgconfig
+    if [[ -L \$dir ]]; then
+        rm \$dir
+        mkdir -p \$dir
+        grep \$dir var/log/packages/* | grep '\.pc$' | cut -f 2 -d : | cut -f 4 -d / |
+            while read movefile ; do
+                mv usr/lib/pkgconfig/"\$movefile" \$dir &>/dev/null
+            done
+    fi
+}
+pkg_post_installpkg
+EOF
