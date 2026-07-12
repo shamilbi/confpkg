@@ -1,0 +1,46 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    --enable-leaf-optimisation
+        # Enable an optimisation which saves lstat calls
+        # to identify subdirectories on filesystems having traditional Unix semantics
+    --enable-d_type-optimization
+        # Make use of the file type data returned in struct dirent.d_type by readdir()
+)
+
+InstallOpts+=(
+    # Slackware
+    install-man
+)
+
+pkg_pre_install() {
+    # Slackware
+    # Don't output warnings by default.  Let's make the crazy assumption that the
+    # user actually does know what they are doing, and will use -warn if they'd
+    # like to be yelled at.
+    # find/util.c:
+    # -      p->warnings = true;
+    # +      p->warnings = false;
+    # findutils.no.default.options.warnings.diff.gz
+    local f1=find/util.c
+    pkg_create_orig "$f1"
+    sed -i -e 's,p->warnings = true;,p->warnings = false;,' "$f1"
+}
+
+pkg_post_install() {
+    # Slackware
+    # Remove stray directory:
+    rmdir "$DestDir"/var &>/dev/null
+    # Now there is only FTS find, but make the old symlink in case any scripts
+    # out there are using it:
+    ln -sfnr "$Prefix2"/bin/find "$Prefix2"/bin/ftsfind
+    # Don't include updatedb, locate, frcode:
+    # updatedb, locate: mlocate
+    # frcode: ?
+    rm -f "$Prefix2"/bin/{locate,updatedb}
+    rm -f "$Prefix2"/libexec/frcode
+    rmdir "$Prefix2"/libexec &>/dev/null
+    rm -f "$ManDir2"/man1/{locate.1,updatedb.1}
+    rm -f "$ManDir2"/man5/locatedb.5
+    rmdir "$ManDir2"/man5 &>/dev/null
+}
