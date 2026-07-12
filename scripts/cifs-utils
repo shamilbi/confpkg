@@ -26,12 +26,12 @@ pkg_pre_configure() {
     pkg_autoreconf
 }
 
-pkg_pre_install() {
-    if pkg_create_orig Makefile; then
-        # (cd $(ROOTSBINDIR) && ln -sf mount.cifs mount.smb3)
-        sed -r -i -e 's,cd (\$\(ROOTSBINDIR\)),cd $(DESTDIR)\1,' Makefile
-
-        # (cd $(man8dir) && ln -sf mount.cifs.8 mount.smb3.8)
-        sed -r -i -e 's,cd (\$\(man8dir\)),cd $(DESTDIR)\1,' Makefile
-    fi
-}
+# pkg_pre_install() {
+#     if pkg_create_orig Makefile; then
+#         # (cd $(ROOTSBINDIR) && ln -sf mount.cifs mount.smb3)
+#         sed -r -i -e 's,cd (\$\(ROOTSBINDIR\)),cd $(DESTDIR)\1,' Makefile
+# 
+#         # (cd $(man8dir) && ln -sf mount.cifs.8 mount.smb3.8)
+#         sed -r -i -e 's,cd (\$\(man8dir\)),cd $(DESTDIR)\1,' Makefile
+#     fi
+# }
