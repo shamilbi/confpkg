@@ -1,8 +1,10 @@
 #!/bin/bash
 
 ConfigureOpts+=(
-    --disable-hardening
+    --disable-hardening # Disable compiler and linker options to frustrate memory corruption exploits
         # configure: error: Cannot enable -Wformat-security, consider configuring with --disable-hardening
+        # configure: WARNING: Compiling with --disable-hardening is dangerous!
+        # https://fedoraproject.org/wiki/Format-Security-FAQ
 )
 
 pkg_pre_configure() {
