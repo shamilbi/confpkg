@@ -26,19 +26,19 @@ pkg_pre_configure() {
     sed -i -re "s,^(wireplumber_doc_dir) =.*,\1 = '$DocDir'," "$f1"
 }
 
-pkg_post_install() {
-    # Slackware
-    # Add sample configuation files:
-    pkg_install_mfd 644 \
-        "$SupportDir"/wireplumber.desktop "$Etc2"/xdg/autostart
-}
+# pkg_post_install() {
+#     # Slackware
+#     # # Add XDG autostart file:
+#     # pkg_install_mfd 644 \
+#     #     "$SupportDir"/wireplumber.desktop "$Etc2"/xdg/autostart
+# }
 
-pkg_read2var pkg_post_installpkg <<EOF
-pkg_post_installpkg() {
-    # Slackware
-    # Toss redundant sample files:
-    local f1=etc/xdg/autostart/wireplumber.desktop
-    cmp -s "\$f1" "\$f1".sample && rm "\$f1".sample
-}
-pkg_post_installpkg
-EOF
+# pkg_read2var pkg_post_installpkg <<EOF
+# pkg_post_installpkg() {
+#     # Slackware
+#     # Toss redundant sample files:
+#     local f1=etc/xdg/autostart/wireplumber.desktop
+#     cmp -s "\$f1" "\$f1".sample && rm "\$f1".sample
+# }
+# pkg_post_installpkg
+# EOF
