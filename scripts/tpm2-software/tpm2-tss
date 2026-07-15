@@ -13,6 +13,7 @@ ConfigureOpts+=(
     --with-udevrulesdir=/lib/udev/rules.d
     --with-udevrulesprefix=60-
     --disable-doxygen-doc
+    --runstatedir=/run  # modifiable per-process data [LOCALSTATEDIR/run]
 )
 
 pkg_pre_configure() {
@@ -25,7 +26,9 @@ pkg_pre_configure() {
 }
 
 pkg_post_install() {
-    # *.pc: Version: --> $Version
-    sed -i -e 's,^Version: \+$,Version: '"$Version"',' "$LibDir2/pkgconfig"/*.pc
-    return 0
+    # # *.pc: Version: --> $Version
+    # sed -i -e 's,^Version: \+$,Version: '"$Version"',' "$LibDir2/pkgconfig"/*.pc
+
+    # del /run
+    find "$DestDir"/run -depth -type d -empty -delete
 }
