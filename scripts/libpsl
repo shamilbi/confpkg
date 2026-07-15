@@ -2,8 +2,6 @@
 
 PkgHome="https://github.com/rockdaboot/libpsl/tags"
 
-list_url="https://publicsuffix.org/list/public_suffix_list.dat"
-
 suffix_list=public_suffix_list.dat
 local_suffix_list=list/$suffix_list
 
@@ -27,10 +25,12 @@ ConfigureOpts+=(
 )
 
 pkg_pre_configure() {
-    # update $local_suffix_list
-    if [[ ! -f $local_suffix_list.tmp ]]; then
-        wget "$list_url" -O "$local_suffix_list" || return 1
-        touch "$local_suffix_list.tmp"
+    # [submodule "list"]
+    # path = list
+    # url = https://github.com/publicsuffix/list
+    local d1=list
+    if pkg_dir_empty "$d1"; then
+        git clone --depth 1 "https://github.com/publicsuffix/list" "$d1" || return 1
     fi
 }
 
@@ -40,8 +40,8 @@ pkg_post_install() {
     # usr/share/publicsuffix/public_suffix_list.dat
     pkg_install_mfd 644 "$local_suffix_list" "$dir" || return 1
 
-    # libpsl.3
-    pkg_install_mfd 644 docs/libpsl/libpsl.3 "$ManDir2"/man3
+    # # libpsl.3
+    # pkg_install_mfd 644 docs/libpsl/libpsl.3 "$ManDir2"/man3
 
     # Slackware
     # usr/share/publicsuffix/effective_tld_names.dat
