@@ -2,7 +2,7 @@
 Version=1.0
 Name=PipeWire Media System
 Comment=Start the PipeWire Media System
-Exec=/usr/bin/daemon -frB --pidfiles=~/.run --name=pipewire /usr/bin/pipewire
+Exec=/usr/bin/pipewire-start
 Terminal=false
 Type=Application
 X-GNOME-Autostart-Phase=Initialization

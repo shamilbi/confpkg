@@ -1,0 +1,36 @@
+#!/bin/sh
+# Uncomment the following line if you're worried about the pipewire
+# daemons running for the root account:
+#[ $(id -u) = 0 ] && exit 0
+# Sanity check:
+if [ ! -x /usr/bin/daemon -o ! -x /usr/bin/wireplumber -o ! -x /usr/bin/pipewire-pulse -o ! -x /usr/bin/pipewire ]; then
+  exit 0
+fi
+# Leave if pulseaudio is in use:
+grep -q '^autospawn *= *yes' /etc/pulse/client.conf && \
+ ! grep -q '^daemon-binary *=.*pipewire-start' /etc/pulse/client.conf && exit 0
+[ -x /etc/rc.d/rc.pulseaudio ] && exit 0
+# Continue only if the user has a seat
+if loginctl | grep -q " $USER \+seat" ; then
+  # Leave if pipewire is already running
+  daemon --pidfiles=~/.run --name=pipewire --running && exit 0
+  # Start pipewire:
+  daemon -rB --pidfiles=~/.run --name=pipewire /usr/bin/pipewire
+  # wait for the pipewire socket
+  timeout=100
+  while [ $timeout -gt 0 ]; do
+    [ -S "$XDG_RUNTIME_DIR"/pipewire-0 ] && break
+    sleep 0.2
+    timeout=$((timeout-1))
+  done
+  # start the other daemons
+  daemon -rB --pidfiles=~/.run --name=wireplumber /usr/bin/wireplumber
+  daemon -rB --pidfiles=~/.run --name=pipewire-pulse /usr/bin/pipewire-pulse
+  # wait for the pulse socket
+  timeout=100
+  while [ $timeout -gt 0 ]; do
+    [ -S "$XDG_RUNTIME_DIR"/pulse/native ] && break
+    sleep 0.2
+    timeout=$((timeout-1))
+  done
+fi

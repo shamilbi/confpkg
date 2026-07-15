@@ -29,7 +29,7 @@ if [ ! -x /usr/bin/pulseaudio ]; then
 fi
 
 # Remove or rename the XDG autostart files:
-for file in /etc/xdg/autostart/wireplumber.desktop /etc/xdg/autostart/pipewire-pulse.desktop /etc/xdg/autostart/pipewire.desktop ; do
+for file in /etc/xdg/autostart/pipewire.desktop ; do
   if [ -r ${file}.sample ]; then
     rm -f $file
   elif [ -r $file ]; then

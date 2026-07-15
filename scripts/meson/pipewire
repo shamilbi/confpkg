@@ -48,13 +48,18 @@ pkg_post_install() {
     # Add configuation files:
     dir=$Etc2/xdg/autostart
     pkg_install_mfd 644 "$SupportDir"/pipewire.desktop "$dir"
-    pkg_install_mfd 644 "$SupportDir"/pipewire-pulse.desktop "$dir"
+    # Don't install this, pipewire-start makes it unnecessary:
+    # pkg_install_mfd 644 "$SupportDir"/pipewire-pulse.desktop "$dir"
     dir=$Prefix2/sbin
     pkg_install_mfd 755 "$SupportDir"/pipewire-disable.sh "$dir"
     pkg_install_mfd 755 "$SupportDir"/pipewire-enable.sh "$dir"
     dir=$Etc2/profile.d
-    pkg_install_mfd 755 "$SupportDir"/pipewire.sh "$dir"
-    pkg_install_mfd 755 "$SupportDir"/pipewire.csh "$dir"
+    # Don't start pipewire on the console by default.
+    # If you want this, make the profile scripts executable.
+    pkg_install_mfd 644 "$SupportDir"/pipewire.sh "$dir"
+    pkg_install_mfd 644 "$SupportDir"/pipewire.csh "$dir"
+    # pipewire-start
+    pkg_install_mfd 755 "$SupportDir"/pipewire-start "$Prefix2"/bin
     # Add pipewire-jack libraries to the ld.so path:
     if [[ $JACK ]]; then
         dir=$Etc2/ld.so.conf.d
