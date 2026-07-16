@@ -1,5 +1,5 @@
 #!/bin/bash
 
-PkgHome="https://github.com/jesseduffield/lazygit"
+PkgHome="https://github.com/jesseduffield/lazygit/tags"
 
 GoBuild=(go build -trimpath)
