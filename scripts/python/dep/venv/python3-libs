@@ -30,7 +30,7 @@ PythonInstallLibs=(
     pkgconfig           # tpm2-pytss
     #pygments            # gnu global, textual
     calver              # setuptools: use_calver
-    pefile              # fwupd
+    # pefile              # fwupd
     platformdirs        # pdm
     tomlkit             # pdm
     #toml                # safety
