@@ -1,0 +1,13 @@
+#!/bin/bash
+
+pkg_pre_configure() {
+    local f1=$OrigSrcDir/meson.build
+    # install_dir: get_option('datadir') / 'doc/libdvdread',
+    # ->
+    # install_dir: 'usr/doc/libdvdread=$Version',
+    if pkg_create_orig "$f1"; then
+        local s1="get_option('datadir') / 'doc/libdvdread',"
+        local s2="'$DocDir',"
+        sed -i -e "s|$s1|$s2|" "$f1"
+    fi
+}
