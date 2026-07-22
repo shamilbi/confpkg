@@ -1,6 +1,9 @@
 #!/bin/bash
 
-PkgHome="https://git.kernel.org/pub/scm/utils/cryptsetup/cryptsetup.git/"
+PkgHome=(
+    "https://git.kernel.org/pub/scm/utils/cryptsetup/cryptsetup.git/"
+    "https://gitlab.com/cryptsetup/cryptsetup/-/tags"
+)
 
 ConfigureOpts+=(
     # Slackware
