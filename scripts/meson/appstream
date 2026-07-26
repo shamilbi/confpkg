@@ -34,6 +34,15 @@ pkg_pre_configure() {
     local f1=docs/meson.build
     pkg_create_orig "$f1"
     sed -i -re "s,(manpages_xsl = .*)/xsl-ns/(.*),\1/xsl/\2," "$f1"
+
+    # subdir('tests/')
+    # -> comment
+    f1=meson.build
+    for f1 in meson.build qt/meson.build; do
+        if pkg_create_orig "$f1"; then
+            sed -i -e "s,^subdir('tests/'),# \\0," "$f1"
+        fi
+    done
 }
 
 pkg_post_install() {
