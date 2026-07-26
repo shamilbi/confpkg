@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PkgHome="https://github.com/koalaman/shellcheck/tags"
+
 # written in haskell
 # shellcheck-0.11.0.linux.x86_64.tar.xz
 
