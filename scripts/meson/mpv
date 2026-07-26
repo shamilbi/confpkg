@@ -39,6 +39,12 @@ pkg_pre_configure() {
         # Slackware
         pkg_patch_f3 fix_wayland_clipboard_high_cpu_usage.patch 1 || return 1
     fi
+
+    # install_dir: join_paths(datadir, 'doc', 'mpv')
+    local f1=meson.build
+    local s1="install_dir: join_paths(datadir, 'doc', 'mpv')"
+    local s2="install_dir: '$DocDir'"
+    sed -i -e "s|$s1|$s2|" "$f1"
 }
 
 pkg_post_install() {
