@@ -6,6 +6,18 @@ ConfigureOpts+=(
     -Dupdate-mimedb=false # false, Call update-mime-database after install. It should not be enabled if DESTDIR is used
 )
 
+pkg_pre_configure() {
+    # install_dir: get_option('datadir') / 'pkgconfig'
+    # ->
+    # install_dir: '/usr/lib64/pkgconfig'
+    local f1=$OrigSrcDir/meson.build
+    if pkg_create_orig "$f1"; then
+        local s1="install_dir: get_option('datadir') / 'pkgconfig'"
+        local s2="install_dir: '$LibDir/pkgconfig'"
+        sed -i -e "s|$s1|$s2|" "$f1"
+    fi
+}
+
 pkg_pre_make() {
     # Slackware
     # Don't use fdatasync() unless you want it to take 1000x longer
