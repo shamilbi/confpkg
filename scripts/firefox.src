@@ -2,8 +2,6 @@
 
 pkg_set_prefix "/opt/$Name"
 
-UseBuildDir=1
-Configure="$OrigSrcDir/configure"
 pkg_configure_del --docdir --localedir
 ConfigureOpts+=(
     --enable-release

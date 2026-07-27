@@ -4,9 +4,6 @@ PkgHome="https://github.com/qemu/qemu/tags"
 
 # REQ: dtc (libfdt), kernel (+IO_URING)
 
-UseBuildDir=1
-Configure=$OrigSrcDir/configure
-
 pkg_configure_del --infodir --build --host
 pkg_configure_del2 shared static
 

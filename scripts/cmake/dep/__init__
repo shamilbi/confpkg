@@ -47,11 +47,19 @@ pkg_configure() {
         done
     fi
 
-    cmake "${ConfigureOpts[@]}" -S "$SrcDir" -B .
+    cmake "${ConfigureOpts[@]}" -S "$SrcDir" -B "$BuildDir"
 
     # SDL2: configure
     # unshare: unshare failed: Operation not permitted
     #unshare -n cmake "${ConfigureOpts[@]}" -S "$SrcDir" -B .
+}
+
+pkg_make() {
+    cmake --build "$BuildDir"
+}
+
+pkg_install() {
+    env "${InstallEnv[@]}" cmake --install "$BuildDir"
 }
 
 pkg_add_cflags() {

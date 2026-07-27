@@ -614,22 +614,8 @@ pkg_cp_d() {
 }
 
 pkg_cd_srcdir() {
-    local dir
-    if [[ $UseBuildDir ]]; then
-        dir=$BuildDir
-        if [[ ! -d $dir ]]; then
-            mkdir -p "$dir" || return 1
-        fi
-    else
-        dir=$SrcDir
-    fi
-
-    cd "$dir"
-}
-
-pkg_cd_makedir() {
-    # i3status: configure, cd *-linux*; make
-    pkg_cd_srcdir
+    cd "$SrcDir" || return 1
+    [[ $UseBuildDir && $BuildDir ]] && mkdir -p "$BuildDir"
 }
 
 pkg_pre_configure() {

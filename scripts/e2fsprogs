@@ -1,9 +1,8 @@
 #!/bin/bash
 
-# libuuid,libblkid - in util-linux
+PkgHome="https://github.com/tytso/e2fsprogs/tags"
 
-UseBuildDir=1
-Configure=$OrigSrcDir/configure
+# libuuid,libblkid - in util-linux
 
 ConfigureOpts+=(
     # Slackware

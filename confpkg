@@ -57,7 +57,7 @@ pkg_make_() {
     fi
 
     (
-        pkg_cd_makedir || exit 1
+        pkg_cd_srcdir || exit 1
         echo "make $FullName ..."
         {
             echo "----------- pre make ---------------"
@@ -87,7 +87,7 @@ pkg_install_() {
 
     echo "install $FullName ..."
     (
-        pkg_cd_makedir || exit 1
+        pkg_cd_srcdir || exit 1
         {
             echo "----------- pre install ---------------"
             pkg_pre_install || exit 1
@@ -615,9 +615,6 @@ pkg_installpkg_() {
             if [[ -d $DestDir ]]; then
                 rm -rf "$DestDir"
             fi
-            if [[ -d $BuildDir ]]; then
-                rm -rf "$BuildDir"
-            fi
         fi
     fi
     return 0
@@ -628,17 +625,13 @@ pkg_clean_() {
         return 0
     fi
     echo "clean $FullName ..."
-    if [[ $UseBuildDir ]]; then
-        if [[ -d $BuildDir ]]; then
-            cd "$OrigSrcDir" || return 1
-            rm -rf "$BuildDir" || return 1
-        fi
-        return 0
-    fi
     (
         pkg_cd_srcdir || exit 1
-        pkg_distclean &>>"$Log"
-    )
+        if [[ $UseBuildDir && $BuildDir ]]; then
+            rm -rf "$BuildDir" && exit 0 || exit 1
+        fi
+        pkg_distclean
+    ) &>>"$Log"
 }
 
 pkg_exit1_() {
@@ -1016,7 +1009,8 @@ main() {
     SrcDir=$OrigSrcDir
     # may be changed, e.g. samba-.../source
 
-    BuildDir=$OrigSrcDir-BUILD
+    BuildDir=_build
+
     pkg_set_destdir_ "$OrigSrcDir-INSTALL"
 
     case $cmd in

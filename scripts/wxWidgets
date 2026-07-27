@@ -2,9 +2,6 @@
 
 PkgHome="https://github.com/wxWidgets/wxWidgets/tags"
 
-UseBuildDir=1
-Configure=$OrigSrcDir/configure
-
 pkg_configure_del2 static
 
 ConfigureOpts+=(
@@ -70,10 +67,6 @@ pkg_make() {
             "${Make[@]}" -C $i "$@" || return 1
         fi
     done
-}
-
-pkg_install() {
-    pkg_make "${InstallEnv[@]}" install
 }
 
 pkg_post_install() {
