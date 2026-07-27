@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PkgHome="https://www.jwz.org/xscreensaver/"
+
 pkg_configure_del2 shared static
 
 ConfigureOpts+=(
