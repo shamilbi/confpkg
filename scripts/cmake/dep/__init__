@@ -9,6 +9,7 @@ pkg_del_cflags '-std=gnu17'
 ConfigureOpts=(
     -DCMAKE_BUILD_TYPE=Release
     -DBUILD_SHARED_LIBS=ON
+    -DBUILD_STATIC_LIBS=OFF
     -DCMAKE_C_FLAGS="$CFLAGS"
     -DCMAKE_CXX_FLAGS="$CFLAGS"
 
