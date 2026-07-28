@@ -615,7 +615,9 @@ pkg_cp_d() {
 
 pkg_cd_srcdir() {
     cd "$SrcDir" || return 1
-    [[ $UseBuildDir && $BuildDir ]] && mkdir -p "$BuildDir"
+    if [[ $UseBuildDir && $BuildDir ]]; then
+        mkdir -p "$BuildDir"
+    fi
 }
 
 pkg_pre_configure() {
