@@ -1,12 +1,23 @@
 #!/bin/bash
 
-PkgHome="https://download.samba.org/pub/?C=M;O=D"
+PkgHome="https://download.samba.org/pub/${Name,,}/?C=M;O=D"
 
 BuildSteps=("${BuildForPython[@]}")
 [[ $BuildStep ]] && pkg_set_python "$BuildStep"
 
 # Make sure we get stable hashes
 export PYTHONHASHSEED=1
+
+ConfigureOpts+=(
+    # Slackware
+    --sysconfdir=/etc
+    --infodir=/usr/info
+    --disable-rpath
+    --disable-rpath-install
+    # --bundled-libraries=NONE
+    --builtin-libraries=replace
+    --disable-silent-rules
+)
 
 pkg_post_install() {
     pkg_python_compileall "$DestDir"
