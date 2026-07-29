@@ -1,0 +1,45 @@
+#!/bin/bash
+
+PkgHome="https://ftp.mozilla.org/pub/nspr/releases/"
+
+ConfigureOpts+=(
+    --includedir=/usr/include/nspr
+    --with-mozilla # Compile NSPR with Mozilla support
+    --enable-debug=no # Enable debugging (using compiler flags DBG)
+    --enable-optimize # Enable code optimizations (ie. -O2)
+    --with-pthreads # Use system pthreads library as thread subsystem
+)
+if [[ $Arch = "x86_64" ]]; then
+    ConfigureOpts+=(
+        --enable-64bit # Enable 64-bit support (on certain platforms)
+    )
+fi
+
+unset -v pkg_check
+
+pkg_pre_configure() {
+    (
+        cd pr/src/misc || exit 1
+        # RELEASE_BINS = $(srcdir)/compile-et.pl $(srcdir)/prerr.properties
+        # This sed disables installing two unneeded scripts
+        f=Makefile.in
+        if pkg_create_orig "$f"; then
+            sed -i -re 's,^(RELEASE_BINS *=).*,\1,' "$f"
+        fi
+    ) || return 1
+
+    (
+        cd config || exit 1
+        # -static *.a
+        f=rules.mk
+        if pkg_create_orig "$f"; then
+            sed -i -e 's,$(LIBRARY) ,,' "$f"
+        fi
+    )
+}
+
+pkg_post_install() {
+    # link: nspr.pc -> mozilla-nspr.pc
+    local dir=$LibDir2/pkgconfig
+    ln -sfnr "$dir"/nspr.pc "$dir"/mozilla-nspr.pc
+}
