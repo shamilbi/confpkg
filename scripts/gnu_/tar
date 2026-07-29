@@ -1,0 +1,52 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    # Slackware
+    --enable-backup-scripts
+
+    --bindir=/bin
+)
+
+pkg_pre_configure() {
+    # Slackware
+    pkg_patch_f3 0001-Avoid-acl_-prefix-for-functions.patch 1 || return 1
+    # The "A lone zero block at %s" messages also cause problems:
+    pkg_patch_f3 tar.nolonezero.diff.gz 1 || return 1
+
+    # fakeroot
+    # configure: error: you should not run configure as root
+    #   (set FORCE_UNSAFE_CONFIGURE=1 in environment to bypass this check)
+    export FORCE_UNSAFE_CONFIGURE=1
+
+    if (($(pkg_cmp_versions "$Version" "1.35") == -1)); then
+        # Patch for CVE-2022-48303:
+        pkg_patch_f3 CVE-2022-48303.patch.gz 1 || return 1
+    fi
+}
+
+pkg_post_install() {
+    local file dir
+
+    # tar -> tar-1.35 -> tar
+    file=$DestDir/bin/tar
+    mv "$file" "$file-$Version"
+    ln -sfnr "$file-$Version" "$file"
+    ls -d "$file" | pkg_ln_d "$Prefix2/bin"
+
+    dir=$DocDir2
+    pkg_cp_fd scripts "$dir"
+    pkg_cp_fd [A-Z]* "$dir"
+    gzip -9 "$dir"/ChangeLog
+
+    find "$dir" -type f -name '*.in' -delete
+    find "$dir" -type f -name '*.am' -delete
+    find "$dir" -type f -name '*.1' -delete
+    find "$dir" -type f -name '*.tmp' -delete
+    find "$dir" -type f -name 'Make*' -delete
+
+    # Slackware
+    # Support "historic" rmt locations:
+    file=$Prefix2/libexec/rmt
+    ls -d "$file" | pkg_ln_d "$Etc2"
+    ls -d "$file" | pkg_ln_d "$DestDir/sbin"
+}
