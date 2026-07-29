@@ -1,0 +1,5 @@
+#!/bin/bash
+
+PkgHome="https://github.com/doug-gilbert/sg3_utils/tags"
+
+ConfigureOpts+=(--enable-static)
