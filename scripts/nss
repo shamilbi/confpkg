@@ -1,0 +1,118 @@
+#!/bin/bash
+
+# NOTE: patch nss-*-standalone-*.patch
+# https://www.linuxfromscratch.org/patches/blfs/svn/
+
+PkgHome="https://ftp.mozilla.org/pub/security/nss/releases/"
+
+unset -v pkg_configure pkg_check
+
+MakeEnv=(
+    BUILD_OPT=1
+    NSPR_INCLUDE_DIR="$IncludeDir"/nspr
+    USE_SYSTEM_ZLIB=1
+    ZLIB_LIBS=-lz
+    NSS_ENABLE_WERROR=0
+    NSS_DISABLE_GTESTS=1
+    NSS_DISABLE_NSPR_TESTS=1
+)
+[[ $Arch = "x86_64" ]] && MakeEnv+=(USE_64=1)
+[[ -f $IncludeDir/sqlite3.h ]] && MakeEnv+=(NSS_USE_SYSTEM_SQLITE=1)
+
+Make=(make -j1)
+
+pkg_pre_make() {
+    # https://www.linuxfromscratch.org/patches/blfs/svn/
+    pkg_patch_f3 nss-standalone-1.patch 2 || return 1
+
+    # utf-8 cyrillic
+    # https://habr.com/ru/post/406037/
+    # -if (SECU_GetWrapEnabled() && column > 76) {
+    # +if (SECU_GetWrapEnabled() && column > 76 && (val <= 0x7F || val == 0xD0 || val == 0xD1)) {
+    local f1=cmd/lib/secutil.c
+    if pkg_create_orig "$f1"; then
+        local s1='if (SECU_GetWrapEnabled() && column > 76) {'
+        local s2='if (SECU_GetWrapEnabled() \&\& column > 76 \&\& (val <= 0x7F || val == 0xD0 || val == 0xD1)) {'
+        sed -i -e "s/$s1/$s2/" "$f1"
+    fi
+
+    # # > oidcalc 1.2.643.3.6.0.1
+    # # 0x2a, 0x85, 0x3, 0x3 0x3, 0x6, 0x1,
+    # # https://habr.com/ru/post/398783/
+    # # https://stackoverflow.com/questions/68668088/are-0s-allowed-in-oid-arcs
+    # pkg_patch_f3 oidcalc-2.patch 1 || return 1
+}
+
+pkg_install() {
+    (
+        cd ../dist/$(uname -s)*OPT* || exit 1
+        (
+            cd bin || exit 1
+            opt=(
+                # Slackware
+                certutil cmsutil crlutil modutil pk12util shlibsign signtool signver ssltap
+
+                #pp  # pretty print
+                #oidcalc
+            )
+            pkg_cp_fd -L "${opt[@]}" "$Prefix2/bin"
+        ) || exit 1
+
+        # Slackware
+        pkg_cp_fd -L lib/* "$LibDir2"
+        chmod 755 "$LibDir2"/*.so*
+        #
+        rm -f "$LibDir2"/*.a
+        # We require a few static libraries. Why? I don't remember.
+        # pkg_cp_fd lib/lib{crmf,nssb,nssckfw}.a "$LibDir2"
+        install -pm 644 lib/lib{nssb,nssckfw}.a "$LibDir2"
+        #
+        pkg_cp_fd -L ../public/nss/*.h "$IncludeDir2/nss"
+    )|| return 1
+
+    # smime
+    (
+        cd cmd/smimetools || exit 1
+
+        # Slackware
+        sed -i -e 's,/usr/local/bin,/usr/bin,' smime
+        install -m 0755 smime "$Prefix2"/bin
+    ) || return 1
+
+    # nss-config
+    (
+        cd "$Prefix2"/bin || exit 1
+
+        # Slackware
+        install -pm 755 "$SupportDir"/nss-config.in nss-config
+        sed -i -e 's,@prefix@,'"$Prefix"',g' \
+            -e 's,@MOD_MAJOR_VERSION@,'"${VersionArr[0]}"',g' \
+            -e 's,@MOD_MINOR_VERSION@,'"${VersionArr[1]}"',g' \
+            -e 's,@MOD_PATCH_VERSION@,'"${VersionArr[2]}"',g' \
+            nss-config
+    ) || return 1
+
+    # Slackware
+    # Provide pkg-config files:
+    pkg_install_mff 644 "$LibDir2"/pkgconfig/mozilla-nss.pc <<EOF
+prefix=$Prefix
+exec_prefix=\${prefix}
+libdir=$LibDir
+includedir=\${prefix}/include/nss
+
+Name: NSS
+Description: Network Security Services
+Version: $Version
+Requires: nspr sqlite3
+Libs: -L\${libdir} -lnss3 -lsmime3 -lssl3 -lsoftokn3  -lnssutil3
+Cflags: -I\${includedir}
+EOF
+    ln -sfn mozilla-nss.pc "$LibDir2"/pkgconfig/nss.pc
+}
+
+pkg_distclean() {
+    "${Make[@]}" clean
+    if [[ -d ../dist ]]; then
+        rm -rf ../dist
+    fi
+}

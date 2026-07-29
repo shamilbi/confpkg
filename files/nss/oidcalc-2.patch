@@ -1,0 +1,11 @@
+--- a/cmd/oidcalc/oidcalc.c.orig	2022-01-06 18:38:58.000000000 +0700
++++ b/cmd/oidcalc/oidcalc.c	2022-01-08 19:41:25.728766191 +0700
+@@ -72,6 +72,8 @@
+             val = val >> 7;
+             count++;
+         }
++        if (count == 0)
++            buf[count++] = 0x00;    // curstr == '0'?
+ 
+         while (count--) {
+             if (count) {
