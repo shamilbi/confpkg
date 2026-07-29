@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PkgHome="https://code.videolan.org/videolan/${Name,,}"
+
 pkg_post_install() {
     # del *.a
     find "$LibDir2" -type f -name '*.a' -delete
