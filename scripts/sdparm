@@ -1,0 +1,7 @@
+#!/bin/bash
+
+PkgHome="https://github.com/doug-gilbert/sdparm/tags"
+
+ConfigureOpts+=(
+   --bindir="$Prefix/sbin"
+)
