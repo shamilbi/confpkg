@@ -34,7 +34,11 @@ else
 fi
 if [[ $JACK ]]; then
     # Slackware
-    ConfigureOpts+=(-Dpipewire-jack=enabled -Djack-devel=true)
+    ConfigureOpts+=(
+        -Dpipewire-jack=enabled
+        -Djack-devel=true
+        -Dlibjack-path="$LibDir"
+    )
 else
     ConfigureOpts+=(-Djack=disabled -Dpipewire-jack=disabled)
 fi
@@ -60,13 +64,11 @@ pkg_post_install() {
     pkg_install_mfd 644 "$SupportDir"/pipewire.csh "$dir"
     # pipewire-start
     pkg_install_mfd 755 "$SupportDir"/pipewire-start "$Prefix2"/bin
-    # Add pipewire-jack libraries to the ld.so path:
-    if [[ $JACK ]]; then
-        dir=$Etc2/ld.so.conf.d
-        pkg_install_mfd 644 "$SupportDir"/pipewire-jack-$LibName.conf "$dir"
-    fi
-
-    # rm -f "$Etc2/xdg/autostart"/*media-session*
+    # # Add pipewire-jack libraries to the ld.so path:
+    # if [[ $JACK ]]; then
+    #     dir=$Etc2/ld.so.conf.d
+    #     pkg_install_mfd 644 "$SupportDir"/pipewire-jack-$LibName.conf "$dir"
+    # fi
 }
 
 pkg_read2var pkg_post_installpkg <<EOF
