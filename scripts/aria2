@@ -1,0 +1,33 @@
+#!/bin/bash
+
+PkgHome="https://github.com/aria2/aria2/tags"
+
+ConfigureOpts+=(
+    --enable-bittorrent
+    --enable-metalink
+    --enable-epoll
+    --disable-xmltest
+    --with-sqlite3
+    --with-libxml2
+    --without-gnutls
+    --with-libuv
+)
+pkg_check=
+
+pkg_pre_make() {
+    # Entering directory '/usr/src/aria2-20251124/po'
+    # *** No rule to make target '/config.status', needed by 'Makefile'.  Stop.
+    # SUBDIRS = po lib deps src doc test
+    # ->
+    # SUBDIRS = lib deps src doc test
+    local f1=Makefile
+    sed -i -r -e 's,^(SUBDIRS =) po (.*),\1 \2,' "$f1"
+}
+
+pkg_post_install() {
+    local f=doc/bash_completion/aria2c
+    pkg_install_mfd 644 "$f" "$ShareDir2/bash-completion/completions"
+
+    rm -rf "$DocDir2"/bash_completion
+    rm -f "$DocDir2"/ChangeLog.old
+}
