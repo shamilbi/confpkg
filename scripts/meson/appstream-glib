@@ -1,0 +1,7 @@
+#!/bin/bash
+
+PkgHome="https://github.com/hughsie/appstream-glib/tags"
+
+pkg_post_install() {
+    find "$ShareDir2" -type f -exec chmod 644 {} \;
+}
