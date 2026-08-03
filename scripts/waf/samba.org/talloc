@@ -1,5 +1,9 @@
 #!/bin/bash
 
+PkgHome+=(
+    "$SlackwareMirrorUrl/l/talloc/?C=M&O=D"
+)
+
 ConfigureOpts+=(
     # Slackware
     --bundled-libraries=NONE
