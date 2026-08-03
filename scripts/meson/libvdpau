@@ -1,0 +1,12 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://gitlab.freedesktop.org/vdpau/libvdpau/-/tags"
+    "https://packages.debian.org/trixie/libvdpau-dev"
+)
+
+pkg_post_install() {
+    # Slackware
+    pkg_install_mfd 755 "$SupportDir"/vdpau.sh "$Etc2"/profile.d
+    pkg_install_mfd 755 "$SupportDir"/vdpau.csh "$Etc2"/profile.d
+}
