@@ -1037,6 +1037,7 @@ main() {
 
     FilesDir=$Home/files
     SupportDir=$FilesDir/$Name
+    [[ ! -d $SupportDir ]] && SupportDir=$FilesDir/${Name,,} # FFMpeg -> ffmpeg
 
     pkg_find_script2_
 
