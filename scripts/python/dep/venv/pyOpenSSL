@@ -5,6 +5,7 @@ PythonInstallLibs0=(
 )
 
 PythonInstallLibs=(
+    cffi
     cryptography
     argon2-cffi
     pycryptodomex
