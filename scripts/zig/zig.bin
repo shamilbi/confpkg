@@ -1,6 +1,9 @@
 #!/bin/bash
 
-PkgHome="https://ziglang.org/download/"
+PkgHome=(
+    "https://ziglang.org/download/"
+    "https://codeberg.org/ziglang/zig/tags"
+)
 
 unset pkg_configure pkg_make
 
