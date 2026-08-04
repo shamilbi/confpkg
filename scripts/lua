@@ -3,6 +3,7 @@
 PkgHome=(
     "https://www.lua.org/download.html"
     "$SlackwareMirrorUrl/d/lua/?C=M&O=D"
+    "https://github.com/lua/lua/tags"
 )
 
 # lua-5.5.0:
