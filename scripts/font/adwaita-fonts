@@ -1,0 +1,22 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://download.gnome.org/sources/adwaita-fonts/"
+    "https://gitlab.gnome.org/GNOME/adwaita-fonts/-/tags"
+)
+
+DOC=1
+
+pkg_install() {
+    # Slackware
+    pkg_install_mfd 644 {sans,mono}/*.ttf "$FontsDir2"/TTF
+    # Add optional config files for making the Adwaita fonts system default:
+    local confs=(
+        58-adwaita-mono-default-monospace.conf
+        59-adwaita-sans-default-sans.conf
+    )
+    local i dir=$ShareDir2/fontconfig/conf.avail
+    for i in "${confs[@]}"; do
+        pkg_install_mfd 644 "$SupportDir/$i" "$dir" || return 1
+    done
+}
