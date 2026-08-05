@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PkgHome="https://github.com/Beep6581/RawTherapee"
+PkgHome="https://github.com/RawTherapee/RawTherapee/tags"
 
 # REQ: libiptcdata
 
