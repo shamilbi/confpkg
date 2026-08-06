@@ -14,3 +14,17 @@ pkg_pre_configure() {
         fi
     done
 }
+
+pkg_pre_make() {
+    # libostree-2026.3:
+    # ./libglnx/glnx-missing-syscall.h:673:6: error: ‘HAVE_DECL_NAME_TO_HANDLE_AT’ is not defined, evaluates to ‘0’ [-Werror=undef]
+    #   673 | #if !HAVE_DECL_NAME_TO_HANDLE_AT && defined(__NR_name_to_handle_at)
+    #       |      ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+    # ./libglnx/glnx-missing-syscall.h:674:8: error: redefinition of ‘struct file_handle’
+    # ->
+    # #define HAVE_DECL_NAME_TO_HANDLE_AT 1
+    local s1="HAVE_DECL_NAME_TO_HANDLE_AT"
+    if ! grep -F -q -m1 -e "$s1" config.h; then
+        echo "#define $s1 1" >>config.h
+    fi
+}
