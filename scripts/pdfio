@@ -1,0 +1,15 @@
+#!/bin/bash
+
+PkgHome="https://github.com/michaelrsweet/pdfio/tags"
+
+pkg_pre_make() {
+    # $(datadir)/doc/pdfio
+    # ->
+    # $DocDir
+    local s1='\$(datadir)/doc/pdfio'
+    sed -i -e "s|$s1|$DocDir|" Makefile
+}
+
+pkg_post_install() {
+    rm -rf "$DocDir2"/examples
+}
