@@ -1,0 +1,40 @@
+#!/bin/bash
+
+PkgHome="https://github.com/ktgw0316/LightZone/tags"
+
+# REQ: .git/
+
+unset -v pkg_configure
+
+name=${Name,,}
+
+pkg_make() {
+    local f1
+
+    # ".lzncache" );
+    # ->
+    # ".cache/lightzone" );
+    f1=lightcrafts/src/main/java/com/lightcrafts/utils/filecache/PerUserFileCacheKeyMapper.java
+    sed -i -e 's,".lzncache" );,".cache/lightzone" );,' "$f1"
+
+    # final Path logDir = Path.of(userHome, ".lightzone", "logs");
+    # ->
+    # final Path logDir = Path.of(userHome, ".local", "share", "LightZone");
+    f1=lightcrafts/src/main/java/com/lightcrafts/platform/Launcher.java
+    sed -i -e 's|".lightzone", "logs");|".local", "share", "LightZone");|' "$f1"
+
+    # Slackware
+    # ./gradlew jpackageImage -x test
+    ./gradlew -g "$HOME/.gradle" jpackageImage -x test
+}
+
+pkg_install() {
+    # Slackware
+    install -Dt "$LibDir2/$name" lightcrafts/build/resources/main/native/*.so
+    install -Dt "$ShareDir2/java/$name" lightcrafts/build/resources/main/native/dcraw_lz
+    install -t  "$ShareDir2/java/$name" linux/build/jpackage/$name/lib/app/*.jar -m644
+    install -Dt "$ShareDir2"/applications "linux/products/$name.desktop" -m644
+    install -Dt "$ShareDir2"/metainfo linux/products/io.github.ktgw0316.LightZone.metainfo.xml -m644
+    pkg_cp_fd linux/icons "$ShareDir2"
+    install -Dt "$Prefix2"/bin "linux/products/$name"
+}
