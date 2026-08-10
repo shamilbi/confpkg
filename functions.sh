@@ -575,9 +575,9 @@ pkg_cp_fd() {
 }
 
 pkg_cp_dd() {
-    # pkg_cp_dd [cp options] dir1 dir2 [cp options]
-    # pkg_cp_dd doc dir2
-    # cd dir1 && cp -a . dir2
+    # pkg_cp_dd dir1 dir2 [cp options]
+    # cd dir1 && cp -a [cp options] . dir2
+    # pkg_cp_dd dir1 dir2 -l
 
     local dir1=$1
     local dir2=$2
@@ -597,7 +597,7 @@ pkg_cp_dd() {
     dir2=$(readlink -f "$dir2")
     (
         cd "$dir1" || exit 1
-        cp -a . "$@" "$dir2"
+        cp -a "$@" . "$dir2"
     )
 }
 
