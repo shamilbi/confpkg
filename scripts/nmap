@@ -16,12 +16,17 @@ ConfigureOpts+=(
         # --without-nmap-update is needed below to avoid depending on apr and subversion libraries.
         # It's not worth the feature IMHO.
 
-    # non-Slackware
     --enable-static
+        # Compiling nping
         # /usr/bin/ld: cannot find ./libdnet-stripped/src/.libs/libdnet.a: No such file or directory
     --without-zenmap # Skip installation of the Zenmap graphical frontend
-        # pkg_post_install
+        # install in pkg_post_install
 )
+
+MakeEnv=(
+    LIBPCAP_LIBS=-lpcap
+)
+InstallEnv+=("${MakeEnv[@]}")
 
 pkg_pre_configure() {
     # Slackware
