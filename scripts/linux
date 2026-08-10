@@ -35,8 +35,12 @@ check_env() {
     fi
 
     if [[ $check_rust ]]; then
+        # Slackware
+        # export RUST_LIB_SRC="/usr/lib%LIBDIRSUFFIX%/rustlib/src/rust/library"
         check_command rustc || return 1
-        local rustlib=../rustc-$(rustc --version | cut -d' ' -f2)/library
+        local rustlib
+        # rustlib=../rustc-$(rustc --version | cut -d' ' -f2)/library
+        rustlib=$LibDir/rustlib/src/rust/library
         if [[ ! -d $rustlib ]]; then
             echo "dir not found: $rustlib"
             return 1
