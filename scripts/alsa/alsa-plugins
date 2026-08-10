@@ -1,9 +1,20 @@
 #!/bin/bash
 
 ConfigureOpts+=(
+    # Slackware
     --with-speex=lib
     --enable-maemo-plugin
 )
 [[ ! $PULSE ]] && ConfigureOpts+=(--disable-pulseaudio)
 [[ ! $JACK ]] && ConfigureOpts+=(--disable-jack)
-:
+
+pkg_pre_configure() {
+    # Slackware
+    pkg_patch_f3 ffmpeg9.patch 1 || return 1
+}
+
+pkg_post_install() {
+    # Slackware
+    # Remove symlink that's breaking audio:
+    rm -f "$Etc2"/alsa/conf.d/98-maemo.conf
+}
