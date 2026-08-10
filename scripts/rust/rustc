@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# It will be installed as a rust library for kernel+rust
+
+# Slackware
+# export RUST_LIB_SRC="/usr/lib%LIBDIRSUFFIX%/rustlib/src/rust/library"
+
+unset -v pkg_configure pkg_make
+
+pkg_install() {
+    pkg_cp_fd -l library "$LibDir2"/rustlib/src/rust
+}
