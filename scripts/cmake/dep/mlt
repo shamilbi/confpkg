@@ -1,27 +1,34 @@
 #!/bin/bash
 
-PkgHome="https://github.com/mltframework/mlt"
+PkgHome="https://github.com/mltframework/mlt/tags"
 
 BuildSteps=("${BuildForPython[@]}")
 [[ $BuildStep ]] && pkg_set_python "$BuildStep"
 
 ConfigureOpts+=(
-    #Slackware
-    -DMOD_QT=ON
+    # Slackware
+    # -DMOD_QT=ON
     -DMOD_QT6=ON
+    -DMOD_OPENCV=ON
+    -DSWIG_PYTHON=ON
     -DMOD_JACKRACK=OFF
     -DMOD_RUBBERBAND=OFF
-    -DMOD_GLXANIMATE=ON
-    -DMOD_GLXANIMATE_QT6=ON
-
-    -DSWIG_PYTHON=ON
+    # The Glaxnimate source ships embedded in the official MLT release tarball
+    # (https://github.com/mltframework/mlt/releases). No separate fetch or
+    # submodule handling is needed -- the upstream tree under
+    # src/modules/glaxnimate/glaxnimate/ is already the exact version MLT expects.
+    -DMOD_GLAXNIMATE_QT6=ON
+    -DQT_VERSION_MAJOR=6
 )
 
 pkg_pre_configure() {
-    local f1=$OrigSrcDir/CMakeLists.txt
+    # Slackware
+    pkg_patch_f3 ffmpeg-9.patch 1 || return 1
+
     # find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
     # ->
     # find_package(Python3 "3.12...3.12.13" REQUIRED COMPONENTS Interpreter Development)
+    local f1=$OrigSrcDir/CMakeLists.txt
     pkg_create_orig "$f1"
     local s1='(find_package\(Python3).* (REQUIRED.*)'
     local s2='\1 "'"$PythonV12...$PythonV123"'" \2'
