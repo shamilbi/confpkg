@@ -1,6 +1,8 @@
 #!/bin/bash
 
-PkgHome="https://slackware.osuosl.org/slackware64-current/slackware64/d/"
+PkgHome+=(
+    "https://slackware.osuosl.org/slackware64-current/slackware64/d/"
+)
 
 unset pkg_configure pkg_make
 

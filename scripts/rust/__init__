@@ -1,0 +1,6 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://forge.rust-lang.org/infra/other-installation-methods.html#standalone"
+        # rust-1.74.0-x86_64-unknown-linux-gnu.*
+)
