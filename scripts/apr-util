@@ -1,0 +1,29 @@
+#!/bin/bash
+
+PkgHome="https://apr.apache.org/download.cgi"
+
+ConfigureOpts+=(
+    # Slackware
+    --with-apr="$Prefix"
+    #--with-dbm=db44
+    --with-berkeley-db="$Prefix"
+    --with-mysql="$Prefix"
+    --disable-util-dso
+    --without-gdbm
+    --with-ldap
+    --without-sqlite2
+
+    --includedir="$IncludeDir/apr-${VersionArr[0]}"
+    --with-dbm=db48
+    --with-crypto
+)
+
+[[ ! $POSTGRESQL ]] && ConfigureOpts+=(--with-pgsql=no) # specify PostgreSQL location
+
+pkg_check=
+
+pkg_pre_configure() {
+    # Slackware
+    # GCC 14 "fix":
+    pkg_add_cflags "-Wno-error=implicit-int"
+}
