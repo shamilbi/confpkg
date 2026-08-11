@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PkgHome="https://github.com/i3/i3"
+PkgHome="https://github.com/i3/i3/tags"
 
 ConfigureOpts+=(
     -Dmans=true
