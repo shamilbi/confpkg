@@ -1,20 +1,49 @@
 #!/bin/sh
 
-userresources=$HOME/.Xresources
-usermodmap=$HOME/.Xmodmap
-sysresources=/etc/X11/xinit/.Xresources
-sysmodmap=/etc/X11/xinit/.Xmodmap
+prefix="/usr"
+exec_prefix="${prefix}"
+xrdb="xrdb"
+xinitdir="/etc/X11/xinit"
+xmodmap="xmodmap"
 
-# Merge in defaults and keymaps
-[ -f $sysresources ] && /usr/bin/xrdb -merge $sysresources
-[ -f $sysmodmap ] && /usr/bin/xmodmap $sysmodmap
-[ -f $userresources ] && /usr/bin/xrdb -merge $userresources
-[ -f $usermodmap ] && /usr/bin/xmodmap $usermodmap
+userresources="$HOME/.Xresources"
+usermodmap="$HOME/.Xmodmap"
+sysresources="$xinitdir/.Xresources"
+sysmodmap="$xinitdir/.Xmodmap"
 
-# Start i3
-if [ -z "$DESKTOP_SESSION" -a -x /usr/bin/ck-launch-session ]; then
-    exec ck-launch-session dbus-launch --exit-with-session /usr/bin/i3
-else
-    exec /usr/bin/i3
+# merge in defaults and keymaps
+
+if [ -f "$sysresources" ]; then
+    if [ -x /usr/bin/cpp ] ; then
+        "$xrdb" -merge "$sysresources"
+    else
+        "$xrdb" -nocpp -merge "$sysresources"
+    fi
 fi
 
+if [ -f "$sysmodmap" ]; then
+    "$xmodmap" "$sysmodmap"
+fi
+
+if [ -f "$userresources" ]; then
+    if [ -x /usr/bin/cpp ] ; then
+        "$xrdb" -merge "$userresources"
+    else
+        "$xrdb" -nocpp -merge "$userresources"
+    fi
+fi
+
+if [ -f "$usermodmap" ]; then
+    "$xmodmap" "$usermodmap"
+fi
+
+# start some nice programs
+
+if [ -d "$xinitdir"/xinitrc.d ] ; then
+	for f in "$xinitdir/xinitrc.d"/?*.sh ; do
+		[ -x "$f" ] && . "$f"
+	done
+	unset f
+fi
+
+exec /usr/bin/i3
