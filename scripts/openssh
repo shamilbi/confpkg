@@ -40,7 +40,9 @@ pkg_pre_configure() {
     # sshd_config: #UsePAM no --> UsePAM yes
     sed -i -e 's,#UsePAM no,UsePAM yes,' sshd_config
     # Fix unrecognized config options:
-    pkg_patch_f3 0001-fix-GSSAPI-option-names.patch 1 || return 1
+    if (($(pkg_cmp_versions "$Version" "10.5p1") < 0)); then
+        pkg_patch_f3 0001-fix-GSSAPI-option-names.patch 1 || return 1
+    fi
 
     pkg_autoreconf
 }
