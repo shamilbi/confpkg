@@ -713,8 +713,9 @@ pkg_cmp_versions() {
     local ver1=$1 ver2=$2 # 5.0.1, 6.1
 
     # ncurses-6.5_20250809-x86_64-1
-    IFS=".-_" read -r -a ver1 <<<"$ver1" # [5, 0, 1]
-    IFS=".-_" read -r -a ver2 <<<"$ver2" # [6, 1]
+    IFS=".-_p" read -r -a ver1 <<<"$ver1" # [5, 0, 1]
+    IFS=".-_p" read -r -a ver2 <<<"$ver2" # [6, 1]
+        # p: openssh-10.4p1
 
     local max
     if ((${#ver1[*]} < ${#ver2[*]})); then
