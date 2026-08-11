@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PkgHome="https://github.com/davatorium/rofi"
+PkgHome="https://github.com/davatorium/rofi/tags"
 
 pkg_pre_configure() {
     #[submodule "libgwater"]
