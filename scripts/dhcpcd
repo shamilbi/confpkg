@@ -1,0 +1,34 @@
+#!/bin/bash
+
+PkgHome="https://github.com/NetworkConfiguration/dhcpcd/tags"
+
+ConfigureOpts+=(
+    # Slackware
+    --sbindir=/sbin
+    --dbdir=/var/lib/dhcpcd
+    # Yes, /lib/dhcpcd is correct, even on x86_64.
+    --libexecdir=/lib/dhcpcd
+    --rundir=/run
+    # By default, Slackware builds dhcpcd with privilege separation, which improves
+    # security by ensuring that any security vulnerabilies such as buffer overflows
+    # or shell metacharacter insertion would gain access to an unprivileged user
+    # (the dhcpcd user) rather than the root user.
+    --enable-privsep
+    --privsepuser=dhcpcd
+)
+InstallEnv+=(
+    # Slackware
+    HOOKSCRIPTS="50-ntp.conf 50-yp.conf"
+)
+
+pkg_pre_configure() {
+    # Slackware
+    pkg_patch_f3 dhcpcd.conf-Don-t-invoke-wpa_supplicant-by-default.patch 1 || return 1
+    pkg_patch_f3 use-hostname_short-in-dhcpcd.conf.patch 1 || return 1
+    pkg_patch_f3 dhcpcd.conf-request_ntp_server_by_default.patch 1 || return 1
+    pkg_patch_f3 0406dd87753049f54b9beb7ab66f333a1d2709d2.patch 1 || return 1
+    # At this point, it should be safe to assume that /var will be mounted by the
+    # time dhcpcd is called, as all non-root local filesystems are mounted from
+    # /etc/rc.d/rc.S, and /var should not be on a network filesystem.  As such,
+    # we'll use the FHS layout instead of putting things in /etc/dhcpc 
+}

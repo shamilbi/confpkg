@@ -1,0 +1,133 @@
+From 0406dd87753049f54b9beb7ab66f333a1d2709d2 Mon Sep 17 00:00:00 2001
+From: Roy Marples <roy@marples.name>
+Date: Tue, 11 Aug 2026 16:05:14 +0100
+Subject: [PATCH] DHCP: Only send the rapid commit option when configured to
+
+Fixes #692. Thanks to Ioannis Anagnostakis for the diagnosis.
+---
+ src/dhcp-common.c | 14 +++++++++++++-
+ src/dhcp-common.h |  3 ++-
+ src/dhcp.c        |  9 ++++-----
+ src/dhcp6.c       |  8 ++++----
+ 4 files changed, 23 insertions(+), 11 deletions(-)
+
+diff --git a/src/dhcp-common.c b/src/dhcp-common.c
+index 97e80635..11c269e2 100644
+--- a/src/dhcp-common.c
++++ b/src/dhcp-common.c
+@@ -236,7 +236,19 @@ dho_policy_allowed(const struct dho_policy_group *pg, uint32_t option)
+ }
+ 
+ int
+-dho_policy_requested(const struct dho_policy_group *pg,
++dho_policy_requested(const struct dho_policy_group *pg, uint32_t option)
++{
++	if (!dho_policy_has(&pg->dhop_request, option))
++		return 0;
++	if (dho_policy_has(&pg->dhop_allow, option))
++		return 1;
++	if (dho_policy_has(&pg->dhop_remove, option))
++		return 0;
++	return 1;
++}
++
++int
++dho_policy_opt_requested(const struct dho_policy_group *pg,
+     const struct dhcp_opt *dho)
+ {
+ 	if (dho->type & OT_NOREQ)
+diff --git a/src/dhcp-common.h b/src/dhcp-common.h
+index fcc974ec..23a93a0a 100644
+--- a/src/dhcp-common.h
++++ b/src/dhcp-common.h
+@@ -122,7 +122,8 @@ void dho_policy_group_free(struct dho_policy_group);
+ int dho_policy_check(const struct dho_policy *, int (*)(uint32_t, void *),
+     void *);
+ 
+-int dho_policy_requested(const struct dho_policy_group *,
++int dho_policy_requested(const struct dho_policy_group *, uint32_t);
++int dho_policy_opt_requested(const struct dho_policy_group *,
+     const struct dhcp_opt *);
+ int dho_policy_removed(const struct dho_policy_group *, uint32_t);
+ int dho_policy_allowed(const struct dho_policy_group *, uint32_t);
+diff --git a/src/dhcp.c b/src/dhcp.c
+index dc10bb0c..8e37dc09 100644
+--- a/src/dhcp.c
++++ b/src/dhcp.c
+@@ -975,7 +975,7 @@ make_message(struct bootp **bootpm, const struct interface *ifp, uint8_t type)
+ 			    (opt->option == DHO_RENEWALTIME ||
+ 				opt->option == DHO_REBINDTIME))
+ 				continue;
+-			if (!dho_policy_requested(pg, opt))
++			if (!dho_policy_opt_requested(pg, opt))
+ 				continue;
+ 			AREA_FIT(1);
+ 			*p++ = (uint8_t)opt->option;
+@@ -992,7 +992,7 @@ make_message(struct bootp **bootpm, const struct interface *ifp, uint8_t type)
+ 			    (opt->option == DHO_RENEWALTIME ||
+ 				opt->option == DHO_REBINDTIME))
+ 				continue;
+-			if (!dho_policy_requested(pg, opt))
++			if (!dho_policy_opt_requested(pg, opt))
+ 				continue;
+ 			AREA_FIT(1);
+ 			*p++ = (uint8_t)opt->option;
+@@ -1035,7 +1035,7 @@ make_message(struct bootp **bootpm, const struct interface *ifp, uint8_t type)
+ 	}
+ 
+ 	if (type == DHCP_DISCOVER && !(ctx->options & DHCPCD_TEST) &&
+-	    dho_policy_allowed(pg, DHO_RAPIDCOMMIT)) {
++	    dho_policy_requested(pg, DHO_RAPIDCOMMIT)) {
+ 		/* RFC 4039 Section 3 */
+ 		AREA_CHECK(0);
+ 		*p++ = DHO_RAPIDCOMMIT;
+@@ -3469,8 +3469,7 @@ dhcp_handledhcp(struct interface *ifp, struct bootp *bootp, size_t bootp_len,
+ 
+ 		if (state->state == DHS_DISCOVER) {
+ 			/* We only allow ACK of rapid commit DISCOVER. */
+-			if (dho_policy_has(&pg->dhop_request,
+-				DHO_RAPIDCOMMIT) &&
++			if (dho_policy_requested(pg, DHO_RAPIDCOMMIT) &&
+ 			    get_option(ifp->ctx, bootp, bootp_len,
+ 				DHO_RAPIDCOMMIT, NULL))
+ 				state->state = DHS_REQUEST;
+diff --git a/src/dhcp6.c b/src/dhcp6.c
+index 6753482a..bc8d960a 100644
+--- a/src/dhcp6.c
++++ b/src/dhcp6.c
+@@ -797,7 +797,7 @@ dhcp6_makemessage(struct interface *ifp)
+ 			}
+ 			if (n < ifo->dhcp6_override_len)
+ 				continue;
+-			if (!dho_policy_requested(pg, opt))
++			if (!dho_policy_opt_requested(pg, opt))
+ 				continue;
+ 			n_options++;
+ 			len += sizeof(o.len);
+@@ -805,7 +805,7 @@ dhcp6_makemessage(struct interface *ifp)
+ #ifndef SMALL
+ 		for (l = 0, opt = ifo->dhcp6_override;
+ 		    l < ifo->dhcp6_override_len; l++, opt++) {
+-			if (!dho_policy_requested(pg, opt))
++			if (!dho_policy_opt_requested(pg, opt))
+ 				continue;
+ 			n_options++;
+ 			len += sizeof(o.len);
+@@ -1128,7 +1128,7 @@ dhcp6_makemessage(struct interface *ifp)
+ 			if (n < ifo->dhcp6_override_len)
+ 				continue;
+ #endif
+-			if (!dho_policy_requested(pg, opt))
++			if (!dho_policy_opt_requested(pg, opt))
+ 				continue;
+ 			o.code = htons((uint16_t)opt->option);
+ 			memcpy(p, &o.code, sizeof(o.code));
+@@ -1138,7 +1138,7 @@ dhcp6_makemessage(struct interface *ifp)
+ #ifndef SMALL
+ 		for (l = 0, opt = ifo->dhcp6_override;
+ 		    l < ifo->dhcp6_override_len; l++, opt++) {
+-			if (!dho_policy_requested(pg, opt))
++			if (!dho_policy_opt_requested(pg, opt))
+ 				continue;
+ 			o.code = htons((uint16_t)opt->option);
+ 			memcpy(p, &o.code, sizeof(o.code));
