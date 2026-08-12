@@ -4,3 +4,13 @@ ConfigureOpts+=(
     # Slackware
     --bindir="$Prefix"/sbin
 )
+
+pkg_read2var pkg_post_installpkg <<EOF
+pkg_post_installpkg() {
+    # chmod 700 /var/cache/powertop
+    local dir=var/cache/${Name,,}
+    mkdir -pm 700 "\$dir"
+    chmod 700 "\$dir"
+}
+pkg_post_installpkg
+EOF
