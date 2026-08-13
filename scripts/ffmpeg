@@ -1,0 +1,105 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://ffmpeg.org/download.html#releases"
+    "https://github.com/FFmpeg/FFmpeg/tags"
+)
+
+ConfigureOpts=(
+    # Slackware
+    --prefix="$Prefix"
+    --libdir="$LibDir"
+    --shlibdir="$LibDir"
+    --docdir="$DocDir" # install documentation in DIR [PREFIX/share/doc/ffmpeg]
+    --mandir="$ManDir"
+    --disable-debug
+    --enable-shared
+    --disable-static
+    --enable-gpl
+    --enable-version3
+    --arch="$Arch"
+    # default
+    #--enable-gnutls # enable gnutls, needed for https support if openssl, libtls or mbedtls is not used [no]
+    #--enable-gcrypt # enable gcrypt, needed for rtmp(t)e support if openssl, librtmp or gmp is not used [no]
+    # --enable-libshaderc # enable GLSL->SPIRV compilation via libshaderc [no]
+    --enable-libfontconfig # enable libfontconfig, useful for drawtext filter [no]
+    --enable-libfreetype # enable libfreetype, needed for drawtext filter [no]
+    --enable-libfribidi # enable libfribidi, improves drawtext filter [no]
+    --enable-libaom # enable AV1 video encoding/decoding via libaom [no]
+    --enable-libbluray # enable BluRay reading using libbluray [no]
+    #--enable-libcaca # enable textual display using libcaca [no]
+    #--enable-libcdio # enable audio CD grabbing with libcdio [no]
+    --enable-libdav1d # enable AV1 decoding via libdav1d [no]
+    #--enable-libssh # enable SFTP protocol via libssh [no]
+    --enable-libtheora # enable Theora encoding via libtheora [no]
+    #--enable-libv4l2 # enable libv4l2/v4l-utils [no]
+        # v7.1.1
+        # libavdevice/v4l2.c: In function ‘device_open’:
+        # libavdevice/v4l2.c:141:17: error:
+        #   assignment to ‘int (*)(int,  long unsigned int, ...)’
+        #   from incompatible pointer type ‘int (*)(int,  int, ...)’ [-Wincompatible-pointer-types]
+    --enable-libvorbis # enable Vorbis en/decoding via libvorbis, native implementation exists [no]
+    --enable-libvpx # enable VP8 and VP9 de/encoding via libvpx [no]
+    --enable-libwebp # enable WebP encoding via libwebp [no]
+    --enable-libmp3lame # enable MP3 encoding via libmp3lame [no]
+    --enable-opencl # enable OpenCL processing [no]
+    --enable-opengl # enable OpenGL rendering [no]
+    --enable-libopenjpeg # enable JPEG 2000 encoding via OpenJPEG [no]
+    #--enable-libsmbclient # enable Samba protocol via libsmbclient [no]
+    --enable-frei0r # enable frei0r video filtering [no]
+    #--enable-libspeex # enable Speex de/encoding via libspeex [no]
+        # The Speex codec has been obsoleted by Opus
+        # https://www.speex.org/
+    --enable-openal # enable OpenAL 1.1 capture support [no]
+    --enable-libopus # enable Opus de/encoding via libopus [no]
+    --enable-libvidstab # enable video stabilization using vid.stab [no]
+    --enable-libxml2 # enable XML parsing using the C library libxml2, needed for dash and imf demuxing support [no]
+    --enable-librsvg # enable SVG rasterization via librsvg [no]
+    #--enable-libdrm # DRM code (Linux) [autodetect]
+    #--enable-vulkan # Vulkan code [autodetect]
+    --enable-libass # enable libass subtitles rendering, needed for subtitles and ass filter [no]
+    --enable-libplacebo # enable libplacebo library [no]
+    --enable-lcms2 # enable ICC profile support via LittleCMS 2 [no]
+    #--enable-amf
+
+    # non Slackware
+    --enable-nonfree # allow use of nonfree code, the resulting libs and binaries will be unredistributable [no]
+    --enable-libx264 # enable H.264 encoding via x264 [no]
+    --enable-libopencore-amrnb # enable AMR-NB de/encoding via libopencore-amrnb [no]
+    --enable-libopencore-amrwb # enable AMR-WB decoding via libopencore-amrwb [no]
+    --enable-openssl # for termv
+)
+if (($(pkg_cmp_versions "$Version" "9") < 0)); then
+    ConfigureOpts+=(
+        --enable-libshaderc # enable GLSL->SPIRV compilation via libshaderc [no]
+    )
+fi
+[[ $PULSE ]] && ConfigureOpts+=(--enable-libpulse) # enable Pulseaudio input via libpulse [no]
+[[ $JACK ]] && ConfigureOpts+=(--enable-libjack) # enable JACK audio sound server [no]
+
+unset pkg_check DOC
+
+pkg_pre_configure() {
+    # Slackware
+    # Restore missing function needed by Chromium and qt-webengine:
+    pkg_patch_f3 add-av_stream_get_first_dts-for-chromium.patch.gz 1 || return 1
+    if (($(pkg_cmp_versions "$Version" "8") < 0)); then
+        # ERROR: amf requested but not found
+        ConfigureOpts+=(--enable-amf)
+    fi
+    if (($(pkg_cmp_versions "$Version" "7.1.1") < 0)); then
+        # Fix for texinfo-7.2:
+        pkg_patch_f3 FFmpeg-devel-doc-t2h-Support-texinfo-7.1-and-7.2-pretest.diff 1 || return 1
+    fi
+
+    # libavcodec/nvenc.c: In function ‘nvenc_setup_hevc_config’:
+    # libavcodec/nvenc.c:1373:9: error: ‘NV_ENC_CONFIG_HEVC’ has no member named ‘pixelBitDepthMinus8’
+    #  1373 |     hevc->pixelBitDepthMinus8 = IS_10BIT(ctx->data_pix_fmt) ? 2 : 0;
+    if [[ $Version = "6.1.1" ]]; then
+        # Patch for recent nv-codec-headers:
+        pkg_patch_f3 0004-support-nv-codec-headers-12.2.patch.gz 1 || return 1
+    fi
+
+    mkdir -p __TMP__
+    export TMPDIR=$(pwd)/__TMP__
+}
