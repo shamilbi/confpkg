@@ -1,0 +1,6 @@
+#!/bin/bash
+
+PythonInstallLibs=(
+    "pyqt6-sip"
+)
+PythonNoBuildIsolation=1
