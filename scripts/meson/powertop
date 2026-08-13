@@ -1,14 +1,15 @@
 #!/bin/bash
 
-ConfigureOpts+=(
+pkg_post_install() {
     # Slackware
-    --bindir="$Prefix"/sbin
-)
+    # powertop used to be installed in /usr/sbin, so let's make a link:
+    ls "$Prefix2"/bin/powertop | pkg_ln_d "$Prefix2"/sbin
+}
 
 pkg_read2var pkg_post_installpkg <<EOF
 pkg_post_installpkg() {
     # chmod 700 /var/cache/powertop
-    local dir=var/cache/${Name,,}
+    local dir=var/cache/powertop
     mkdir -pm 700 "\$dir"
     chmod 700 "\$dir"
 }
