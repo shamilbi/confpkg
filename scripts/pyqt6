@@ -1,0 +1,39 @@
+#!/bin/bash
+
+PkgHome="https://pypi.org/project/PyQt6/"
+
+UseBuildDir=1
+
+BuildSteps=("${BuildForPython[@]}")
+[[ $BuildStep ]] && pkg_set_python "$BuildStep"
+
+unset -v pkg_configure
+
+pkg_make() {
+    # Slackware
+    export QTDIR=$LibDir/qt6
+    # export CFLAGS="$SLKCFLAGS"
+    # export CXXFLAGS="$SLKCFLAGS"
+    local opts=(
+        --build-dir "$BuildDir"
+
+        # Slackware
+        --confirm-license
+        --no-make
+        --qmake=/usr/bin/qmake6
+        --api-dir=/usr/share/qt6/qsci/api/python
+        --pep484-pyi
+    )
+    "$Python" "$(which sip-build)" "${opts[@]}" || return 1
+    "${Make[@]}" -C "$BuildDir" || return 1
+}
+
+pkg_install() {
+    # Slackware
+    "${Make[@]}" -C "$BuildDir" INSTALL_ROOT="$DestDir" install || return 1
+    (
+        cd "$LibDir2/python$PythonV12" || exit 1
+        "$Python" -m compileall -d / .
+        "$Python" -O -m compileall -d / .
+    )
+}
