@@ -207,12 +207,13 @@ pkg_set_python() {
     PythonIncludeDir=$($Python -c 'import sysconfig as sc; print(sc.get_paths()["include"])')
 
     # /usr/lib/python3.12/site-packages
-    PythonSitePackagesDir=$($Python -c 'import sysconfig as sc; print(sc.get_paths()["purelib"])')
+    PythonPureLibDir=$($Python -c 'import sysconfig as sc; print(sc.get_paths()["purelib"])')
+    # /usr/lib/python3.12
+    PythonPurePrefix=${PythonPureLibDir%/*}
     # /usr/lib64/python3.12/site-packages
     PythonPlatLibDir=$($Python -c 'import sysconfig as sc; print(sc.get_paths()["platlib"])')
-
-    # /usr/lib/python3.12
-    PythonLibDir=${PythonSitePackagesDir%/*}
+    # /usr/lib64/python3.12
+    PythonPlatPrefix=${PythonPlatLibDir%/*}
 
     PythonV1=$("$Python" -c 'import sys; print(sys.version_info[0])')
     PythonV2=$("$Python" -c 'import sys; print(sys.version_info[1])')
@@ -220,13 +221,11 @@ pkg_set_python() {
     PythonV12="$PythonV1.$PythonV2"
     PythonV123="$PythonV12.$PythonV3"
 
-    #PythonPrefix=$("$Python" -c "import sys; print(sys.prefix)")
-    # /usr
-
-    PythonLibDir2=$DestDir$PythonLibDir
-    PythonSitePackagesDir2=$DestDir$PythonSitePackagesDir
     PythonPlatLibDir2=$DestDir$PythonPlatLibDir
     PythonPlatDir2=$DestDir$PythonPlatDir
+    PythonPureLibDir2=$DestDir$PythonPureLibDir
+    PythonPurePrefix2=$DestDir$PythonPurePrefix
+    PythonPlatPrefix2=$DestDir$PythonPlatPrefix
 }
 
 pkg_python_post_install() {
@@ -288,7 +287,7 @@ pkg_python_install() {
             for i in "${PythonInstallLinks[@]}"; do
                 while IFS= read -r j; do
                     ln -sfn "$j" "$PythonVenvDir/lib/python$PythonV12/site-packages"/
-                done < <(find "$PythonSitePackagesDir" -mindepth 1 -maxdepth 1 -name "$i")
+                done < <(find "$PythonPureLibDir" -mindepth 1 -maxdepth 1 -name "$i")
             done
         ) || return 1
 
@@ -350,17 +349,15 @@ pkg_python_install() {
         elif [[ $(find "$PythonVenvDir/lib" -type f -name '*.so' -print -quit) ]]; then
             d2=$PythonPlatLibDir2
         else
-            d2=$PythonSitePackagesDir2
+            d2=$PythonPureLibDir2
         fi
         mkdir -p "$d2" || return 1
         while IFS= read -r f; do
             cp -a "$lib/$f" "$d2" || return 1
         done <"$libs2"
-        (
-            cd "$d2" || exit 1
-            find . -depth -type d -name '__pycache__' -exec rm -rf {} \;
-            "$Python" -m compileall .
-        ) || return 1
+        # compileall
+        find "$d2" -depth -type d -name '__pycache__' -exec rm -rf {} \;
+        "$Python" -m compileall "$d2" -d / || return 1
 
         # install bin diff
         diff -y --suppress-common-lines "$bins1" "$bins0" |
@@ -451,20 +448,4 @@ pkg_find_opt_dir() {
         return 1
     fi
     echo "$dir2"
-}
-
-pkg_python_compileall() {
-    # pkg_python_compileall <dir> <options>
-    local dir=$1
-    shift 1
-    if [[ ! -d $dir || ! -x $Python ]]; then
-        pkg_echo "${FUNCNAME[0]}: bad dir ($dir) or python ($Python)"
-        return 1
-    fi
-    if [[ $(find "$dir" -type f -name '*.py' -print -quit) ]]; then
-        (
-            cd "$dir" || exit 1
-            "$Python" -m compileall . "$@"
-        ) || return 1
-    fi
 }
