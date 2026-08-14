@@ -7,5 +7,5 @@ PkgHome+=(
 pkg_set_python python3
 
 pkg_post_install() {
-    pkg_python_compileall "$ShareDir2/virt-manager"
+    "$Python" -m compileall "$ShareDir2"/virt-manager -d /
 }
