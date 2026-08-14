@@ -31,9 +31,6 @@ pkg_make() {
 pkg_install() {
     # Slackware
     "${Make[@]}" -C "$BuildDir" INSTALL_ROOT="$DestDir" install || return 1
-    (
-        cd "$LibDir2/python$PythonV12" || exit 1
-        "$Python" -m compileall -d / .
-        "$Python" -O -m compileall -d / .
-    )
+    "$Python" -m compileall "$PythonPlatPrefix2" -d / || return 1
+    "$Python" -O -m compileall "$PythonPlatPrefix2" -d / || return 1
 }
