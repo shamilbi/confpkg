@@ -26,5 +26,5 @@ pkg_pre_configure() {
 }
 
 pkg_post_install() {
-    "$Python" -m compileall "$PythonLibDir2"
+    "$Python" -m compileall "$PythonPurePrefix2" -d /
 }
