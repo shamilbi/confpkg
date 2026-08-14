@@ -35,5 +35,5 @@ pkg_pre_configure() {
 }
 
 pkg_post_install() {
-    pkg_python_compileall "$LibDir2/python$PythonV12"
+    "$Python" -m compileall "$PythonPlatPrefix2" -d /
 }
