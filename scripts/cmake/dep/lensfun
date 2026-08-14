@@ -17,5 +17,5 @@ ConfigureOpts+=(
 )
 
 pkg_post_install() {
-    pkg_python_compileall "$PythonLibDir2"
+    "$Python" -m compileall "$PythonPurePrefix2" -d /
 }
