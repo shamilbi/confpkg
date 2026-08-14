@@ -24,7 +24,7 @@ InstallEnv+=("${MakeEnv[@]}")
 pkg_post_install() {
     pkg_reinstall_python .
 
-    pkg_python_compileall "$ShareDir2/$Name"
+    "$Python" -m compileall "$ShareDir2/$Name" -d /
 
     # /etc/xdg/autostart/* -> *.new
     find "$Etc2/xdg" -type f ! -name '*.new' -exec mv {} {}.new \;
