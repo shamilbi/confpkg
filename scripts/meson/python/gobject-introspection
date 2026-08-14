@@ -1,11 +1,10 @@
 #!/bin/bash
 
-if (($(pkg_cmp_versions "$Version" "1.80.2") < 0)); then
-    BuildSteps=("python3.11") # distutils
-else
-    BuildSteps=("python3") # distutils
-fi
-[[ $BuildStep ]] && ConfigureOpts+=("-Dpython=$BuildStep")
+pkg_set_python python3
+
+ConfigureOpts+=(
+    -Dpython=python3
+)
 
 ConfigureOpts+=(
     # Slackware
@@ -23,5 +22,5 @@ pkg_pre_configure() {
 }
 
 pkg_post_install() {
-    pkg_python_compileall "$LibDir2"
+    "$Python" -m compileall "$LibDir2" -d /
 }
