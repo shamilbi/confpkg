@@ -47,9 +47,8 @@ pkg_install() {
         cd "$DestDir/opt/$lo/program" || exit 1
 
         # *.pyc
-        dn=$(find -maxdepth 1 -type d -name 'python-core-*' -print -quit)
-        ./python -m compileall $dn/lib
-
+        dn=$(find . -maxdepth 1 -type d -name 'python-core-*' -print -quit)
+        ./python -m compileall "$dn"/lib -d /
     )
     (
         cd "$Prefix2"/bin || exit 1
