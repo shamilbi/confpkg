@@ -62,7 +62,7 @@ pkg_post_install() {
     rm -rf "$DocDir2"/API
 
     # python compileall
-    pkg_python_compileall "$PythonPlatLibDir2"
+    "$Python" -m compileall "$PythonPlatPrefix2" -d /
 }
 
 # last $BuildStep
