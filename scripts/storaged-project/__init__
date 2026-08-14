@@ -23,5 +23,5 @@ MakeEnv+=(
 InstallEnv+=("${MakeEnv[@]}")
 
 pkg_post_install() {
-    pkg_python_compileall "$PythonPlatDir2"
+    "$Python" -m compileall "$PythonPlatPrefix2" -d /
 }
