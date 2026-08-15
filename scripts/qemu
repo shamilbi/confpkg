@@ -7,22 +7,25 @@ PkgHome="https://github.com/qemu/qemu/tags"
 pkg_configure_del --infodir --build --host
 pkg_configure_del2 shared static
 
+vnc=1
+
 ConfigureOpts+=(
     # Slackware
+    --enable-dbus-display
     --enable-gtk
-    --enable-kvm
+    --enable-kvm # KVM acceleration support
     --enable-linux-io-uring
-    --enable-malloc=jemalloc
+    --enable-malloc=jemalloc # choose memory allocator to use [system] (choices: jemalloc/system/tcmalloc)
     --enable-nettle
     --enable-sdl
-    --enable-system
+    --enable-system # all system emulation targets
+    --enable-tools
     --enable-vde
-    --enable-virtfs
-    --enable-vnc
-    --enable-vnc-jpeg
-    --enable-vnc-sasl
+    --enable-virtfs # virtio-9p support
+    #
     --enable-spice-protocol
     --enable-spice
+    #
     --enable-slirp
     --enable-usb-redir
     --enable-vnc --enable-vnc-sasl --enable-vnc-jpeg
@@ -34,6 +37,19 @@ ConfigureOpts+=(
     --enable-virglrenderer
     --enable-vte
 )
+
+if [[ $vnc ]]; then
+    ConfigureOpts+=(
+        --enable-vnc
+        --enable-vnc-sasl
+        --enable-vnc-jpeg
+    )
+    if (($(pkg_cmp_versions "$Version" "11.1") < 0)); then
+        :
+    else
+        ConfigureOpts+=(--enable-qemu-vnc)
+    fi
+fi
 
 arr2list() {
     # (1 2 3) -> "1,2,3"
@@ -112,6 +128,10 @@ ConfigureOpts+=(
 
 pkg_post_install() {
     # Slackware
+    # Make sure qemu-vnc is installed:
+    if [[ ! -x $Prefix2/bin/qemu-vnc ]]; then
+        pkg_install_mfd 755 build/tools/qemu-vnc/qemu-vnc "$Prefix2"/bin
+    fi
     ## Install udev rules for /dev/kvm:
     #local dir=$DestDir/lib/udev/rules.d
     #pkg_install_mfd 644 "$SupportDir"/65-kvm.rules "$dir"
