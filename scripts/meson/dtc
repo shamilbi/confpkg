@@ -1,7 +1,11 @@
 #!/bin/bash
 
-PkgHome="https://git.kernel.org/pub/scm/utils/dtc/dtc.git"
+PkgHome=(
+    "https://git.kernel.org/pub/scm/utils/dtc/dtc.git"
+    "https://mirrors.edge.kernel.org/pub/software/utils/dtc/"
+)
 
+# REQ: swig-4.4.x
 # REQ BY: qemu
 
 BuildSteps=("${BuildForPython[@]}")
@@ -12,10 +16,6 @@ ConfigureOpts+=(
 )
 
 pkg_pre_configure() {
-    if [[ $Version = "1.7.2" ]]; then
-        pkg_patch_f3 dtc-1.7.2-glibc_fixes-1.patch 1 || return 1
-    fi
-
     if (($(pkg_cmp_versions "$Version" "1.8") < 0)); then
         # #!/usr/bin/env python3
         # ->
