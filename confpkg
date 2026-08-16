@@ -908,8 +908,8 @@ pkg_set_fullname_() {
     # Name, Version
     if [[ $FullName =~ -([0-9].*) ]]; then
         Version=${BASH_REMATCH[1]}
-        Name=${FullName:0:-(${#Version} + 1)}
-        if [[ $Version =~ $Name-([0-9]+[a-z]+)-.+ ]]; then
+        Name=${FullName:0: -$((${#Version} + 1))}
+        if [[ $FullName =~ $Name-([0-9]+[a-z]+)-.+ ]]; then
             # ntfs-3g-1.2.3
             Name+="-${BASH_REMATCH[1]}"
             Version=${Version:(${#BASH_REMATCH[1]} + 1)}
