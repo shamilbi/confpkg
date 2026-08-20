@@ -26,7 +26,9 @@ pkg_pre_configure() {
     pkg_patch_f3 dhcpcd.conf-Don-t-invoke-wpa_supplicant-by-default.patch 1 || return 1
     pkg_patch_f3 use-hostname_short-in-dhcpcd.conf.patch 1 || return 1
     pkg_patch_f3 dhcpcd.conf-request_ntp_server_by_default.patch 1 || return 1
-    pkg_patch_f3 0406dd87753049f54b9beb7ab66f333a1d2709d2.patch 1 || return 1
+    if (($(pkg_cmp_versions "$Version" "10.5.2") < 0)); then
+        pkg_patch_f3 0406dd87753049f54b9beb7ab66f333a1d2709d2.patch 1 || return 1
+    fi
     # At this point, it should be safe to assume that /var will be mounted by the
     # time dhcpcd is called, as all non-root local filesystems are mounted from
     # /etc/rc.d/rc.S, and /var should not be on a network filesystem.  As such,
