@@ -1,0 +1,5 @@
+#!/bin/bash
+
+PkgHome="https://github.com/SagerNet/sing-box/tags"
+
+GoBuild=(go build -pkgdir "$GoDir/pkg")
