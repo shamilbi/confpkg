@@ -535,15 +535,14 @@ EOF
     :
 }
 
-unset TgzFile
-
 pkg_define_tgzfile_() {
+    # tgzfile, tar - local vars from a caller
     if [[ $(command -v xz) ]]; then
-        TgzFile=$Pwd/$FullName.txz
-        tar=(tar cJf "$TgzFile")
+        tgzfile=$Pwd/$FullName.txz
+        tar=(tar cJf "$tgzfile")
     else
-        TgzFile=$Pwd/$FullName.tgz
-        tar=(tar czf "$TgzFile")
+        tgzfile=$Pwd/$FullName.tgz
+        tar=(tar czf "$tgzfile")
     fi
 }
 
@@ -553,14 +552,16 @@ pkg_create_tgz_() {
         return 1
     fi
 
-    local tar
-
+    local tgzfile tar
     pkg_define_tgzfile_
-    pkg_rm_files "$TgzFile"
 
-    echo "create ${TgzFile##*/} ..."
+    pkg_rm_files "$tgzfile"
+
+    echo "create ${tgzfile##*/} ..."
     "${tar[@]}" -C "$DestDir" . || return 1
 }
+
+unset -v TgzFile
 
 pkg_installpkg_() {
     if [[ ! $TgzFile ]]; then
@@ -889,13 +890,15 @@ pkg_edit2_script_() {
     done
 }
 
-pkg_set_fullname_() {
-    FullName=$1
+pkg_set_name_() {
+    local path=$1
+
+    FullName=${path##*/}
     [[ ! $FullName ]] && return 1
 
-    case $FullName in
+    case $path in
         *.txz | *.tgz | *.zip)
-            TgzFile=$FullName
+            TgzFile=$path
             FullName=${FullName%.*}
             ;;
         *.log)
@@ -949,18 +952,19 @@ pkg_set_destdir_() {
 
 pkg_check_tgzfile_() {
     # check user:group (bad fakeroot)
-    local tar
+    local tgzfile tar
     pkg_define_tgzfile_
-    if [[ -f $TgzFile ]]; then
+
+    if [[ -f $tgzfile ]]; then
         local count u=$(id -un) g=$(id -gn)
         # https://unix.stackexchange.com/questions/546769/what-is-the-easiest-way-to-list-all-the-usergroup-found-in-a-tarball
         tar=(
-            tar xf "$TgzFile"
+            tar xf "$tgzfile"
             --to-command='bash -c "echo $TAR_MODE $TAR_UNAME:$TAR_GNAME TAR_FILENAME"'
         )
         count=$("${tar[@]}" | grep -F " $u:$g " | wc -l)
         if ((count > 0)); then
-            echo "bad $TgzFile: contains files with current ownership $u:$g (bad fakeroot?)"
+            echo "bad $tgzfile: contains files with current ownership $u:$g (bad fakeroot?)"
             return 1
         fi
     fi
@@ -971,9 +975,7 @@ main() {
     local cmd=$1
     [[ ! $cmd ]] && usage
 
-    FullName=$2
-    [[ ! $FullName ]] && usage
-    pkg_set_fullname_ "$FullName" 
+    pkg_set_name_ "$2" || usage
 
     Pwd=$PWD
 
@@ -984,11 +986,9 @@ main() {
             # fakeroot commands
             all | all-clean | install)
                 echo "fakeroot ..."
-                #exec env LD_PRELOAD=libacl.so.1 fakeroot "$bash" "$Home/confpkg0" "$@"
-                #exec fakeroot "$bash" "$Home/confpkg0" "$@"
-                #exec fakeroot "$0" "$@"
                 fakeroot "$0" "$@" || return 1
-                #exec unshare -Ur "$0" "$@" # install fuse failed
+                # exec unshare -Ur "$0" "$@"
+                    # install fuse failed
                 pkg_check_tgzfile_
                 return $?
                 ;;
