@@ -1,0 +1,8 @@
+#!/bin/bash
+
+PkgHome="https://github.com/localsend/localsend/tags"
+
+pkg_post_install() {
+    # server -> localsend-server
+    mv "$Prefix2"/bin/server "$Prefix2"/bin/${Name,,}-server
+}
