@@ -1,0 +1,10 @@
+#!/bin/bash
+
+PkgHome="https://github.com/schollz/croc/tags"
+
+pkg_make() {
+    # from Makefile
+    local build_flags=(-buildvcs=false -trimpath -tags netgo,osusergo)
+    local ldflags="-s -w -buildid="
+    CGO_ENABLED=0 go build "${build_flags[@]}" -ldflags="$ldflags" -o croc .
+}
