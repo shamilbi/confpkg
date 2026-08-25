@@ -1,4 +1,6 @@
 #!/bin/bash
 
+PkgHome="https://github.com/fujiapple852/trippy/tags"
+
 BinDir=$Prefix/sbin
 RustInstallBins=(trip)
