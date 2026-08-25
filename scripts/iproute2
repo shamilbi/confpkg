@@ -25,6 +25,8 @@ InstallEnv+=("${MakeEnv[@]}")
 
 pkg_post_install() {
     # Slackware
+    # Add a compat symlink for "aha":
+    ls -d "$DestDir"/sbin/ip | pkg_ln_d "$Prefix2/bin"
     # Add a configuration override directory:
     mkdir -p "$Etc2"/iproute2
     # This stuff has always been installed under /sbin rather than
@@ -33,8 +35,4 @@ pkg_post_install() {
     # them appropriately, but leave symlinks in /usr/sbin so that
     # any scripts using absolute paths will work either way:
     ls -d "$DestDir"/sbin/* | pkg_ln_d "$Prefix2/sbin"
-
-    # for users
-    # /usr/bin/ip
-    ls -d "$DestDir"/sbin/ip | pkg_ln_d "$Prefix2/bin"
 }
