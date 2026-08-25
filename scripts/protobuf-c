@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PkgHome="https://github.com/protobuf-c/protobuf-c"
+PkgHome="https://github.com/protobuf-c/protobuf-c/tags"
 
 pkg_pre_configure() {
     if (($(pkg_cmp_versions "$Version" "1.5.1") < 0)); then
