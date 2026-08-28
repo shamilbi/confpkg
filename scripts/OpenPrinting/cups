@@ -5,26 +5,29 @@ PkgHome+=(
 )
 
 # Slackware
+# Choose correct options depending on whether PAM is installed:
 [[ $PAM ]] && ConfigureOpts+=(--enable-pam) || ConfigureOpts+=(--disable-pam)
 
 ConfigureOpts+=(
     # Slackware
-    --with-pkgconfpath="$LibDir/pkgconfig"
+    --with-pkgconfpath="$LibDir"/pkgconfig
     --enable-cdsassl=no
     --with-rundir=/run/cups # set transient run-time state directory
 
-    --with-tls=gnutls # use cdsa (macOS), gnutls, or openssl for TLS support
-    --enable-libpaper
+    # --with-tls=gnutls # use cdsa (macOS), gnutls, or openssl for TLS support
+    --enable-libpaper # build with libpaper support
     #--with-dnssd=no # enable DNS Service Discovery support (avahi, mdnsresponder, no, yes)
     #--enable-gssapi # enable (deprecated) GSSAPI/Kerberos support
 )
 
 MakeEnv=(
-    DBUSDIR="$ShareDir/dbus-1"
+    DBUSDIR="$ShareDir"/dbus-1
 )
 InstallEnv=(
-    "${MakeEnv[@]}"
+    # Slackware
     BUILDROOT="$DestDir"
+
+    "${MakeEnv[@]}"
     DOCDIR="$DocDir2"
 )
 
@@ -58,10 +61,10 @@ pkg_post_install() {
     # is now installing init scripts to the Red Hat locations.  We'll move
     # them to the usual locations:
     # Handle this as a config file, and non-executable in a default install:
-    pkg_mv_ff "$Etc2/init.d/cups" "$Etc2/rc.d/rc.cups"
-    chmod 644 "$Etc2/rc.d/rc.cups"
+    pkg_mv_ff "$Etc2"/init.d/cups "$Etc2"/rc.d/rc.cups
+    chmod 644 "$Etc2"/rc.d/rc.cups
     # Clear out the additions:
-    rm -rf "$Etc2/init.d" "$Etc2"/rc[0-9].d
+    rm -rf "$Etc2"/init.d "$Etc2"/rc{0,2,3,5}.d
     # Move the dbus config file to the system directory
     # DBUSDIR
     #mkdir -p "$ShareDir2"/dbus-1/system.d/
@@ -79,7 +82,7 @@ pkg_post_install() {
     fi
     # Adjust/expand docs:
     # /usr/doc/cups
-    ls -d "$DocDir2" | pkg_ln_ff "$Prefix2/doc/cups"
+    ls -d "$DocDir2" | pkg_ln_ff "$Prefix2"/doc/cups
     # I'm sorry, but PDF files are almost as bloated and annoying as
     # MS Word documents.  We'll retain the HTML files in /usr/doc.
     find "$DocDir2" -type f -name '*.pdf' -delete
@@ -91,6 +94,4 @@ pkg_post_install() {
         sed -i '/IdleExitTimeout/,+1d' "$Etc2"/cups/cupsd.conf
         pkg_install_mff 644 "$Etc2"/cups/cupsd.conf "$Etc2"/cups/cupsd.conf.default
     fi
-
-    :
 }
