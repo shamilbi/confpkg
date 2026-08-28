@@ -10,9 +10,16 @@ PkgHome="https://sourceforge.net/projects/cups-bjnp/files/cups-bjnp/"
 # Defaults:	job-sheets=none, none media=iso_a4_210x297mm sides=two-sided-long-edge
 
 ConfigureOpts+=(
-    --with-cupsbackenddir="$LibDir/cups/backend"
+    --with-cupsbackenddir="$LibDir"/cups/backend
 )
 
+pkg_pre_configure() {
+    # bjnp-discover.c:36:9: error: unused variable ‘ipv6_v6only’ [-Werror=unused-variable]
+    pkg_add_cflags -Wno-error=unused-variable
+    # bjnp-levels.c:307:14: error: storing the address of local variable ‘warnings’ in ‘next’ [-Werror=dangling-pointer=]
+    pkg_add_cflags -Wno-error=dangling-pointer=
+}
+
 pkg_post_install() {
-    ls -d "$LibDir2/cups/backend/bjnp" | pkg_ln_d "$Prefix2/bin"
+    ls -d "$LibDir2"/cups/backend/bjnp | pkg_ln_d "$Prefix2"/bin
 }
