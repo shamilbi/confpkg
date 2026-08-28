@@ -1,0 +1,49 @@
+#!/bin/bash
+
+PkgHome="https://sourceforge.net/projects/gimp-print/files/"
+
+unset ProtectDirs
+
+ConfigureOpts+=(
+    # Slackware
+    --with-cups # =PREFIX, whether to build CUPS driver (default PREFIX=/usr) [(automatic)]
+    # --enable-libgutenprintui2 # build Gutenprint GTK+-2.0 user interface library [(automatic)]
+    --enable-escputil # build escputil [yes]
+
+    #--with-gimp2 # build GIMP 2.x Print plugin [(automatic)]
+    #--with-gimp2-as-gutenprint
+        # name GIMP 2.x Print plugin gutenprint (requires GIMP 2.2; normally used with GIMP 2.4 or above)
+        # [(automatic)]
+    #--enable-static-genppd
+        # build a statically-linked cups-genppd and rastertogutenprint.
+        # WARNING: Please read the README and NEWS (release notes) CAREFULLY before using --disable-static-genppd!
+        # [(automatic)]
+)
+if [[ $GTK2 ]]; then
+    ConfigureOpts+=(
+        --enable-libgutenprintui2 # build Gutenprint GTK+-2.0 user interface library [(automatic)]
+    )
+fi
+
+pkg_post_install() {
+    # Slackware
+    ls -d "$ShareDir2"/gutenprint/doc/* | pkg_mv_d "$DocDir2"
+    rmdir "$ShareDir2"/gutenprint/doc
+    ln -sfn /usr/share/gutenprint/samples "$DocDir2"
+    # Big...  it's in the source if you want it.
+    rm -f "$ShareDir2"/gutenprint/samples/profile.jpg
+    rm -f "$DocDir2"/*.{pdf,odt}
+    # Post-install script to update existing PPD files in /etc:
+    pkg_install_mfd 755 "$SupportDir"/setup.cups-genppdupdate "$DestDir"/var/log/setup
+}
+
+pkg_read2var pkg_post_installpkg <<EOF
+pkg_post_installpkg() {
+    # Slackware
+    # Only attempt this on a running system, otherwise we'll catch it
+    # in post-install.
+    if [[ -x /usr/sbin/cups-genppdupdate ]]; then
+        chroot . /usr/sbin/cups-genppdupdate &>/dev/null
+    fi
+}
+EOF
