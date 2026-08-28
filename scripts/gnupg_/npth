@@ -1,6 +1,8 @@
 #!/bin/bash
 
-PkgHome+=("https://github.com/gpg/npth")
+PkgHome+=(
+    "https://github.com/gpg/npth/tags"
+)
 
 ConfigureOpts+=(
     --libdir="/$LibName"
