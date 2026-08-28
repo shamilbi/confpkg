@@ -1,0 +1,10 @@
+#!/bin/bash
+
+PkgHome="https://github.com/google/snappy/tags"
+
+UseClang=
+
+ConfigureOpts+=(
+    -DSNAPPY_BUILD_TESTS=OFF
+    -DSNAPPY_BUILD_BENCHMARKS=OFF
+)
