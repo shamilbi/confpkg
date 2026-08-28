@@ -10,6 +10,6 @@ ConfigureOpts+=(
     # Slackware
     --disable-mutool # Disable filters using mutool
 
-    --enable-poppler # enable Poppler-based filters
-    --enable-dbus # enable DBus CMS code
+    # --enable-poppler # enable Poppler-based filters
+    # --enable-dbus # enable DBus CMS code
 )
