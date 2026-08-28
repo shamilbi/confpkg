@@ -1,0 +1,7 @@
+#!/bin/bash
+
+pkg_post_install() {
+    local d=$Prefix2/lib/rpm
+    pkg_install_mfd 644 psdriver.attr "$d/fileattrs"
+    pkg_install_mfd 755 postscriptdriver.prov "$d"
+}
