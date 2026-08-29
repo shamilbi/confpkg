@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PkgHome="https://gstreamer.freedesktop.org/data/src/orc/?C=M;O=D"
+
 ConfigureOpts+=(
     -Dorc-test=disabled     # Build the orc-test library used for unit testing and by the orc-bugreport tool
     -Dtests=disabled
