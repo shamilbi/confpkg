@@ -1,11 +1,52 @@
 #!/bin/bash
 
+# Slackware
+# You must have the 'chrony' group and user to run this script:
+#   $ groupadd -g 354 chrony
+#   $ useradd -u 354 -d /var/lib/chrony -s /bin/false -g chrony chrony
+
+# https://slackbuilds.org/uid_gid.txt
+user=chrony
+group=chrony
+userId=354
+groupId=354
+userHome=/var/lib/chrony
+userShell=/bin/false
+userComment=
+
 Daemon=$Prefix/sbin/chronyd
-DaemonOpts=(-r -s)
+DaemonOpts=(
+    -r -s
+
+    # Slackware
+    -u "$user"
+)
 DaemonPidfile=/var/run/chrony/chronyd.pid # /etc/chrony.conf
 
-pkg_post_install() {
-    pkg_install_mfd 644 examples/* "$DocDir2"
-    find examples -maxdepth 1 -type f -name 'chrony.conf.*' |
-        pkg_install_md 644 "$Etc2"
+ConfigureOpts+=(
+    # Slackware
+    --with-user="$user" # Specify default chronyd user [root]
+)
+
+pkg_pre_configure() {
+    pkg_check_group "$group" "$groupId" || return 1
+    pkg_check_user "$user" "$group" "$userId" "$userHome" "$userShell" "$userComment" || return 1
 }
+
+pkg_post_install() {
+    # Slackware
+    chown "$user":"$group" "$DestDir"/var/lib/chrony
+    pkg_install_mfd 644 "$SupportDir"/chrony.conf "$Etc2"
+    # pkg_install_mfd 644 "$SupportDir"/rc.chrony "$Etc2"/rc.d
+    # sed -i "s%^NTP_USER=@NTP_USER@%NTP_USER=${user}%g" $Etc2/rc.d/rc.chrony.new
+    #
+    pkg_cp_fd contrib examples "$DocDir2"
+}
+
+pkg_read2var pkg_post_installpkg <<EOF
+pkg_post_installpkg() {
+    chown -R "$user":"$group" var/lib/chrony
+    chown -R "$user":"$group" var/run/chrony
+}
+pkg_post_installpkg
+EOF
