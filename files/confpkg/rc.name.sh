@@ -52,6 +52,7 @@ _stop() {
     fi
     sleep 1
     [[ -f $pidFile ]] && rm -f "$pidFile" 2>/dev/null
+    pid=
 }
 
 _restart() {
