@@ -1,7 +1,7 @@
 #!/bin/bash
 
 PkgHome=(
-    "https://pagure.io/volume_key"
+    "https://releases.pagure.org/volume_key/?C=M;O=D" # sunset in 2026, read-only snapshot
     "${DebianSearchURL}libvolume-key1"
 )
 
@@ -9,12 +9,19 @@ BuildSteps=("${BuildForPython[@]}")
 [[ $BuildStep ]] && pkg_set_python "$BuildStep"
 
 ConfigureOpts+=(
-    --with-python=no
+    # Slackware
+    --without-python
     --with-python3
+
+    # --with-python=no
     --disable-nls # do not use Native Language Support
 )
 
 pkg_pre_configure() {
+    # Slackware
+    # Fix for swig-4.5.0:
+    pkg_patch_f3 31.patch 1 || return 1
+
     export PYTHON3=$Python
     export PYTHON3_CONFIG=$Python-config
 }
