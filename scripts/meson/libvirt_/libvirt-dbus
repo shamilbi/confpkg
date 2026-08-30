@@ -1,8 +1,6 @@
 #!/bin/bash
 
-#PkgHome="https://gitlab.com/libvirt/libvirt-dbus"
-
-read -r -d '' pkg_post_installpkg <<EOF
+pkg_read2var pkg_post_installpkg <<EOF
 pkg_post_installpkg() {
     local user="libvirtdbus"
     if [[ ! \$(getent group "\$user") ]]; then
@@ -13,5 +11,3 @@ pkg_post_installpkg() {
     fi
 }
 EOF
-
-:
