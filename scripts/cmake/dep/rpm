@@ -65,9 +65,7 @@ pkg_post_install() {
     "$Python" -m compileall "$PythonPlatPrefix2" -d /
 }
 
-# last $BuildStep
-if [[ $BuildStep = "${BuildSteps[-1]}" ]]; then
-    pkg_read2var pkg_post_installpkg <<EOF
+pkg_read2var pkg_post_installpkg <<EOF
 pkg_post_installpkg() {
     # Slackware
     local d1=${localstatedir:1}
@@ -81,4 +79,3 @@ pkg_post_installpkg() {
 }
 pkg_post_installpkg
 EOF
-fi
