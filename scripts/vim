@@ -62,7 +62,17 @@ EOF
     # /usr/share/vim/vimXX/defaults.vim.custom
     i=$(find "$ShareDir2"/vim -mindepth 1 -maxdepth 1 -type d -name 'vim*' -print -quit)
     i=${i: ${#DestDir}+1} # usr/share/vim/vimXX
-    pkg_read2var pkg_post_installpkg <<EOF
+
+    # -ex.1
+    find "$ManDir2" -type l -name 'ex.1' -delete
+
+    # textwidth
+    # autocmd FileType text setlocal textwidth=78
+    i=$ShareDir2/vim/vimrc
+    sed -i -r -e 's,(autocmd FileType text .*),"\1,' "$i"
+}
+
+pkg_read2var pkg_post_installpkg <<EOF
 pkg_post_installpkg() {
     # Slackware
     # Responding to a report that in some cases the file
@@ -80,12 +90,3 @@ pkg_post_installpkg() {
 }
 pkg_post_installpkg
 EOF
-
-    # -ex.1
-    find "$ManDir2" -type l -name 'ex.1' -delete
-
-    # textwidth
-    # autocmd FileType text setlocal textwidth=78
-    i=$ShareDir2/vim/vimrc
-    sed -i -r -e 's,(autocmd FileType text .*),"\1,' "$i"
-}
