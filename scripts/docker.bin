@@ -21,12 +21,10 @@ pkg_install() {
     pkg_install_mfd 755 "$SupportDir/rc.docker" "$Etc2/rc.d"
 }
 
-read -r -d '' pkg_post_installpkg <<EOF
+pkg_read2var pkg_post_installpkg <<EOF
 pkg_post_installpkg() {
     [[ ! \$(getent group docker) ]] && groupadd -g 281 docker
     echo "NOTE: add users to group docker: usermod -aG docker <user>"
 }
 pkg_post_installpkg
 EOF
-
-:
