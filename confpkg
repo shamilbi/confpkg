@@ -129,12 +129,8 @@ pkg_install_all_() {
         echo "not install"
         return 0
     fi
-    if ((${#BuildSteps[*]})); then
-        pkg_all_ || pkg_exit1_
-    else
-        pkg_install_ || pkg_exit1_
-        pkg_create_tgz_
-    fi
+    pkg_install_ || pkg_exit1_
+    pkg_create_tgz_
 }
 
 pkg_ldd_file_() {
@@ -433,25 +429,6 @@ pkg_post_install2_() {
         fi
     done
 
-    # doinst.sh
-    if ((${#ProtectDirs[*]})); then
-        for i in "${ProtectDirs[@]}"; do
-            while IFS= read -r fpath; do
-                [[ $fpath = *.new ]] && continue
-                mv "$fpath" "$fpath.new"
-                pkg_doinst_add_config "$fpath"
-            done < <(find "$DestDir$i" -type f 2>/dev/null)
-        done
-    fi
-    if ((${#ProtectFiles[*]})); then
-        for i in "${ProtectFiles[@]}"; do
-            fpath=$DestDir$i
-            if [[ -f $fpath ]]; then
-                mv -f "$fpath" "$fpath.new"
-                pkg_doinst_add_config "$fpath"
-            fi
-        done
-    fi
     if [[ -d $DestDir/lib/modules ]]; then
         #dir=$(pkg_last_dir "$DestDir/lib/modules")
         dir=$(find "$DestDir/lib/modules" -mindepth 1 -maxdepth 1 -type d -print -quit)
@@ -462,9 +439,6 @@ pkg_post_install2_() {
                 find "$dir" -mindepth 1 -maxdepth 1 -type f -delete
             fi
         fi
-    fi
-    if [[ $pkg_post_installpkg ]]; then
-        pkg_doinst_add "$pkg_post_installpkg"
     fi
 
     # /usr/share/applications/*.desktop
@@ -550,6 +524,31 @@ pkg_create_tgz_() {
     if [[ ! -d $DestDir ]]; then
         pkg_log "dir not found: $DestDir"
         return 1
+    fi
+
+    # doinst.sh
+    if ((${#ProtectDirs[*]})); then
+        for i in "${ProtectDirs[@]}"; do
+            while IFS= read -r fpath; do
+                [[ $fpath = *.new ]] && continue
+                mv "$fpath" "$fpath.new"
+                pkg_doinst_add_config "$fpath"
+            done < <(find "$DestDir$i" -type f 2>/dev/null)
+        done
+    fi
+    if ((${#ProtectFiles[*]})); then
+        for i in "${ProtectFiles[@]}"; do
+            fpath=$DestDir$i
+            if [[ -f $fpath ]]; then
+                mv -f "$fpath" "$fpath.new"
+                pkg_doinst_add_config "$fpath"
+            fi
+        done
+    fi
+
+    # pkg_post_installpkg
+    if [[ $pkg_post_installpkg ]]; then
+        pkg_doinst_add "$pkg_post_installpkg"
     fi
 
     local tgzfile tar
@@ -1092,8 +1091,14 @@ main() {
             pkg_show_time_used "$begin" "all-clean time"
             ;;
         install)
-            pkg_install_all_
-            pkg_show_time_used "$begin" "install time"
+            if ((${#BuildSteps[*]})); then
+                # no common install
+                pkg_all_
+                pkg_show_time_used "$begin" "all time"
+            else
+                pkg_install_all_
+                pkg_show_time_used "$begin" "install time"
+            fi
             ;;
         *)
             echo "unknown command: $cmd"
