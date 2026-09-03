@@ -1,7 +1,13 @@
 #!/bin/bash
 
-PkgHome="https://github.com/google/highway"
+PkgHome="https://github.com/google/highway/tags"
 
 ConfigureOpts+=(
+    # Slackware
+    -DHWY_ENABLE_TESTS=OFF
+    -DHWY_SYSTEM_GTEST=ON
+    # if(BUILD_TESTING)
+    #   set(HWY_SYSTEM_GTEST OFF CACHE BOOL "Use pre-installed googletest?")
+
     -DBUILD_TESTING=OFF
 )
