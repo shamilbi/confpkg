@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PkgHome+=("https://www.gnupg.org/ftp/gcrypt/binary/")
+
 ConfigureOpts+=(
     # Slackware
     --disable-ccid-driver
