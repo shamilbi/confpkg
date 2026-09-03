@@ -32,6 +32,8 @@ pkg_pre_configure() {
     # Slackware
     # GCC 14 "fix":
     pkg_add_cflags "-Wno-error=implicit-function-declaration"
+    # Fix build with GCC 16 and C23:
+    pkg_patch_f3 d04d17b456d9847021b6df6eb08a3419a75172cf.patch 1 || return 1
     # Put the SANE_CAP_ALWAYS_SETTABLE definition back until
     # everything else catches up with the API change...
     # NOTE: "everything" includes the frontends lol
