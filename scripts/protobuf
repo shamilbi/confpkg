@@ -1,6 +1,9 @@
 #!/bin/bash
 
-PkgHome="https://github.com/protocolbuffers/protobuf"
+PkgHome=(
+    "https://github.com/protocolbuffers/protobuf/tags"
+    "https://pypi.org/project/protobuf/"
+)
 
 if [[ -d $OrigSrcDir ]]; then
     if [[ -f $OrigSrcDir/setup.py ]]; then
