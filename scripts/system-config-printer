@@ -22,7 +22,9 @@ MakeEnv=(
 InstallEnv+=("${MakeEnv[@]}")
 
 pkg_post_install() {
-    pkg_reinstall_python .
+    # reinstall python
+    rm -rf "$PythonPureLibDir2"
+    "$Python" -m pip install . -t "$PythonPureLibDir2"
 
     # Slackware
     # Generate .pyc files
