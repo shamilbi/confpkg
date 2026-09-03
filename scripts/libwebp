@@ -26,6 +26,10 @@ pkg_post_install() {
         f1=$SrcDir/swig/setup.py
         sed -i -re 's|^( *)version=.*,$|\1version="'"$Version"'",|' "$f1"
 
-        pkg_reinstall_python swig
+        # reinstall python
+        (
+            cd swig || exit 1
+            "$Python" -m pip install . -t "$PythonPlatLibDir2"
+        )
     done
 }
