@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PkgHome="https://github.com/libpwquality/libpwquality"
+PkgHome="https://github.com/libpwquality/libpwquality/tags"
 
 BuildSteps=("${BuildForPython[@]}")
 [[ $BuildStep ]] && pkg_set_python "$BuildStep"
@@ -12,5 +12,9 @@ ConfigureOpts+=(
 )
 
 pkg_post_install() {
-    pkg_reinstall_python python
+    # python
+    (
+        cd python || exit 1
+        "$Python" -m pip install . -t "$PythonPlatLibDir2"
+    )
 }
