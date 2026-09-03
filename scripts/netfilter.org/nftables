@@ -1,23 +1,22 @@
 #!/bin/bash
 
-#PkgHome="https://www.nftables.org/"
-
 ConfigureOpts+=(
     # Slackware
     --with-xtables
     #--disable-python
     --with-json
     --with-cli=readline
-
-    #--with-python-bin="$Python"
-    #--enable-python
 )
 unset ProtectDirs
 
 pkg_post_install() {
+    # python
     local p
     for p in "${BuildForPython[@]}"; do
         pkg_set_python "$p"
-        pkg_reinstall_python py
+        (
+            cd py || exit 1
+            "$Python" -m pip install . -t "$PythonPureLibDir2"
+        )
     done
 }
