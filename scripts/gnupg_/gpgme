@@ -1,7 +1,10 @@
 #!/bin/bash
 
 ConfigureOpts+=(
-    --enable-languages=cl # enable only specific language bindings: cl
+    # Slackware
+    --disable-gpg-test
+
+    # --enable-languages=cl # enable only specific language bindings: cl
     --with-libgpg-error-prefix="$Prefix" # prefix where GPG Error is installed (optional)
     --with-libassuan-prefix="$Prefix" # prefix where LIBASSUAN is installed (optional)
 
