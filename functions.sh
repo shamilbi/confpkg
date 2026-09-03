@@ -679,35 +679,6 @@ pkg_mkdir_cache() {
     chmod 700 "$d"
 }
 
-pkg_reinstall_python() {
-    # REQ: pkg_set_python ...
-    # reinstall python (egg -> dist-info)
-    # pkg_reinstall_python <dir>
-    local dir=$1
-    local p=$(basename "$Python") # python3.14
-    if [[ ! $p ]]; then
-        echo "var Python not defined"
-        return 1
-    fi
-
-    local dest i
-    for i in "$LibDir2/$p" "$PythonLibDir2"; do
-        if [[ -d $i ]]; then
-            dest=$i
-            break
-        fi
-    done
-    [[ ! $dest ]] && dest=$PythonLibDir2
-
-    (
-        pkg_cd_srcdir || exit 1
-        cd "$dir" || exit 1
-        d2=$dest/site-packages
-        [[ -d $d2 ]] && rm -rf "$d2"
-        "$Python" -m pip install . -t "$d2"
-    )
-}
-
 pkg_cmp_versions() {
     # pkg_cmp_versions '5.0.1' '6.1' # -1
     local ver1=$1 ver2=$2 # 5.0.1, 6.1
@@ -800,4 +771,20 @@ pkg_doinst_add_config() {
     local f1=$1
     [[ ! $f1 ]] && return 1
     pkg_doinst_add "config ${f1:$((${#DestDir} + 1))}"
+}
+
+wget2_dl() {
+    ((! $#)) && return 1
+
+    local opts=(
+        -nv # --no-verbose
+        -np # --no-parent
+        -nH # --no-host-directories
+        # -r # --recursive
+        # -L # --relative
+        # --cut-dirs="$cut_dirs"
+        -nd # --no-directories
+        --ca-directory=/etc/ssl/certs
+    )
+    wget2 "${opts[@]}" "$@"
 }
