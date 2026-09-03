@@ -2,6 +2,7 @@
 
 PkgHome+=(
     "https://github.com/OpenPrinting/libcupsfilters/tags"
+    "${DebianSearchURL}libcupsfilters2"
 )
 
 # REQ: qpdf>10
@@ -13,3 +14,13 @@ ConfigureOpts+=(
     # --enable-poppler # enable Poppler-based filters
     # --enable-dbus # enable DBus CMS code
 )
+
+pkg_pre_configure() {
+    # Slackware
+    if (($(pkg_cmp_versions "$Version" "2.1") <= 0)); then
+        :
+    else
+        # Fix printing error:  pdfio output "Missing Root object."
+        pkg_patch_f3 167.patch 1 || return 1
+    fi
+}
