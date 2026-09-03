@@ -1,0 +1,113 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://github.com/rworkman/slackpkg/tags"
+    "$SlackwareMirrorUrl/ap/slackpkg/?C=M&O=D"
+)
+
+unset -v pkg_configure pkg_make ProtectDirs
+
+# existing slackpkg
+version=$(grep -m 1 -e '^VERSION=' "$Prefix"/sbin/slackpkg | sed -re 's,^VERSION=(.*),\1,')
+
+work_files() {
+    local dir files i
+
+    # Slackware
+    # Install main script:
+    dir=$Prefix2/sbin
+    pkg_install_mfd 755 "$Name" "$dir"
+    # Prepare /etc directory:
+    dir=$Etc2/$Name
+    files=(blacklist.new slackpkg.conf.new)
+    pkg_install_mfd 644 "${files[@]}" "$dir"
+    for i in "${files[@]}"; do
+        pkg_doinst_add_config "$Etc2/$Name/${i%.*}"
+    done
+    pkg_install_mfd 644 post-functions.conf-sample "$dir"
+    mkdir -p "$dir"/templates
+    # Install support scripts in /usr/libexec/slackpkg:
+    dir=$Prefix2/libexec/$Name
+    files=(
+        core-functions.sh
+        cutpkg.awk
+        filelist.awk
+        install-new.awk
+        pkglist.awk
+    )
+    pkg_install_mfd 755 "${files[@]}" "$dir"
+    files=(dialog-functions.sh post-functions.sh)
+    pkg_install_mfd 755 "${files[@]}" "$dir"/functions.d
+    # Install man pages:
+    pkg_install_mfd 644 slackpkg.conf.5 "$ManDir2"/man5
+    pkg_install_mfd 644 slackpkg.8 "$ManDir2"/man8
+    # Install internationalized man pages from
+    # http://slint.fr/forSlackware/man_l10n/slackpkg/
+    local lang
+    for i in manpages-l10n/*slackpkg.conf ; do
+        lang=$(basename "$i")
+        lang=${lang%%.*}
+        pkg_install_mff 644 "$i" "$ManDir2/$lang/man5/${i#*.}.5"
+    done
+    for i in manpages-l10n/*slackpkg ; do
+        lang=$(basename "$i")
+        lang=${lang%%.*}
+        pkg_install_mff 644 "$i" "$ManDir2/$lang/man8/${i#*.}.8"
+    done
+    # Install bash-completion file
+    dir=$ShareDir2/bash-completion/completions
+    pkg_install_mff 644 shell-completion/slackpkg.bash "$dir/slackpkg"
+    # Update version number:
+    if [[ ! $version ]]; then
+        echo "could not find existing slackpkg version"
+        return 1
+    fi
+    sed -i "s/@VERSION@/$version/g" "$Prefix2/sbin/$Name"
+    # Prepare documentation directory:
+    pkg_install_mfd 644 ChangeLog GPL README mirrors* "$DocDir2"
+    # Create additional directories needed by slackpkg:
+    mkdir -p "$DestDir"/var/lib/slackpkg
+    mkdir -p "$DestDir"/var/cache/packages
+}
+
+pkg_install() {
+    (
+        cd files || exit 1
+        work_files
+    ) || return 1
+
+    # Create additional directories needed by slackpkg:
+    mkdir -p "$DestDir"/var/lib/slackpkg
+    mkdir -p "$DestDir"/var/cache/packages
+}
+
+pkg_install_doc() {
+    pkg_install_mfd 644 README.md "$DocDir2"
+}
+
+pkg_read2var pkg_post_installpkg <<EOF
+copy_mirror_file() {
+    ARCH=\$(uname -m)
+    case "\$ARCH" in
+        i386|i486|i586|i686)
+            SRCMIRROR=mirrors-x86.sample ;;
+        x86-64|x86_64|X86-64|X86_64)
+            SRCMIRROR=mirrors-x86_64.sample ;;
+        s390)
+            SRCMIRROR=mirrors-s390.sample ;;
+        arm*)
+            SRCMIRROR=mirrors-arm.sample ;;
+        aarch64)
+            SRCMIRROR=mirrors-aarch64.sample ;;
+        *)
+            SRCMIRROR=mirrors-x86.sample ;;
+    esac
+    cp "${DocDir:1}/\$SRCMIRROR" etc/slackpkg/mirrors.new
+}
+copy_mirror_file
+config etc/slackpkg/mirrors
+# don't remove: avoid downloading files again
+#rm -f var/lib/slackpkg/ChangeLog.txt
+#rm -f var/lib/slackpkg/pkglist
+#rm -f var/lib/slackpkg/CHECKSUMS.md5*
+EOF
