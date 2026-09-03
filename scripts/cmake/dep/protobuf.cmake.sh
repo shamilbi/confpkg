@@ -3,6 +3,7 @@
 PkgHome="https://github.com/protocolbuffers/protobuf"
 
 # REQ: abseil-cpp
+# 18 min
 
 ConfigureOpts+=(
     # Slackware
