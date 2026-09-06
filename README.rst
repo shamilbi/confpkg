@@ -21,22 +21,18 @@ Installation
     .. code-block:: sh
 
         # source
-        wget https://deb.debian.org/debian/pool/main/f/fakeroot/fakeroot_1.31.orig.tar.gz
-        tar xf fakeroot_1.31.orig.tar.gz    # fakeroot-1.31/
-        cd fakeroot-1.31
-        # patches
-        wget https://deb.debian.org/debian/pool/main/f/fakeroot/fakeroot_1.31-1.2.debian.tar.xz
-        tar xf fakeroot_1.31-1.2.debian.tar.xz  # debian/
-        while IFS= read -r patch; do
-            patch -p1 <debian/patches/"$patch"
-        done < <(cat debian/patches/series)
+        fn=fakeroot_2.1.4.orig.tar.xz
+        wget http://deb.debian.org/debian/pool/main/f/fakeroot/$fn
+        tar xf "$fn"    # fakeroot-*/
+        cd fakeroot-*
         # compile and install
         ./configure --prefix=/usr --libdir=/usr/lib64 \
-            --mandir=/usr/man --docdir=/usr/doc/fakeroot-1.31 \
+            --mandir=/usr/man --docdir=/usr/doc/fakeroot \
             --disable-static &&
-            make && sudo make install
+            make &&
+            sudo make install
         # check
-        fakeroot bash -c 'whoami'   # root
+        fakeroot bash -c 'whoami' # root
 
 #.  install confpkg
 
