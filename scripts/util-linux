@@ -1,0 +1,160 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://github.com/util-linux/util-linux/tags"
+    "$SlackwareMirrorUrl/a/util-linux/?C=M&O=D"
+)
+
+pkg_set_python python3
+
+# Slackware
+# Choose correct options depending on whether PAM is installed:
+if [[ $PAM ]]; then
+    login_options=()
+
+    # By default, don't use the util-linux version of /bin/su:
+else
+    login_options=(--disable-login)
+
+    # Don't use the util-linux version of /bin/su.
+    # It can't be built without PAM anyway.
+fi
+
+ConfigureOpts+=(
+    # Slackware
+    --enable-agetty
+    --enable-fdformat
+    --enable-kill
+    --enable-line
+    --enable-mesg
+    --enable-partx
+    --enable-pg
+    --disable-raw
+    --enable-rename
+    "${login_options[@]}"
+    --enable-schedutils
+    --enable-wall
+    --enable-write
+    --enable-use-tty-group
+    --enable-libblkid
+    --enable-libmount
+    --disable-libmount-mountfd-support
+    --enable-libuuid
+    --disable-uuidd
+    --with-python=3
+    --enable-login-lastlog
+)
+
+pkg_pre_configure() {
+    # Slackware
+    # Put any PAM modules in the proper directory:
+    sed -i "s|securelib_execdir='\${libdir}/security'|securelib_execdir='/$LibName/security'|g" configure
+    # Changing the fdisk -l output (this was done prior to util-linux-ng) broke
+    # our installation scripts, so we have changed the name of partition type
+    # 83 back to "Linux swap":
+    pkg_patch_f3 util-linux.fdisk-no-solaris.diff.gz 1 || return 1
+    # Revert to the behavior of earlier versions of fdisk which did not list the
+    # /dev/ram* devices in 'fdisk -l' output:
+    pkg_patch_f3 util-linux.do.not.list.ram.devices.diff.gz 1 || return 1
+    # Fix build:
+    pkg_patch_f3 c08bd2aa50aa306c6ad51e50f582acf686283deb.patch 1 || return 1
+
+    # undefined reference to tputs, ..
+    pkg_add_cflags "-lcurses"
+    export LDFLAGS="-lcurses"
+}
+
+pkg_post_install() {
+    local i
+
+    # Slackware
+    if [[ $PAM ]]; then
+        # Add /etc/pam.d config files:
+        local file files
+        files=(chfn chsh login runuser runuser-l)
+        # for file in $CWD/pam.d/* ; do
+        for file in "${files[@]}"; do
+            pkg_install_mfd 644 "$SupportDir/$file" "$Etc2"/pam.d || return 1
+        done
+        # In case someone is using the '-h' option to /bin/login, we will require
+        # another copy of /etc/pam.d/login called /etc/pam.d/remote. Make this copy
+        # if it doesn't exist already:
+        if [ ! -r $Etc2/pam.d/remote ]; then
+            pkg_install_mff 644 "$Etc2"/pam.d/login "$Etc2"/pam.d/remote || return 1
+        fi
+        # Ensure correct perms/ownership on files in /etc/pam.d/:
+        chmod 644 "$Etc2"/pam.d/*
+    fi
+    # These need to be setuid root to work properly (only built for PAM):
+    if [[ -r $Prefix2/bin/chfn ]]; then
+        chmod 4711 "$Prefix2"/bin/chfn
+    fi
+    if [[ -r $Prefix2/bin/chsh ]]; then
+        chmod 4711 "$Prefix2"/bin/chsh
+    fi
+    # Harden perms on /bin/mount and /bin/umount:
+    chmod 4711 "$DestDir"/bin/mount
+    chmod 4711 "$DestDir"/bin/umount
+    # Remove all overlap with the shadow package, since --disable-login doesn't quite do that:
+    rm $DestDir/sbin/{nologin,sulogin} $ManDir2/man8/{nologin.8,sulogin.8}
+    # If we aren't shipping su, remove the files:
+    rm -f "$DestDir"/bin/su
+    rm -f "$ManDir2"/man1/su.1
+    rm -f "$ShareDir2"/bash-completion/completions/{runuser,su}
+    # Move the libblkid, libfdisk, libmount, libsmartcols, and
+    # libuuid libraries to /lib${LIBSUFFIX}:
+    for i in blkid fdisk mount smartcols uuid; do
+        ls -d "$LibDir2/lib$i".so.* | pkg_mv_ln "$DestDir/$LibName"
+    done
+    # Moving things around that have been in the same place
+    # for 15 years is, IMHO, not a wise idea AT ALL.
+    # If this had to be moved, some place out of /usr might
+    # have shown a grain of insight...
+    # Now since stuff will start looking in this new place,
+    # we have no choice but to link these:
+    ls -d "$Prefix2"/sbin/fdformat | pkg_mv_ln "$Prefix2/bin"
+    # Add the rc.setterm init script to set default terminal attributes:
+    pkg_install_mfd 755 "$SupportDir"/rc.setterm "$Etc2"/rc.d
+    # ddate.{1,c} taken from https://github.com/bo0ts/ddate:
+    pkg_cp_fd "$SupportDir"/ddate.{1,c} . || return 1
+    cc -O -o ddate ddate.c || return 1
+    pkg_install_mfd 755 ddate "$Prefix2/bin"
+    pkg_install_mfd 644 ddate.1 "$ManDir2/man1"
+    # Build bsdstrings
+    tar xf "$SupportDir"/bsdstrings.tar.gz || return 1
+    pkg_patch_f "$SupportDir"/bsdstrings-util-linux_overflow.diff.gz 1 bsdstrings || return 1
+    pkg_patch_f "$SupportDir"/bsdstrings.gcc14.diff.gz 1 bsdstrings || return 1
+    make -C bsdstrings || exit 1
+    pkg_install_mff 755 bsdstrings/strings "$Prefix2"/bin/strings-BSD
+    pkg_install_mff 644 bsdstrings/strings.1 "$ManDir2"/man1/strings-BSD.1
+    # Build seedrng, a utility for seeding the kernel random number generator:
+    pkg_cp_fd "$SupportDir"/seedrng.{c,8} . || return 1
+    cc -O2 -std=gnu99 seedrng.c -o seedrng || return 1
+    pkg_install_mfd 755 seedrng "$Prefix2"/sbin
+    pkg_install_mfd 644 seedrng.8 "$ManDir2"/man8
+    # These have always traditionally been available before /usr
+    # might be mounted:
+    ls -d "$Prefix2"/bin/{getopt,setterm} | pkg_mv_ln "$DestDir"/bin
+    # Now let's add some important symlinks :)
+    ls -d "$DestDir"/bin/{mount,umount} | pkg_ln_d "$DestDir"/sbin
+    ln -sfnr "$DestDir"/sbin/hwclock "$DestDir"/sbin/clock
+    ls -d "$DestDir"/sbin/{cfdisk,ctrlaltdel,sfdisk} | pkg_ln_d "$Prefix2"/sbin
+    ls -d "$Prefix2"/sbin/readprofile | pkg_ln_d "$Prefix2"/bin
+    ls -d "$DestDir"/bin/more | pkg_ln_d "$Prefix2"/bin
+    ln -sfnr "$ManDir2"/man8/hwclock.8 "$ManDir2"/man8/clock.8
+    #
+    pkg_install_mfd 644 Documentation/releases/v${Version}-ReleaseNotes "$DocDir2"
+    pkg_install_mfd 644 Documentation/licenses/* Documentation/{TODO,*.txt} "$DocDir2"
+}
+
+pkg_read2var pkg_post_installpkg <<EOF
+pkg_post_installpkg() {
+    # Slackware
+    # Since libmount has dropped all support for an /etc/mtab file, if we find that
+    # we'll need to replace it with a symlink to /proc/mounts:
+    if [[ ! -L etc/mtab ]]; then
+        ln -sfn /proc/mounts etc/mtab
+    fi
+}
+pkg_post_installpkg
+EOF
