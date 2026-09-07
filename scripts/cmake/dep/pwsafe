@@ -7,3 +7,7 @@ PkgHome="https://github.com/pwsafe/pwsafe"
 ConfigureOpts+=(
     -DNO_GTEST=ON
 )
+
+# src/core/CoreImpExp.cpp:81:17:
+# error: definition of implicit copy constructor for 'ExportTester' is deprecated because it has a user-declared copy assignment operator [-Werror,-Wdeprecated-copy]
+unset -v UseClang
