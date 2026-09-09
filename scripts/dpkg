@@ -5,6 +5,21 @@ PkgHome="https://codeberg.org/dpkg/dpkg/tags"
 pkg_configure_del2 shared static
 unset pkg_check
 
+pkg_pre_configure() {
+    # m4_esyscmd([build-aux/get-version]) -> [$Version]
+    # m4_esyscmd([build-aux/get-vcs-id]) -> [$Version]
+    local f1=configure.ac
+    if pkg_create_orig "$f1"; then
+        local s1
+        local s2="[$Version]"
+        for s1 in 'm4_esyscmd(\[build-aux/get-version])' 'm4_esyscmd(\[build-aux/get-vcs-id])'; do
+            sed -i -e "s,$s1,$s2," "$f1"
+        done
+
+        pkg_autoreconf
+    fi
+}
+
 pkg_install() {
     local dir=$Prefix2/bin
     pkg_install_mfd 755 src/{dpkg,dpkg-deb} "$dir" || return 1
