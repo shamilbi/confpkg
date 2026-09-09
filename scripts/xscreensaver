@@ -1,68 +1,72 @@
 #!/bin/bash
 
-PkgHome="https://www.jwz.org/xscreensaver/"
+PkgHome=(
+    "https://www.jwz.org/xscreensaver/"
+    "$SlackwareMirrorUrl/xap/xscreensaver/?C=M&O=D"
+)
 
 pkg_configure_del2 shared static
 
 ConfigureOpts+=(
+    # Slackware
     --with-app-defaults=/etc/X11/app-defaults
+    --with-text-file=/usr/doc/netdate/COPYRIGHT
+    --with-pam
     --without-kerberos
     --with-jpeg
     --with-gl
-    --with-text-file=/usr/doc/netdate/COPYRIGHT
 
-    --without-systemd
+    # --without-systemd
+    --with-elogind # Use elogind for that instead of systemd
 )
-[[ $PAM ]] && ConfigureOpts+=(--with-pam) || ConfigureOpts+=(--with-shadow)
-[[ $ELOGIND ]] && ConfigureOpts+=(--with-elogind) || ConfigureOpts+=(--without-elogind)
 
-#unset ProtectDirs
-InstallEnv=(
+MakeEnv=(
+    # Slackware
+    xml_config=/usr/bin/xml-config
+    xml2_config=/usr/bin/xml2-config
+)
+InstallEnv+=(
+    # Slackware
     install_prefix="$DestDir"
 )
 pkg_check=
 
 pkg_pre_configure() {
-    if [[ $Version = 6.05* ]]; then
-        # Add support for the electricsheep distributed screensaver:
-        pkg_patch_f3 xscreensaver.electricsheep.diff.gz 1 --backup --suffix=.orig || return 1
-    else
-        # Add support for the electricsheep distributed screensaver:
-        pkg_patch_f3 xscreensaver.electricsheep-2.diff.gz 1 --backup --suffix=.orig || return 1
-    fi
-
+    # Slackware
+    # Add support for the electricsheep distributed screensaver:
+    pkg_patch_f3 xscreensaver.electricsheep.diff.gz 1 --backup --suffix=.orig || return 1
     # Remove a feature that pops up a nag screen claiming the version is old
     # after one year.  Just don't send in bug reports on an old version, OK folks?
     # I hate to swim against upstream, but with all respect this feature is not
     # helpful to distributions.
     pkg_patch_f3 xscreensaver.no.expiration.date.diff.gz 1 --backup --suffix=.orig || return 1
+    # Fix ./configure:
+    pkg_autoreconf || return 1
+    pkg_patch_f3 po.fix.no.default.diff 1 || return 1
 }
 
-pkg_pre_install() {
-    if [[ $PAM ]]; then
-        mkdir -p "$DestDir/etc/pam.d"
-    fi
-}
+# pkg_pre_install() {
+#     if [[ $PAM ]]; then
+#         mkdir -p "$Etc2"/pam.d
+#     fi
+# }
 
 pkg_post_install() {
-    local f
-    if [[ ! $PAM ]]; then
-        # Needed for password unlock:
-        f="$Prefix2/bin/xscreensaver"
-        chown root:shadow "$f"
-        chmod 2751 "$f"
-    else
-        ## Commenting out the chmod below, since as of v6.00 this binary is no longer
-        ## made setuid at installation. But if that changes, we'll go along with it
-        ## since jwz says it may be required to prevent OOM killer abuse from
-        ## unlocking the screen.
-        # No special perms needed with PAM:
-        #chmod 755 $PKG/usr/bin/xscreensaver
-
-        pkg_install_mff 644 "$Etc2/pam.d/$Name" <<EOF
-#%PAM-1.0
-
-  auth       include      system-auth
-EOF
-    fi
+    # Slackware
+    # No special perms needed with PAM:
+    #chmod 755 $PKG/usr/bin/xscreensaver
+    pkg_install_mff 644 "$SupportDir"/xscreensaver.pam "$Etc2"/pam.d/xscreensaver
+    # If xscreensaver shipped a PAM config, we don't want it:
+    # rm -f $PKG/etc/pam.d/xscreensaver
+    #
+    # Harden perms on /usr/libexec/xscreensaver/sonar and /usr/libexec/xscreensaver/xscreensaver-auth:
+    chmod 4711 "$Prefix2"/libexec/xscreensaver/sonar
+    chmod 4711 "$Prefix2"/libexec/xscreensaver/xscreensaver-auth
+    # This is needed for the menus:
+    mkdir -p "$ShareDir2"/pixmaps
+    # Insert an older version of xscreensaver-getimage-file to avoid depending
+    # on libwww-perl.  Maybe we'll eventually add this, but bundling 14 perl
+    # modules is a lot of maintainance just to get slidescreen working again.
+    # This restores the functionality that we had before without all that.
+    pkg_install_mff 644 "$SupportDir"/xscreensaver-getimage-file-5.14 "$Prefix2"/bin/xscreensaver-getimage-file
 }
