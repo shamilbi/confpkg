@@ -1,0 +1,12 @@
+#!/bin/bash
+
+PkgHome="https://www.tcpdump.org/index.html#latest-releases"
+
+ConfigureOpts+=(
+    # Slackware
+    --enable-ipv6
+
+    --enable-static # nmap requires static
+)
+
+pkg_check=
