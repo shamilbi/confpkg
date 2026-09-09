@@ -1,8 +1,9 @@
 #!/bin/bash
 
 PkgHome=(
-    "https://github.com/LMDB/lmdb/tags"
+    # "https://github.com/LMDB/lmdb/tags"
     "$SlackwareMirrorUrl/l/lmdb/?C=M&O=D"
+    "https://git.openldap.org/openldap/openldap/-/tags"
 )
 
 version1=${VersionArr[0]} # 0
@@ -19,11 +20,6 @@ MakeEnv=(
 
     mandir="$ManDir"
 )
-if (($(pkg_cmp_versions "$Version" "1") < 0)); then
-    MakeEnv+=(
-        SOEXT=.so."$version2" # liblmdb.so.0.9
-    )
-fi
 InstallEnv+=("${MakeEnv[@]}")
 
 pkg_pre_configure() {
@@ -38,7 +34,7 @@ pkg_pre_configure() {
         local s2='./mtest \&\& sleep 1 \&\& ./mdb_stat testdb'
         sed -i -e "s,$s1,$s2," "$f1"
         #
-        if [[ $Version = 1.0.* ]]; then
+        if (($(pkg_cmp_versions "$Version" "1.0.1") < 0)); then
             pkg_patch_f3 900.patch 3 || return 1
         fi
         #
