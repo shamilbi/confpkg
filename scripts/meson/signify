@@ -1,0 +1,11 @@
+#!/bin/bash
+
+PkgHome="https://codeberg.org/aperezdc/signify/tags"
+
+ConfigureOpts+=(
+    -Dbundled_libbsd=enabled # disabled, Use bundled copies of libbsd functions
+)
+
+pkg_post_install() {
+    mkdir -p "$Etc2/${Name,,}"
+}
