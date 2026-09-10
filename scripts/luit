@@ -1,0 +1,8 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://invisible-island.net/luit/"
+    "https://invisible-island.net/archives/luit/?C=M;O=D"
+)
+
+pkg_configure_del --docdir --localedir
