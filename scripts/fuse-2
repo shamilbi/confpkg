@@ -1,0 +1,52 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://github.com/libfuse/libfuse/tags"
+    "$SlackwareMirrorUrl/l/fuse/?C=M&O=D"
+)
+
+# NOTE: fusermount has a setuid bit
+
+ConfigureOpts+=(
+    # Slackware
+    --bindir=/bin
+    --sbindir=/sbin
+    --libdir=/"$LibName"
+    --with-pkgconfigdir="$LibDir"/pkgconfig
+    --enable-lib
+    --enable-util
+
+    --enable-example
+)
+
+pkg_check=
+
+MakeEnv=(
+    UDEV_RULES_PATH=/lib/udev/rules.d
+    pkgconfigdir="$LibDir"/pkgconfig
+)
+InstallEnv+=("${MakeEnv[@]}")
+
+pkg_pre_configure() {
+    # Slackware
+    # patch to build with glibc-2.34
+    # from https://src.fedoraproject.org/rpms/fuse/raw/rawhide/f/fuse2-0007-util-ulockmgr_server.c-conditionally-define-closefro.patch
+    local f=fuse2-0007-util-ulockmgr_server.c-conditionally-define-closefro.patch.gz
+    pkg_patch_f3 "$f" 1 -Es || return 1
+    #
+    pkg_autoreconf
+}
+
+pkg_post_install() {
+    # Slackware
+    # Harden perms on /bin/fusermount:
+    chmod 4711 "$DestDir"/bin/fusermount
+    # Move the start|stop script of fuse to the right place.
+    mv "$Etc2"/init.d "$Etc2"/rc.d
+    mv "$Etc2"/rc.d/fuse "$Etc2"/rc.d/rc.fuse
+    # udev handles device node creation
+    rm -rf "$DestDir"/dev
+
+    pkg_install_mfd 644 doc/how* doc/kernel.txt "$DocDir2"
+    gzip -9 "$DocDir2"/ChangeLog
+}

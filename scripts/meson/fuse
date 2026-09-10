@@ -1,0 +1,31 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://github.com/libfuse/libfuse/tags"
+    "$SlackwareMirrorUrl/l/fuse3/?C=M&O=D"
+)
+
+pkg_pre_configure() {
+    # Slackware
+    # We don't include LSB cruft, so check to see if the LSB init-functions
+    # file exists before sourcing it. On another note, I've never found any
+    # reason to actually run this init script. FUSE works fine without it.
+    pkg_patch_f3 rc.fuse3.no.source.lsb.init-functions.diff.gz 1 || return 1
+}
+
+pkg_post_install() {
+    # Slackware
+    # Harden perms on /usr/bin/fusermount3:
+    chmod 4711 "$Prefix2"/bin/fusermount3
+    # Create compat symlinks for mount.fuse3 and fusermount3:
+    ls -d "$Prefix2"/sbin/mount.fuse3 | pkg_ln_d "$DestDir"/sbin
+    ls -d "$Prefix2"/bin/fusermount3 | pkg_ln_d "$DestDir"/bin
+    # Move the init script of fuse to the right place:
+    mv "$Etc2"/init.d "$Etc2"/rc.d
+    mv "$Etc2"/rc.d/fuse3 "$Etc2"/rc.d/rc.fuse3
+    # udev handles device node creation
+    rm -rf "$DestDir"/dev
+
+    pkg_install_mfd 644 doc/README* doc/kernel.txt "$DocDir2"
+    :
+}
