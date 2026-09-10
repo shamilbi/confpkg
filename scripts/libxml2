@@ -1,0 +1,48 @@
+#!/bin/bash
+
+PkgHome="https://gitlab.gnome.org/GNOME/libxml2/-/tags"
+
+# python: libxml2mod (for gucharmap)
+
+[[ ! $BuildSteps ]] && BuildSteps=("${BuildForPython[@]}")
+if [[ $BuildStep ]]; then
+    pkg_set_python "$BuildStep"
+    ConfigureOpts+=("--with-python=$Python")
+fi
+
+ConfigureOpts+=(
+    # Slackware
+    --with-legacy
+    --with-python # Python bindings (on)
+)
+
+pkg_pre_configure() {
+    if (($(pkg_cmp_versions "$Version" "2.15") < 0)); then
+        # Slackware
+        # Patch from openSUSE.
+        # See:  https://bugzilla.gnome.org/show_bug.cgi?id=789714
+        pkg_patch_f3 libxml2-2.12.0-python3-unicode-errors.patch 1 || return 1
+    fi
+
+    pkg_autoreconf
+}
+
+pkg_post_install() {
+    # Slackware
+    # This is "deprecated and unmaintained" and needed by a ton of stuff:
+    pkg_install_mfd 644 "$SupportDir"/libxml.m4 "$ShareDir2"/aclocal
+
+    # /usr/include/libxml --> libxml2/libxml
+    local dir=$IncludeDir2/libxml
+    if [[ ! -d $dir ]]; then
+        local dir2
+        while dir2=$(pkg_read_exist); do
+            ln -sfnr "$dir2" "$dir" # libxml2/libxml -> libxml
+            break
+        done < <(find "$IncludeDir2" -mindepth 2 -maxdepth 2 -type d -name libxml)
+    fi
+
+    # python compileall
+    "$Python" -m compileall "$PythonPurePrefix2" -d / || return 1
+    "$Python" -O -m compileall "$PythonPurePrefix2" -d / || return 1
+}
