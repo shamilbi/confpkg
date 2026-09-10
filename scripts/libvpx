@@ -1,0 +1,52 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://github.com/webmproject/libvpx/"
+    "${DebianSearchURL}libvpx"
+)
+
+ConfigureOpts=(
+    # Slackware
+    --prefix="$Prefix"
+    --libdir="$LibDir"
+    --disable-debug-libs
+    --disable-debug
+    --enable-vp8
+    --enable-postproc
+    --enable-vp9
+    --enable-vp9-postproc
+    --enable-vp9-highbitdepth
+    --enable-shared
+    --disable-static
+    --enable-runtime-cpu-detect
+)
+# Slackware
+if [[ $Arch = "i686" ]]; then
+    ConfigureOpts+=(--target=x86-linux-gcc)
+elif [[ $Arch = "x86_64" ]]; then
+    ConfigureOpts+=(--target=x86_64-linux-gcc --enable-pic)
+else
+    ConfigureOpts+=(--target="$Arch"-linux-gcc)
+fi
+
+CleanOpts=(clean)
+pkg_check=
+
+pkg_pre_configure() {
+    # Slackware
+    # Looks like this avoids possible problems with ffmpeg after a supposedly
+    # ABI compatible libvpx upgrade. Probably doesn't hurt. Thanks to Debian.
+    pkg_patch_f3 0001-Relax-ABI-check.patch 1 || return 1
+}
+
+pkg_post_install() {
+    # Slackware
+    # These are actually the same ABI, so...
+    local i
+    for i in 9 1; do
+        # /usr/lib64/libvpx.so.1, for VirtualBox
+        if [[ ! -e "$LibDir2"/libvpx.so.$i ]]; then
+            find "$LibDir2" -maxdepth 1 -type f | pkg_ln_ff "$LibDir2"/libvpx.so."$i"
+        fi
+    done
+}
