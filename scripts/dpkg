@@ -1,6 +1,9 @@
 #!/bin/bash
 
-PkgHome="https://codeberg.org/dpkg/dpkg/tags"
+PkgHome=(
+    "https://codeberg.org/dpkg/dpkg/tags"
+    "https://git.dpkg.org/cgit/dpkg/dpkg.git"
+)
 
 pkg_configure_del2 shared static
 unset pkg_check
