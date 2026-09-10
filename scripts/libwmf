@@ -1,0 +1,30 @@
+#!/bin/bash
+
+PkgHome="https://github.com/caolanm/libwmf/tags"
+
+pkg_post_install() {
+    # Slackware
+    # Symlink to system fonts.
+    (
+        cd "$ShareDir2"/libwmf/fonts || exit 1
+        # Replace with a fontmap containing the system font names:
+        cat "$SupportDir"/fontmap > fontmap
+        rm *.afm *.t1
+        # Link to system fonts:
+        names1=(
+            n019003l n019004l n019023l n019024l n021003l n021004l n021023l
+            n021024l n022003l n022004l n022023l n022024l s050000l
+        )
+        names2=()
+        for name in "${names1[@]}"; do
+            names2+=("$name".afm "$name".pfb)
+        done
+        for file in "${names2[@]}"; do
+            if [[ ! -r /usr/share/fonts/Type1/$file ]]; then
+              echo "FONT $file NOT FOUND ON SYSTEM"
+              exit 1
+            fi
+            ln -sfn ../../fonts/Type1/"$file" .
+        done || exit 1
+    ) || return 1
+}
