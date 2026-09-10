@@ -1,0 +1,161 @@
+#!/bin/bash
+
+PkgHome="https://github.com/openldap/openldap/tags"
+
+# https://slackbuilds.org/uid_gid.txt
+user=ldap
+group=ldap
+userId=330
+groupId=330
+userHome=/var/lib/openldap
+userShell=/bin/false
+userComment="OpenLDAP server"
+userRunHome=/var/run/openldap
+
+ProtectDirs=(
+    # Slackware
+    /etc/default
+    /etc/rc.d
+)
+ProtectFiles=(
+    # Slackware
+    /etc/openldap/ldap.conf
+    /etc/openldap/slapd.conf
+    /etc/openldap/slapd.ldif
+)
+
+ConfigureOpts+=(
+    # Slackware
+    --enable-debug
+    --enable-dynamic
+    --enable-syslog
+    # --enable-proctitle
+    --enable-ipv6
+    --enable-local
+    #
+    --enable-slapd
+    --enable-dynacl
+    --enable-aci
+    --enable-cleartext
+    --enable-crypt
+    # --enable-lmpasswd
+    --enable-spasswd
+    --enable-modules
+    # --enable-rewrite
+    --enable-rlookups
+    --enable-slapi
+    --disable-slp
+    --enable-wrappers
+    #
+    --enable-backends=mod
+    # --enable-bdb=yes
+    # --enable-hdb=yes
+    --enable-mdb=yes
+    # --enable-monitor=yes
+    # --enable-perl=yes
+    --enable-argon2
+    --with-argon2=libsodium
+    --disable-wt
+    #
+    --enable-overlays=mod
+    #
+    --with-cyrus-sasl
+    --without-fetch
+    --with-threads
+    --with-pic
+    --with-tls
+
+    # non-Slackware
+    --enable-sql=no # enable sql backend no|yes|mod [no] (ODBC)
+)
+
+MakeOpts=(depend all)
+
+pkg_pre_configure() {
+    # Slackware
+    # Ensure user:group exists before building:
+    pkg_check_group "$group" "$groupId" || return 1
+    pkg_check_user "$user" "$group" "$userId" "$userHome" "$userShell" "$userComment" || return 1
+    # Change the location of run directory into /var/run/openldap:
+    sed -i -e 's|%LOCALSTATEDIR%/run/|'"$userRunHome"'/|' \
+        servers/slapd/slapd.*
+    # Change the location of ldapi socket into /var/run/openldap:
+    sed -i -e 's|\(#define LDAPI_SOCK\).*|\1 "'"$userRunHome"'/ldapi"|' \
+        include/ldap_defaults.h
+    # Change the default OpenLDAP database directory:
+    sed -i -e 's|openldap-data|lib/openldap|' \
+        servers/slapd/slapd.* include/ldap_defaults.h servers/slapd/Makefile.in
+    # Fix man pages:
+    sed -i "s/openldap\\\-data/lib\/openldap/g" \
+        doc/man/man5/slapd-config.5 \
+        doc/man/man5/slapd-mdb.5 \
+        doc/man/man5/slapd.conf.5
+    # GCC 14 "fix":
+    pkg_add_cflags -Wno-error=incompatible-pointer-types
+}
+
+pkg_post_install() {
+    local f d
+
+    # Slackware
+    # Don't package this directory:
+    rmdir "$DestDir"/var/run
+    # Fix permissions on shared libraries:
+    chmod 755 "$LibDir2"/*.so.*
+    # Restrict access to database:
+    d="${DestDir}${userHome}"
+    [[ -d $d ]] || mkdir -p "$d"
+    chmod 700 "$d"
+    # Fix ownership:
+    chown -R "$user:$group" "${DestDir}${userHome}" || return 1
+    chown -R "$user:$group" "$Etc2"/openldap || return 1
+    # Get rid of .default config files:
+    rm -f "$Etc2"/openldap/*.default
+    ## Move ldap.conf to ldap.conf.new and add an additional option:
+    #while IFS= read -r f; do
+    #    mv "$f" "$f.new"
+    #    pkg_doinst_add_config "$f"
+    #done < <(find "$Etc2" -type f \( -name '*.conf' -o -name '*.ldif' \))
+    cat >>"$Etc2"/openldap/ldap.conf <<EOF
+
+# In order to avoid problems with self-signed certificates using TLS:
+# "TLS certificate verification: Error, self signed certificate"
+# See also 'man ldap.conf' or http://www.openldap.org/doc/admin/tls.html
+TLS_REQCERT allow
+
+EOF
+    # Create a symlink for slapd in /usr/sbin:
+    f=$Prefix2/sbin/slapd
+    if [[ ! -x $f ]]; then
+        ln -sfnr "$Prefix2"/libexec/slapd "$f"
+    fi
+    # Create OpenLDAP certificates directory:
+    mkdir -p "$Etc2"/openldap/certs
+    # Copy rc.openldap:
+    pkg_install_mfd 644 "$SupportDir"/rc.openldap "$Etc2"/rc.d
+    # Copy slapd default file:
+    pkg_install_mfd 644 "$SupportDir"/slapd "$Etc2"/default
+}
+
+pkg_install_doc() {
+    # Slackware
+    # Add a documentation directory:
+    pkg_install_mfd 644 ANNOUNCEMENT* CHANGES COPYRIGHT* INSTALL* LICENSE* README* "$DocDir2"
+    # # If there's a CHANGES file, installing at least part of the recent history
+    # # is useful, but don't let it get totally out of control:
+    # if [ -r CHANGES ]; then
+    #   DOCSDIR=$(echo $DocDir2)
+    #   cat CHANGES | head -n 1000 > $DOCSDIR/CHANGES
+    #   touch -r CHANGES $DOCSDIR/CHANGES
+    # fi
+    # Include monitor backend README
+    pkg_install_mff 644 servers/slapd/back-monitor/README "$DocDir2"/README.back-monitor
+    # Include Perl backend README
+    pkg_install_mff 644 servers/slapd/back-perl/README "$DocDir2"/README.back-perl
+    # Include Perl backend sample file
+    pkg_install_mfd 644 servers/slapd/back-perl/SampleLDAP.pm "$DocDir2"
+    # Include OpenLDAP documentation
+    pkg_install_mfd 644 doc/guide/admin/*.png doc/guide/admin/*.html "$DocDir2"
+
+    gzip -9 "$DocDir2"/CHANGES
+}
