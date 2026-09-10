@@ -1,6 +1,9 @@
 #!/bin/bash
 
-PkgHome="https://tukaani.org/xz"
+PkgHome=(
+    "https://tukaani.org/xz"
+    "https://sourceforge.net/projects/lzmautils/files/"
+)
 
 ConfigureOpts+=(
     # Slackware
