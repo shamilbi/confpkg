@@ -18,11 +18,16 @@ ConfigureOpts+=(
 )
 [[ $WAYLAND ]] && ConfigureOpts+=(-Dwayland-backend=true)
 
+pkg_pre_configure() {
+    # Slackware
+    pkg_add_cflags -DG_ENABLE_DEBUG
+}
+
 pkg_read2var pkg_post_installpkg <<EOF
 pkg_post_installpkg() {
     # Slackware
     find usr/share/icons -maxdepth 2 -type f -name 'icon-theme.cache' -delete &>/dev/null
-    #chroot . /usr/bin/glib-compile-schemas /usr/share/glib-2.0/schemas/ &>/dev/null
+    # chroot . /usr/bin/glib-compile-schemas /usr/share/glib-2.0/schemas/ &>/dev/null
     local d1 d2 ver
     ver="${VersionArr[0]}"
     # usr/lib64/gtk-4.0
