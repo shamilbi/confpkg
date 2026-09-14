@@ -5,19 +5,17 @@ PkgHome=(
     "https://xaselgio.net/posts/08.playing-with-brightness/"
 )
 
-# unset ProtectDirs
-
 MakeEnv=(
     # Slackware
     # Put the udev rules in the right place:
     rulesdir=/lib/udev/rules.d
-
-    # installed_modulesdir=/etc/modules-load.d
 )
 InstallEnv+=("${MakeEnv[@]}")
 
 pkg_post_install() {
     # Slackware
     # Fix rules:
-    pkg_patch_f "$SupportDir"/ddcutil-fix-udev-rules.diff 1 "$DestDir"/lib/udev/rules.d || return 1
+    if (($(pkg_cmp_versions "$Version" "3") < 0)); then
+        pkg_patch_f "$SupportDir"/ddcutil-fix-udev-rules.diff 1 "$DestDir"/lib/udev/rules.d || return 1
+    fi
 }
