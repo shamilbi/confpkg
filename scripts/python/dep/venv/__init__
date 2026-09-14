@@ -11,6 +11,8 @@ PythonVenvSystem=1
 # Allow build to use CMake 4.x:
 export CMAKE_POLICY_VERSION_MINIMUM=3.5
 
+pkg_del_cflags "${GccFlags[@]}"
+
 pkg_install() {
     pkg_python_install
 }
