@@ -24,6 +24,8 @@ pkg_pre_configure() {
     pkg_check_user "$user" "$group" "$userId" "$userHome" "$userShell" "$userComment" || return 1
 
     # Slackware
+    # Fix wrong path for sysusers.d when systemd isn't used:
+    pkg_patch_f3 pcsc-lite.sysusers.d.path.patch 1 || return 1
     # disabling/enabling card's automatic power off
     sed -i "s|^\/\* #define DISABLE_ON_DEMAND_POWER_ON \*\/|#define DISABLE_ON_DEMAND_POWER_ON|" \
         src/pcscd.h.in
