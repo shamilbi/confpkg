@@ -83,22 +83,6 @@ pkg_pre_configure() {
     # Slackware
     # Restore missing function needed by Chromium and qt-webengine:
     pkg_patch_f3 add-av_stream_get_first_dts-for-chromium.patch.gz 1 || return 1
-    if (($(pkg_cmp_versions "$Version" "8") < 0)); then
-        # ERROR: amf requested but not found
-        ConfigureOpts+=(--enable-amf)
-    fi
-    if (($(pkg_cmp_versions "$Version" "7.1.1") < 0)); then
-        # Fix for texinfo-7.2:
-        pkg_patch_f3 FFmpeg-devel-doc-t2h-Support-texinfo-7.1-and-7.2-pretest.diff 1 || return 1
-    fi
-
-    # libavcodec/nvenc.c: In function ‘nvenc_setup_hevc_config’:
-    # libavcodec/nvenc.c:1373:9: error: ‘NV_ENC_CONFIG_HEVC’ has no member named ‘pixelBitDepthMinus8’
-    #  1373 |     hevc->pixelBitDepthMinus8 = IS_10BIT(ctx->data_pix_fmt) ? 2 : 0;
-    if [[ $Version = "6.1.1" ]]; then
-        # Patch for recent nv-codec-headers:
-        pkg_patch_f3 0004-support-nv-codec-headers-12.2.patch.gz 1 || return 1
-    fi
 
     mkdir -p __TMP__
     export TMPDIR=$(pwd)/__TMP__
