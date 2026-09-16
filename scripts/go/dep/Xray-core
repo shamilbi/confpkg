@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PkgHome="https://github.com/XTLS/Xray-core"
+PkgHome="https://github.com/XTLS/Xray-core/tags"
 
 GoBuild=(go build -o build -trimpath "./...")
 GoBuildBins+=(
