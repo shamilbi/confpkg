@@ -115,9 +115,10 @@ UserCacheDir=~/.cache/confpkg
 #PkgSearchURL="https://www.startpage.com/sp/search?query="
 PkgSearchURL="https://html.duckduckgo.com/html?q="
 
-# https://packages.debian.org/search?searchon=sourcenames&keywords=fakeroot
-# https://packages.debian.org/search?searchon=names&keywords=libxine2
-#DebianSearchURL="https://packages.debian.org/search?searchon=sourcenames&keywords="
-DebianSearchURL="https://packages.debian.org/search?keywords="
+DebianPackagesUrl="https://packages.debian.org"
+# $DebianPackagesUrl/search?searchon=sourcenames&keywords=fakeroot
+# $DebianPackagesUrl/search?searchon=names&keywords=libxine2
+#DebianSearchURL="$DebianPackagesUrl/search?searchon=sourcenames&keywords="
+DebianSearchURL="$DebianPackagesUrl/search?keywords="
 
 SlackwareMirrorUrl="https://mirror.de.leaseweb.net/slackware/slackware64-current/source"
