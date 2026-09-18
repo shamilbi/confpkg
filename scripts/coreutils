@@ -31,6 +31,9 @@ pkg_pre_configure() {
     pkg_patch_f3 coreutils.uname.diff.gz 1 || return 1
     # Revert change to ls quoting style introduced in coreutils-8.25:
     pkg_patch_f3 no_ls_quoting.patch.gz 1 || return 1
+    # Revert to the env quoting style behaviour from coreutils=9.11:
+    pkg_patch_f3 410f48719c378c1812ecd26d5a80a5f1144e2222.patch 1 --backup --suffix=.orig || return 1
+    pkg_patch_f3 5bd6dfb47c6cc2fca0cdb58f592dae58b0589f8a.patch 1 --backup --suffix=.orig || return 1
     # Compilation with glibc version later than 2.3.2 needs the environment
     # variable DEFAULT_POSIX2_VERSION set to 199209.
     # Without that line, the coreutils will start complaining about 'obsolete'

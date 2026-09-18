@@ -1,0 +1,371 @@
+From 5bd6dfb47c6cc2fca0cdb58f592dae58b0589f8a Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?P=C3=A1draig=20Brady?= <P@draigBrady.com>
+Date: Wed, 16 Sep 2026 17:21:33 +0100
+Subject: [PATCH 2/2] env,printenv: support --quoting-style to control quoting
+
+Quoting is currently only enabled by default when writing to terminals,
+but it is usually desired to constrain the output format for processing.
+E.g. for processing by a shell you can now:
+
+  env --quoting-style=shell-escape | grep ^FOO
+
+We use an option rather than reyling on $QUOTING_STYLE so
+that $QUOTING_STYLE is restricted to be user config for terminals
+and does not impact redirected processing.
+Also it avoids an extra getenv() call if not outputting to tty.
+
+* src/env.c (main): Parse --quoting-style and use that for the output
+format for all outputs.
+* src/printenv.c (main): Likewise.
+* doc/coreutils.texi (env invocation): Describe --quoting-style.
+(printenv invocation): Likewise.
+* tests/env/env.sh: Reinstate testing of various output modes.
+* tests/misc/printenv.sh: Likewise.
+* NEWS: Mention the new feature.
+---
+ NEWS                   |  5 +++++
+ doc/coreutils.texi     | 34 ++++++++++++++++++++++++----------
+ src/env.c              | 34 ++++++++++++++++++++++++----------
+ src/printenv.c         | 39 ++++++++++++++++++++++++++++++---------
+ tests/env/env.sh       | 17 ++++++++++++-----
+ tests/misc/printenv.sh | 28 +++++++++++++++++++++++-----
+ 6 files changed, 118 insertions(+), 39 deletions(-)
+
+diff --git a/NEWS b/NEWS
+index 1b0618576..3a731f520 100644
+--- a/NEWS
++++ b/NEWS
+@@ -2,6 +2,11 @@ GNU coreutils NEWS                                    -*- outline -*-
+ 
+ * Noteworthy changes in release ?.? (????-??-??) [?]
+ 
++** New Features
++
++  'env' and 'printenv' now support the --quoting-style option
++  to control the format of printed environment variables.
++
+ ** Changes in behavior
+ 
+   'env' and 'printenv' now quote printed environment variables only when
+diff --git a/doc/coreutils.texi b/doc/coreutils.texi
+index 9d7888511..a8013be0c 100644
+--- a/doc/coreutils.texi
++++ b/doc/coreutils.texi
+@@ -15516,15 +15516,22 @@ The program accepts the following option.  Also see @ref{Common options}.
+ @table @samp
+ 
+ @optNull{printenv}
++This option implies @option{--quoting-style=literal}.
+ 
+-@end table
++@optItem{printenv,--quoting-style,=@var{word}}
++@cindex quoting style
++Use style @var{word} to quote names and values that might
++contain arbitrary characters.  The @var{word} should
++be one of the following:
+ 
+-If standard output is a terminal @command{printenv} quotes
+-environment variables and their values using the @samp{shell-escape}
+-style by default. The environment variable @env{QUOTING_STYLE}
+-specifies the quoting style.  Valid quoting styles are:
+ @quotingStyles
+ 
++@end table
++
++If standard output is a terminal, you can specify the default value of
++the @option{--quoting-style} option with the environment variable
++@env{QUOTING_STYLE}, which defaults to @samp{shell-escape} if not set.
++
+ @cindex exit status of @command{printenv}
+ Exit status:
+ 
+@@ -17493,11 +17500,9 @@ If no command name is specified following the environment
+ specifications, the resulting environment is printed.  This is like
+ specifying the @command{printenv} program.
+ 
+-If standard output is a terminal, the printed environment variables
+-and their values are quoted using the @samp{shell-escape} style by default.
+-The environment variable @env{QUOTING_STYLE} specifies the quoting style.
+-Valid quoting styles are:
+-@quotingStyles
++If standard output is a terminal, you can specify the default value of
++the @option{--quoting-style} option with the environment variable
++@env{QUOTING_STYLE}, which defaults to @samp{shell-escape} if not set.
+ 
+ For some examples, suppose the environment passed to @command{env}
+ contains @samp{LOGNAME=rms}, @samp{EDITOR=emacs}, and
+@@ -17558,6 +17563,7 @@ Options must precede operands.
+ @table @samp
+ 
+ @optNull{env}
++This option implies @option{--quoting-style=literal}.
+ 
+ @optItem{env,-a,@w{ }@var{arg}}
+ @optItemx{env,--argv0,=@var{arg}}
+@@ -17672,6 +17678,14 @@ An empty @var{sig} argument is a no-op.
+ @optItem{env,--list-signal-handling,}
+ List blocked or ignored signals to standard error, before executing a command.
+ 
++@optItem{env,--quoting-style,=@var{word}}
++@cindex quoting style
++Use style @var{word} to quote names and values that might
++contain arbitrary characters.  The @var{word} should
++be one of the following:
++
++@quotingStyles
++
+ @optItem{env,-v,}
+ @optItemx{env,--debug,}
+ Show verbose information for each processing step.
+diff --git a/src/env.c b/src/env.c
+index 8fff89e72..f87d79a36 100644
+--- a/src/env.c
++++ b/src/env.c
+@@ -107,6 +107,7 @@ enum
+   IGNORE_SIGNAL_OPTION,
+   BLOCK_SIGNAL_OPTION,
+   LIST_SIGNAL_HANDLING_OPTION,
++  QUOTING_STYLE_OPTION,
+ };
+ 
+ static struct option const longopts[] =
+@@ -122,6 +123,7 @@ static struct option const longopts[] =
+   {"block-signal",   optional_argument, NULL, BLOCK_SIGNAL_OPTION},
+   {"list-signal-handling", no_argument, NULL,  LIST_SIGNAL_HANDLING_OPTION},
+   {"debug", no_argument, NULL, 'v'},
++  {"quoting-style", required_argument, NULL, QUOTING_STYLE_OPTION},
+   {"split-string", required_argument, NULL, 'S'},
+   {GETOPT_HELP_OPTION_DECL},
+   {GETOPT_VERSION_OPTION_DECL},
+@@ -167,6 +169,12 @@ Set each NAME to VALUE in the environment and run COMMAND.\n\
+       oputs (_("\
+   -C, --chdir=DIR\n\
+          change working directory to DIR\n\
++"));
++      oputs (_("\
++      --quoting-style=WORD\n\
++         use quoting style WORD for names and values:\n\
++           literal, locale, shell, shell-always,\n\
++           shell-escape, shell-escape-always, c, escape\n\
+ "));
+       oputs (_("\
+   -S, --split-string=S\n\
+@@ -1022,6 +1030,7 @@ main (int argc, char **argv)
+ {
+   bool ignore_environment = false;
+   bool opt_nul_terminate_output = false;
++  int quoting_style_opt = -1;
+   char const *newdir = NULL;
+   char const *env0_from_file = NULL;
+   char *argv0 = NULL;
+@@ -1061,6 +1070,7 @@ main (int argc, char **argv)
+           break;
+         case '0':
+           opt_nul_terminate_output = true;
++          quoting_style_opt = literal_quoting_style;
+           break;
+         case ENV0_FROM_OPTION:
+           env0_from_file = optarg;
+@@ -1078,6 +1088,11 @@ main (int argc, char **argv)
+         case LIST_SIGNAL_HANDLING_OPTION:
+           report_signal_handling = true;
+           break;
++        case QUOTING_STYLE_OPTION:
++          quoting_style_opt = XARGMATCH ("--quoting-style", optarg,
++                                         quoting_style_args,
++                                         quoting_style_vals);
++          break;
+         case 'C':
+           newdir = optarg;
+           break;
+@@ -1110,19 +1125,18 @@ main (int argc, char **argv)
+     }
+ 
+   bool quote_output = false;
+-
+-  /* Get the value from QUOTING_STYLE before unsetting environment
+-     variables.  */
+-  if (!opt_nul_terminate_output && isatty (STDOUT_FILENO))
++  int qs = quoting_style_opt;
++  if (qs < 0 && isatty (STDOUT_FILENO))
+     {
+-      int qs = getenv_quoting_style ();
++      /* Get the value from $QUOTING_STYLE before unsetting env vars.  */
++      qs = getenv_quoting_style ();
+       if (qs < 0)
+         qs = shell_escape_quoting_style;
+-      if (qs != literal_quoting_style)
+-        {
+-          set_quoting_style (NULL, qs);
+-          quote_output = true;
+-        }
++    }
++  if (0 <= qs && qs != literal_quoting_style)
++    {
++      set_quoting_style (NULL, qs);
++      quote_output = true;
+     }
+ 
+   bool env_vector_active = false;
+diff --git a/src/printenv.c b/src/printenv.c
+index 00ca29f55..724300dfb 100644
+--- a/src/printenv.c
++++ b/src/printenv.c
+@@ -47,9 +47,17 @@ enum { PRINTENV_FAILURE = 2 };
+   proper_name ("David MacKenzie"), \
+   proper_name ("Richard Mlynarik")
+ 
++/* For long options that have no equivalent short option, use a
++   non-character as a pseudo short option, starting with CHAR_MAX + 1.  */
++enum
++{
++  QUOTING_STYLE_OPTION = CHAR_MAX + 1,
++};
++
+ static struct option const longopts[] =
+ {
+   {"null", no_argument, NULL, '0'},
++  {"quoting-style", required_argument, NULL, QUOTING_STYLE_OPTION},
+   {GETOPT_HELP_OPTION_DECL},
+   {GETOPT_VERSION_OPTION_DECL},
+   {NULL, 0, NULL, 0}
+@@ -72,6 +80,12 @@ If no VARIABLE is specified, print name and value pairs for them all.\n\
+       oputs (_("\
+   -0, --null\n\
+          end each output line with NUL, not newline\n\
++"));
++      oputs (_("\
++      --quoting-style=WORD\n\
++         use quoting style WORD for names and values:\n\
++           literal, locale, shell, shell-always,\n\
++           shell-escape, shell-escape-always, c, escape\n\
+ "));
+       oputs (HELP_OPTION_DESCRIPTION);
+       oputs (VERSION_OPTION_DESCRIPTION);
+@@ -85,6 +99,7 @@ int
+ main (int argc, char **argv)
+ {
+   bool opt_nul_terminate_output = false;
++  int quoting_style_opt = -1;
+ 
+   initialize_main (&argc, &argv);
+   set_program_name (argv[0]);
+@@ -102,6 +117,12 @@ main (int argc, char **argv)
+         {
+         case '0':
+           opt_nul_terminate_output = true;
++          quoting_style_opt = literal_quoting_style;
++          break;
++        case QUOTING_STYLE_OPTION:
++          quoting_style_opt = XARGMATCH ("--quoting-style", optarg,
++                                         quoting_style_args,
++                                         quoting_style_vals);
+           break;
+         case_GETOPT_HELP_CHAR;
+         case_GETOPT_VERSION_CHAR (PROGRAM_NAME, AUTHORS);
+@@ -111,20 +132,20 @@ main (int argc, char **argv)
+     }
+ 
+   bool quote_output = false;
+-  idx_t const n_args = argc - optind;
+-
+-  if (!opt_nul_terminate_output && isatty (STDOUT_FILENO))
++  int qs = quoting_style_opt;
++  if (qs < 0 && isatty (STDOUT_FILENO))
+     {
+-      int qs = getenv_quoting_style ();
++      qs = getenv_quoting_style ();
+       if (qs < 0)
+         qs = shell_escape_quoting_style;
+-      if (qs != literal_quoting_style)
+-        {
+-          set_quoting_style (NULL, qs);
+-          quote_output = true;
+-        }
++    }
++  if (0 <= qs && qs != literal_quoting_style)
++    {
++      set_quoting_style (NULL, qs);
++      quote_output = true;
+     }
+ 
++  idx_t const n_args = argc - optind;
+   bool ok;
+   char const terminator = opt_nul_terminate_output ? '\0' : '\n';
+ 
+diff --git a/tests/env/env.sh b/tests/env/env.sh
+index 8853e0163..171f18f37 100755
+--- a/tests/env/env.sh
++++ b/tests/env/env.sh
+@@ -190,14 +190,21 @@ compare err_exp err || fail=1
+ done
+ 
+ # QUOTING_STYLE does not affect redirected output.
+-printf '%s\n' 'a b=c d' > exp || framework_failure_
+-for qs in literal shell-always invalid; do
+-  env -i PATH="$PATH" QUOTING_STYLE=$qs 'a b'='c d' \
+-    env >out-t 2>err || fail=1
++# --quoting-style does affect redirected output.
++cat <<\EOF >exp-noargs-literal || framework_failure_
++a b=c d
++EOF
++cat <<\EOF >exp-noargs-shell || framework_failure_
++'a b'='c d'
++EOF
++tr "'" '"' <exp-noargs-shell >exp-noargs-c || framework_failure_
++for qs in literal shell c; do
++  env -i PATH="$PATH" QUOTING_STYLE=c 'a b'='c d' \
++    env --quoting-style=$qs >out-t 2>err || fail=1
+   grep -vE '^["'"'"']?'\
+ '(__CF_USER_TEXT_ENCODING|QUOTING_STYLE|(LD_ORIGIN_)?PATH)["'"'"']?=' \
+     out-t >out || framework_failure_
+-  compare exp out || fail=1
++  compare exp-noargs-$qs out || fail=1
+   compare /dev/null err || fail=1
+ done
+ 
+diff --git a/tests/misc/printenv.sh b/tests/misc/printenv.sh
+index 33ad6cc51..7c453e9c4 100755
+--- a/tests/misc/printenv.sh
++++ b/tests/misc/printenv.sh
+@@ -81,14 +81,32 @@ returns_ 1 env a=b=c printenv a=b > out || fail=1
+ compare /dev/null out || fail=1
+ 
+ # QUOTING_STYLE does not affect redirected output.
+-printf '%s\n' 'a b=c d' > exp || framework_failure_
+-for qs in literal shell-always invalid; do
+-  env -i PATH="$PATH" QUOTING_STYLE=$qs 'a b'='c d' \
+-    printenv >out-t 2>err || fail=1
++# --quoting-style affects redirected output.
++cat <<\EOF >exp-noargs-literal || framework_failure_
++a b=c d
++EOF
++cat <<\EOF >exp-arg-literal || framework_failure_
++c d
++EOF
++cat <<\EOF >exp-args-literal || framework_failure_
++c d
++c d
++EOF
++cat <<\EOF >exp-noargs-shell || framework_failure_
++'a b'='c d'
++EOF
++cp exp-arg-literal exp-arg-shell &&
++cp exp-args-literal exp-args-shell || framework_failure_
++for t in noargs arg args; do
++  tr "'" '"' <exp-$t-shell >exp-$t-c || framework_failure_
++done
++for qs in literal shell c; do
++  env -i PATH="$PATH" QUOTING_STYLE=c 'a b'='c d' \
++    printenv --quoting-style=$qs >out-t 2>err || fail=1
+   grep -vE '^["'"'"']?'\
+ '(__CF_USER_TEXT_ENCODING|QUOTING_STYLE|(LD_ORIGIN_)?PATH)["'"'"']?=' \
+     out-t >out || framework_failure_
+-  compare exp out || fail=1
++  compare exp-noargs-$qs out || fail=1
+   compare /dev/null err || fail=1
+ done
+ 
+-- 
+2.55.0
+
