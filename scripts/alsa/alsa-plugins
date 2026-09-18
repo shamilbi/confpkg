@@ -2,11 +2,18 @@
 
 ConfigureOpts+=(
     # Slackware
-    --with-speex=lib
+    # --with-speex=lib
     --enable-maemo-plugin
 )
 [[ ! $PULSE ]] && ConfigureOpts+=(--disable-pulseaudio)
 [[ ! $JACK ]] && ConfigureOpts+=(--disable-jack)
+
+if [[ $SPEEX ]]; then
+    # Slackware
+    ConfigureOpts+=(--with-speex=lib)
+else
+    ConfigureOpts+=(--disable-speexdsp) # Disable building of speexdsp plugin
+fi
 
 pkg_pre_configure() {
     # Slackware
