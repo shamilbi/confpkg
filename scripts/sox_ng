@@ -12,5 +12,6 @@ ConfigureOpts+=(
 
 [[ ! $ALSA ]] && ConfigureOpts+=(--without-alsa)
 [[ ! $PULSE ]] && ConfigureOpts+=(--without-pulseaudio)
+[[ ! $SPEEX ]] && ConfigureOpts+=(--without-speexdsp) # Don't try to use libspeexdsp
 
 pkg_check=
