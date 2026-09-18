@@ -74,6 +74,9 @@ pkg_post_install() {
 pkg_read2var pkg_post_installpkg <<EOF
 pkg_post_installpkg() {
     # Slackware
+    # Give the pipewire binary CAP_IPC_LOCK and CAP_SYS_NICE capabilities.
+    # Note that setcap must come after strip, which will remove caps.
+    setcap cap_ipc_lock,cap_sys_nice=ep usr/bin/pipewire 
     # Toss redundant sample files:
     local dir=etc/xdg/autostart
     local file
