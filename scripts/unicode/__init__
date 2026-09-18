@@ -2,6 +2,7 @@
 
 PkgHome=(
     "https://www.unicode.org/Public/?C=M;O=D"
+    "$SlackwareMirrorUrl/l/unicode-ucd/?C=M&O=D"
 )
 
 unset pkg_configure pkg_make
