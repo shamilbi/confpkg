@@ -28,5 +28,13 @@ pkg_pre_configure() {
 
 pkg_post_install() {
     # etc/asound.conf examples
-    pkg_install_mfd 644 "$SupportDir"/asound.conf.* "$DocDir2"
+    local files=(
+        asound.conf.alsa
+        asound.conf.pch
+        asound.conf.pulse
+    )
+    local i
+    for i in "${files[@]}"; do
+        pkg_install_mfd 644 "$SupportDir/$i" "$DocDir2"
+    done
 }
