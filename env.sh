@@ -29,7 +29,7 @@ AALIB=
 POSTGRESQL=
 IEEE1394= # dc1394, dv1394
 RTMP= # librtmp
-SPEEX=
+SPEEX= # The Speex codec has been obsoleted by Opus, https://www.speex.org/
 
 SELINUX=
 AUDIT=
