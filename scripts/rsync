@@ -4,6 +4,12 @@ PkgHome="https://github.com/RsyncProject/rsync/tags"
 
 pkg_set_python python3
 
+ConfigureOpts+=(
+    # Slackware
+    --disable-debug # disable to omit debugging symbols and features
+    --with-rrsync # also install the rrsync script and its manpage
+)
+
 pkg_pre_configure() {
     # cmarkgfm
     # You need python3 and either the cmarkgfm OR commonmark python3 lib in order
