@@ -1,0 +1,19 @@
+#!/bin/bash
+
+PkgHome="https://gitlab.freedesktop.org/cairo/cairo/-/tags"
+
+ConfigureOpts+=(
+    # Slackware
+    -Dgtk_doc=false # Build the Cairo API reference (depends on gtk-doc)
+    -Dsymbol-lookup=disabled # Symbol lookup in debug utils via binutils/bfd
+    -Dtests=disabled
+)
+
+pkg_pre_configure() {
+    if (($(pkg_cmp_versions "$Version" "1.18") >= 0)) &&
+        (($(pkg_cmp_versions "$Version" "1.18.4") < 0)); then
+        # Slackware
+        # Fix cups printing:
+        pkg_patch_f3 595.patch 1 || return 1
+    fi
+}
