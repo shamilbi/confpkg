@@ -10,16 +10,13 @@ pkg_pre_configure() {
     local file
 
     # Slackware
-    if (($(pkg_cmp_versions "$Version" "692") < 0)); then
-        pkg_patch_f3 18db5ae3ae833af302ea0fbfd1e5c633ac73a743.patch 1 || return 1
-    fi
     # Fix path in manpage:
     file=less.nro
     if [[ -r $file ]]; then
         sed -i "s,/usr/local/etc,/etc,g" "$file"
     fi
     # Prep needed if using the git archive:
-    for file in funcs.h less.nro lesskey.nro lessecho.nro; do
+    for file in funcs.h less.nro lesskey.nro lessecho.nro lessmsg.inc; do
         if [[ ! -r $file ]]; then
             make -f Makefile.aut "$file"
         fi
