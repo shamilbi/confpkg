@@ -11,3 +11,8 @@ ConfigureOpts+=(
     -DWITHOUT_OPENCV=OFF
     -DWITHOUT_GAVL=ON
 )
+
+pkg_pre_configure() {
+    # Slackware
+    pkg_patch_f3 opencv-5.patch 1 || return 1
+}
