@@ -1,0 +1,78 @@
+# Default options for /usr/sbin/geninitrd:
+
+# Would you rather run a custom script instead of /usr/sbin/geninitrd?
+# If so, set it below and it will be used instead:
+#GENINITRD_OVERRIDE_SCRIPT=/usr/local/sbin/geninitrd-custom
+
+# This variable defines the kernel that the initrd should be made for.
+# However, if a kernel is provided on the command line:
+# geninitrd /boot/vmlinuz-6.12.1
+# Then this will be used instead.
+# The value of KERNEL is also not replaced if it was already defined:
+# KERNEL=/boot/vmlinuz-6.12.1 geninitrd
+# If there's no kernel defined by the command line or by the KERNEL
+# variable, then as a last resort we'll use the newest kernel we find
+# in /boot.
+KERNEL=/boot/vmlinuz-generic
+
+# In addition to the initrd with a name like initrd-6.11.6.img,
+# should we make a compatibility symlink such as initrd-generic.img?
+# GRUB doesn't require this, but lilo and elilo might.
+GENINITRD_NAMED_SYMLINK=true
+
+# In addition to the initrd with a name like initrd-6.11.6.img,
+# should we make a compatibility symlink named initrd.gz?
+# GRUB doesn't require this, but lilo and elilo might.
+GENINITRD_INITRD_GZ_SYMLINK=false
+
+# Which initrd generating tool should we use?
+# The supported options are mkinitrd_command_generator.sh,
+# mkinitrd (falls back to mkinitrd_command_generator.sh if
+# there is no /etc/mkinitrd.conf), or dracut.
+GENERATOR=mkinitrd
+
+# If we are using dracut, we'll use these options:
+DRACUT_OPTS="--force --hostonly --verbose"
+
+# Should we allow the kernel install script to automatically
+# generate an initrd?
+AUTOGENERATE_INITRD=true
+
+# Should we automatically remove "orphaned" initrds, i.e. any initrd that
+# does not have a matching kernel version in /boot?
+AUTO_REMOVE_ORPHANED_INITRDS=true
+
+# Should we automatically clean up /boot/initrd-tree, if mkinitrd has left
+# such a directory behind after generating the initrd? The /boot/initrd-tree
+# directory can be useful for making a few changes and regenerating the
+# initrd, but most users probably do not need it.
+AUTO_REMOVE_INITRD_TREE=true
+
+# Run update-grub after generating the initrd?
+AUTO_UPDATE_GRUB=true
+
+# Should we display the dialog splash screen?
+GENINITRD_DIALOG=false
+
+# Should we display the output from commands that are run by geninitrd?
+GENINITRD_COMMAND_OUTPUT=true
+
+# Instead of creating a complete replacement for setup.01.mkinitrd and defining
+# it with GENINITRD_OVERRIDE_SCRIPT above, you can define a script that will
+# be run after geninitrd is done. This could, for example, be used to copy the
+# kernel and initrd to the EFI partition for use by rEFInd or some other
+# bootloader.
+#
+# HINT: To avoid filling the EFI partition with kernels/initrds, you could
+# always use the same filenames on the EFI partition, with something like this
+# inside the script:
+# cp /boot/vmlinuz-${KERNEL_VERSION} /boot/efi/EFI/slackware/vmlinuz
+# cp /boot/initrd-${KERNEL_VERSION}.img /boot/efi/EFI/slackware/initrd.img
+#
+# NOTE: the POST_INSTALL_SCRIPT definition is kept to support anyone already
+# using it, but the preferred approach now is to put pre-install scripts in
+# /etc/geninitrd.d/pre-install/ and post-install scripts in
+# /etc/geninitrd.d/post-install/. Anything that's found there and executable
+# will be run as a pre- or post-install script.
+#
+#POST_INSTALL_SCRIPT=/usr/local/sbin/geninitrd-post-install

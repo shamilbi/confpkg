@@ -1,0 +1,162 @@
+#!/bin/bash
+
+# Copyright 2019, 2024, 2026  Patrick J. Volkerding, Sebeka, Minnesota, USA
+# All rights reserved.
+#
+# Redistribution and use of this script, with or without modification, is
+# permitted provided that the following conditions are met:
+#
+# 1. Redistributions of this script must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#
+#  THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
+#  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+#  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO
+#  EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+#  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+#  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+#  OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+#  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+#  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+#  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# This is a simple script to generate an initial ramdisk when a new
+# kernel is installed. If the kernel is vmlinuz-6.11.5, it will generate
+# initrd-6.11.5.img. If there's a symlink pointing at the kernel (for
+# example, vmlinuz-generic), it will also make a matching initrd-generic.img
+# symlink. Finally, it also supports a plain initrd.gz symlink to the initrd,
+# which might still be needed by some old setups.
+
+# To generate an initrd automatically, just run "geninitrd".
+# Which kernel will be used follows this priority:
+# If a kernel was provided on the command line:
+# geninitrd /boot/vmlinuz-6.12.1
+# Then we will use that kernel.
+# Otherwise, if the KERNEL environment variable was provided:
+# KERNEL=/boot/vmlinuz-6.12.1 geninitrd
+# Then we will use that kernel.
+# Otherwise we will use the value for KERNEL defined in /etc/default/geninitrd.
+# If KERNEL remains undefined after loading /etc/default/geninitrd, then
+# we will fall back on using the newest kernel we find in /boot.
+
+# If you use an encrypted root, you may need an appropriate /etc/mkinitrd.conf
+# (if you will be setting GENERATOR=mkinitrd in /etc/default/geninitrd), or you
+# could try using GENERATOR=dracut.
+
+cd $(dirname $0)/../..
+
+# Was KERNEL already defined? If so, save it as a possible override:
+if [ ! -z "$KERNEL" ]; then
+  KERNEL_OVERRIDE=$KERNEL
+fi
+
+# Was a kernel given on the command line? If so, this is the highest priority
+# for the kernel to use:
+if [ ! -z "$1" ]; then
+  KERNEL_OVERRIDE=$1
+fi
+
+# Load default options:
+if [ -r etc/default/geninitrd ]; then
+  . etc/default/geninitrd
+fi
+
+# If we have a KERNEL_OVERRIDE use it for the KERNEL:
+if [ ! -z "$KERNEL_OVERRIDE" ]; then
+  KERNEL=$KERNEL_OVERRIDE
+  unset KERNEL_OVERRIDE
+fi
+
+if [ ! -z "$KERNEL" ]; then
+  export KERNEL
+fi
+
+# Let's find the kernel version and define it as $KERNEL_VERSION, since this
+# might be useful for an override, pre-install, or post-install script:
+if [ -r $KERNEL ]; then
+  KERNEL_VERSION=$(strings $KERNEL | grep '([^ ]*@[^ ]*) #' | cut -f1 -d' ')
+  if [ -z "$KERNEL_VERSION" ]; then
+    echo "error: $KERNEL is not a Linux kernel."
+    exit 1
+  fi
+  export KERNEL_VERSION
+fi
+
+# Are there any pre-install scripts in /etc/geninitrd.d/pre-install/?
+# If so, run them now.
+for script in etc/geninitrd.d/pre-install/*.sh ; do
+  if [ ! "$(echo $(basename $script) | cut -f 1 -d -)" = "dkms" ]; then
+    if [ -x "$script" ]; then
+      chroot . "$script"
+    fi
+  else # scripts beginning with "dkms-" are handled a bit differently:
+    # Only run the DKMS script if there are actually modules registered:
+    if ls var/lib/dkms/* 1> /dev/null 2> /dev/null ; then
+      # Only run the DKMS script if the kernel source needed to build
+      # the module(s) is installed:
+      if pushd /lib/modules/${KERNEL_VERSION}/build 1> /dev/null 2> /dev/null ; then
+        popd 1> /dev/null 2> /dev/null
+        if [ -x "$script" ]; then
+          chroot . "$script"
+        fi
+      else
+        echo "Skipping /${script} DKMS pre-install script because both the kernel"
+        echo "source and the kernel modules need to be installed first."
+        echo "We'll try again once both are installed."
+      fi
+    fi
+  fi
+done
+
+# In case you cannot make this script do exactly what you require, you're
+# welcome to create your own script to be run instead. Define this in
+# /etc/default/geninitrd (GENINITRD_OVERRIDE_SCRIPT).
+if [ ! -z $GENINITRD_OVERRIDE_SCRIPT ]; then
+  # If this is an absolute pathname, make it relative to /:
+  RELATIVE_OVERRIDE_SCRIPT=$GENINITRD_OVERRIDE_SCRIPT
+  if [ "$(echo $RELATIVE_OVERRIDE_SCRIPT | cut -b 1)" = "/" ]; then
+    RELATIVE_OVERRIDE_SCRIPT="$(echo $RELATIVE_OVERRIDE_SCRIPT | cut -b 2-)"
+  fi
+fi
+if [ -x "$RELATIVE_OVERRIDE_SCRIPT" ]; then
+  chroot . $GENINITRD_OVERRIDE_SCRIPT
+else # we will run the default handler from the setup scripts:
+  chroot . /var/lib/pkgtools/setup/setup.01.mkinitrd
+fi
+
+# Is there a post-install script? If so, run it here:
+if [ ! -z "$POST_INSTALL_SCRIPT" ]; then
+  # If this is an absolute pathname, make it relative to /:
+  if [ "$(echo $POST_INSTALL_SCRIPT | cut -b 1)" = "/" ]; then
+    POST_INSTALL_SCRIPT="$(echo $POST_INSTALL_SCRIPT | cut -b 2-)"
+  fi
+  if [ -x "$POST_INSTALL_SCRIPT" ]; then
+    chroot . $POST_INSTALL_SCRIPT
+  fi
+fi
+
+# Are there any post-install scripts in /etc/geninitrd.d/post-install/?
+# If so, run them now.
+for script in etc/geninitrd.d/post-install/*.sh ; do
+  if [ ! "$(echo $(basename $script) | cut -f 1 -d -)" = "dkms" ]; then
+    if [ -x "$script" ]; then
+      chroot . "$script"
+    fi
+  else # scripts beginning with "dkms-" are handled a bit differently:
+    # Only run the DKMS script if there are actually modules registered:
+    if ls var/lib/dkms/* 1> /dev/null 2> /dev/null ; then
+      # Only run the DKMS script if the kernel source needed to build
+      # the module(s) is installed:
+      if pushd /lib/modules/${KERNEL_VERSION}/build 1> /dev/null 2> /dev/null ; then
+        popd 1> /dev/null 2> /dev/null
+        if [ -x "$script" ]; then
+          chroot . "$script"
+        fi
+      else
+        echo "Skipping /${script} DKMS pre-install script because both the kernel"
+        echo "source and the kernel modules need to be installed first."
+        echo "We'll try again once both are installed."
+      fi
+    fi
+  fi
+done

@@ -1,0 +1,170 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://www.busybox.net/"
+    "$SlackwareMirrorUrl/a/mkinitrd/?C=M&O=D"
+)
+
+# mv busybox-${Version} -> mkinitrd-busybox-${Version}
+# check:
+#   cryptsetup
+#   lvm2:
+#       dmsetup
+#       /lib/udev/rules.d/69-lvm-*.rules
+
+share_mkinitrd=$ShareDir2/mkinitrd
+initrd_tree=$share_mkinitrd/initrd-tree
+config0=busybox-dot-config
+config=$config0-$Version
+check_files=(
+    "$config"
+    # to create $config:
+    # 1) copy busybox-dot-config to .config
+    # 2) make oldconfig
+    # 3) copy .config to $config
+
+    mkinitrd_command_generator.sh
+    keymaps.tar.gz
+
+    _initrd-tree.tar.gz
+    init
+    0001-Fix-LUKSTRIM-with-C-T-and-UUID.patch.gz
+
+    mkinitrd
+
+    mkinitrd.tempfile.to.mktemp.patch.gz
+    0002-bail-if-temp-dir-is-not-created.patch.gz
+    0003-blacklist.40-usb_modeswitch.rules.patch.gz
+    0005-support-modules-compressed-with-xz.patch.gz
+    0006-coreutils-9.1-ensure-target-dir-exists.patch.gz
+    0007-kmod30.patch.gz
+    0009-exclude-99-nfs.rules.patch.gz
+    0010-fix-test-for-jfs-xfs-repair-tools.patch.gz
+    0012-thin-provisioning.patch.gz
+
+    0004-check-if-BASEDEV-is-a-partition-of-a-RAID-volume.patch.gz
+    0008-fix-check-if-BASEDEV-is-a-partition-of-a-RAID-volume.patch.gz
+    0011-fix-LUKS-handling.patch.gz
+
+    mkinitrd.conf.5
+    mkinitrd.8
+    mkinitrd_command_generator.8
+
+    mkinitrd.conf.sample
+)
+
+pkg_configure() {
+    local fn f
+
+    # check support files
+    for fn in "${check_files[@]}"; do
+        f=$SupportDir/$fn
+        [[ ! -f $f ]] && {
+            pkg_log "file not found: $f"
+            return 1
+        }
+    done
+
+    # Slackware
+    # Automatically determine the architecture we're building on:
+    if [[ -z $ARCH ]]; then
+        case $Arch in
+            i?86) export ARCH=i586 ;;
+            arm*) export ARCH=arm ;;
+            *) export ARCH=$Arch ;;
+        esac
+    fi
+
+    # .config
+    f=$SupportDir/$config
+    pkg_install_mff 644 "$f" .config
+    sed -i -e \
+        's,^CONFIG_PREFIX=.*,CONFIG_PREFIX="'"$initrd_tree"'",' \
+        .config
+}
+
+pkg_make() {
+    # Slackware
+    make oldconfig || return 1
+    make || return 1
+}
+
+pkg_install() {
+    # Slackware
+    mkdir -p "$initrd_tree"/{bin,sbin}
+    make install || return 1
+    rm -f "$initrd_tree"/linuxrc
+    # Copying additional files:
+    pkg_install_mfd 755 "$SupportDir"/mkinitrd_command_generator.sh "$share_mkinitrd"
+    pkg_install_mfd 644 "$SupportDir"/keymaps.tar.gz "$share_mkinitrd"
+    # Zip up the initrd-tree:
+    # /usr/share/mkinitrd/initrd-tree.tar.gz
+    (
+        cd "$initrd_tree" || exit 1
+        tar xf "$SupportDir"/_initrd-tree.tar.gz
+        cat "$SupportDir"/init >init
+        # Patch init:
+        pkg_patch_f "$SupportDir"/0001-Fix-LUKSTRIM-with-C-T-and-UUID.patch.gz 1 . || exit 1
+        rm -f init.orig
+        # These are useful for ARM:
+        mknod -m 644 dev/random c 1 8
+        mknod -m 644 dev/urandom c 1 9
+        #
+        tar czf ../initrd-tree.tar.gz .
+    ) || return 1
+    rm -rf "$initrd_tree"
+    # /sbin/mkinitrd
+    local sbin=$DestDir/sbin
+    pkg_install_mfd 755 "$SupportDir"/mkinitrd "$sbin"
+    # /sbin
+    (
+        cd "$sbin" || exit 1
+        # Patch to switch to mktemp:
+        pkg_patch_f "$SupportDir"/mkinitrd.tempfile.to.mktemp.patch.gz 0 . || exit 1
+        # Patch mkinitrd to bail on no temp directory:
+        pkg_patch_f "$SupportDir"/0002-bail-if-temp-dir-is-not-created.patch.gz 1 . || exit 1
+        # Don't include 40-usb_modeswitch.rules on the initrd:
+        pkg_patch_f "$SupportDir"/0003-blacklist.40-usb_modeswitch.rules.patch.gz 1 . || exit 1
+        # Support modules compressed with xz:
+        pkg_patch_f "$SupportDir"/0005-support-modules-compressed-with-xz.patch.gz 1 . || exit 1
+        # Ensure target directory for the module exists (cp regression workaround for coreutils-9.1):
+        pkg_patch_f "$SupportDir"/0006-coreutils-9.1-ensure-target-dir-exists.patch.gz 1 . || exit 1
+        # Fix for kmod-30:
+        pkg_patch_f "$SupportDir"/0007-kmod30.patch.gz 1 . || exit 1
+        # Don't include the 99-nfs.rules on the initrd:
+        pkg_patch_f "$SupportDir"/0009-exclude-99-nfs.rules.patch.gz 1 . || exit 1
+        # Fix test for including JFS or XFS repair tools:
+        pkg_patch_f "$SupportDir"/0010-fix-test-for-jfs-xfs-repair-tools.patch.gz 1 . || exit 1
+        # Add support for thin provisioning:
+        pkg_patch_f "$SupportDir"/0012-thin-provisioning.patch.gz 1 . || exit 1
+        rm -f mkinitrd.orig
+    ) || return 1
+    (
+        cd "$share_mkinitrd" || exit 1
+        # Use -R if we detect the root partition is a partition of a RAID device:
+        pkg_patch_f "$SupportDir"/0004-check-if-BASEDEV-is-a-partition-of-a-RAID-volume.patch.gz 1 . || exit 1
+        # Bugfix for previous RAID partition patch:
+        pkg_patch_f "$SupportDir"/0008-fix-check-if-BASEDEV-is-a-partition-of-a-RAID-volume.patch.gz 1 . || exit 1
+        # Fix handling of -h -l -K options for LUKS and encrypted hibernation:
+        pkg_patch_f "$SupportDir"/0011-fix-LUKS-handling.patch.gz 1 . || exit 1
+        rm -f mkinitrd_command_generator.sh.orig
+    ) || return 1
+    # man files
+    pkg_install_mfd 644 "$SupportDir"/mkinitrd.conf.5 "$ManDir2"/man5
+    pkg_install_mfd 644 "$SupportDir"/mkinitrd.8 "$ManDir2"/man8
+    pkg_install_mfd 644 "$SupportDir"/mkinitrd_command_generator.8 "$ManDir2"/man8
+    # setup.01.mkinitrd
+    pkg_install_mfd 755 "$SupportDir"/setup.01.mkinitrd "$DestDir"/var/lib/pkgtools/setup
+    # geninitrd
+    pkg_install_mfd 755 "$SupportDir"/geninitrd "$Prefix2"/sbin
+    # /etc
+    mkdir -p "$Etc2"/geninitrd.d/{pre,post}-install
+    local fn=mkinitrd.conf.sample
+    pkg_install_mfd 644 "$SupportDir/$fn" "$Etc2"
+    # ARM systems often need more time to find devices:
+    case $Arch in
+        arm*) sed -i -e 's@#WAIT="1"@#WAIT="4"@g' "$Etc2/$fn";;
+    esac
+    # /etc/default
+    pkg_install_mff 644 "$SupportDir"/geninitrd.default "$Etc2"/default/geninitrd
+}

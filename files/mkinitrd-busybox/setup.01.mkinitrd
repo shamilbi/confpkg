@@ -1,0 +1,226 @@
+#!/bin/bash
+#BLURB="Generate an initrd for the kernel"
+
+# If KERNEL is defined already, we'll use that.
+# Otherwise we'll use the value for KERNEL in /etc/default/geninitrd, if it
+# is defined there.
+# Otherwise we'll use the newest kernel we find in /boot.
+
+# Do we already have a value defined for KERNEL? If so, make sure that we
+# use it:
+if [ ! -z "$KERNEL" ]; then
+  KERNEL_OVERRIDE=$KERNEL
+fi
+
+# Load defaults:
+if [ -r etc/default/geninitrd ]; then
+  . etc/default/geninitrd
+fi
+
+# Populate any unset options (when not called from the installer):
+if [ -z "$INSIDE_INSTALLER" ]; then
+  # Don't set $KERNEL... if we have no KERNEL or $1, use the mewest kernel.
+  #KERNEL=${KERNEL:-/boot/vmlinuz-generic}
+  GENINITRD_NAMED_SYMLINK=${GENINITRD_NAMED_SYMLINK:-true}
+  GENINITRD_INITRD_GZ_SYMLINK=${GENINITRD_INITRD_GZ_SYMLINK:-true}
+  GENERATOR=${GENERATOR:-mkinitrd}
+  DRACUT_OPTS=${DRACUT_OPTS:-"--force --hostonly"}
+  AUTOGENERATE_INITRD=${AUTOGENERATE_INITRD:-true}
+  AUTO_REMOVE_ORPHANED_INITRDS=${AUTO_REMOVE_ORPHANED_INITRDS:-true}
+  AUTO_REMOVE_INITRD_TREE=${AUTO_REMOVE_INITRD_TREE:-true}
+  AUTO_UPDATE_GRUB=${AUTO_UPDATE_GRUB:-true}
+  GENINITRD_DIALOG=${GENINITRD_DIALOG:-false}
+  GENINITRD_COMMAND_OUTPUT=${GENINITRD_COMMAND_OUTPUT:-true}
+else # these are the defaults when called from the installer:
+  KERNEL=/boot/vmlinuz-generic
+  GENINITRD_NAMED_SYMLINK=true
+  GENINITRD_INITRD_GZ_SYMLINK=true
+  GENERATOR=mkinitrd
+  DRACUT_OPTS="--force --hostonly"
+  AUTOGENERATE_INITRD=true
+  AUTO_REMOVE_ORPHANED_INITRDS=true
+  AUTO_REMOVE_INITRD_TREE=true
+  AUTO_UPDATE_GRUB=true
+  GENINITRD_DIALOG=true
+  GENINITRD_COMMAND_OUTPUT=false
+fi
+
+# If we have a KERNEL_OVERRIDE, set KERNEL to this value:
+if [ ! -z "$KERNEL_OVERRIDE" ]; then
+  KERNEL=$KERNEL_OVERRIDE
+fi
+
+# If this is disabled, exit:
+if [ "$KERNEL_DOINST" = "true" -a "$AUTOGENERATE_INITRD" = "false" ]; then
+  exit 0
+fi
+
+if [ -z "$KERNEL" ]; then
+  # If we weren't told anything else, then use the newest kernel:
+  KERNEL="$(find /boot -name "vmlinuz-*" -type f | xargs ls -t | head -n 1)"
+fi
+
+# If we don't see $KERNEL, try looking in /boot:
+if [ ! -r $KERNEL ]; then
+  if [ -r boot/$KERNEL ]; then
+    KERNEL=boot/$KERNEL
+  fi
+fi
+
+# In case this is a symlink, get the real file:
+if [ -L "$KERNEL" ]; then
+  if [ ! -e "$KERNEL" ]; then
+    echo "error: $KERNEL is not a valid symlink."
+    exit 1 
+  fi
+elif [ ! -e "$KERNEL" ]; then
+  echo "error: $KERNEL does not exist."
+  exit 1
+fi
+KERNEL="$(readlink -f $KERNEL)"
+
+# Find the kernel version:
+if [ -r $KERNEL ]; then
+  KERNEL_VERSION=$(strings $KERNEL | grep '([^ ]*@[^ ]*) #' | cut -f1 -d' ')
+  if [ -z "$KERNEL_VERSION" ]; then
+    echo "error: $KERNEL is not a Linux kernel."
+    exit 1
+  fi 
+else
+  if [ -z "$KERNEL" ]; then
+    echo "error: was not given a KERNEL to make an initrd."
+    exit 1
+  else
+    echo "error: KERNEL=$KERNEL was not found."
+    exit 1
+  fi
+fi
+
+# Sometimes mkinitrd_command_generator.sh does not detect LVM properly. Until I
+# get to the bottom of that, it's safer to just always include LVM support.
+LVM_OPTION="-L"
+# Ditto on RAID:
+RAID_OPTION="-R"
+
+# If we asked for mkinitrd, but do not have /etc/mkinitrd.conf, then fall
+# back on mkinitrd_command_generator.sh instead:
+if [ "$GENERATOR" = "mkinitrd" -a ! -r etc/mkinitrd.conf ]; then
+  GENERATOR=mkinitrd_command_generator.sh
+fi
+
+# If the GENERATOR does not exist, this is obviously a fatal error:
+if [ "$GENERATOR" = "mkinitrd_command_generator.sh" -a ! -x usr/share/mkinitrd/mkinitrd_command_generator.sh ]; then
+  echo "error: GENERATOR mkinitrd_command_generator.sh not found."
+  exit 1
+elif [ "$GENERATOR" = "mkinitrd" -a ! -x sbin/mkinitrd ]; then
+  echo "error: GENERATOR mkinitrd not found."
+  exit 1
+elif [ "$GENERATOR" = "dracut" -a ! -x usr/bin/dracut ]; then
+  echo "error: GENERATOR dracut not found."
+  exit 1
+fi
+
+# Set default line length for terminal output:
+if tty -s && which tput 1> /dev/null 2> /dev/null ; then
+  TERMLENGTH=$(tput cols)
+else
+  TERMLENGTH=72
+fi
+
+# Generate the initrd:
+if [ "$GENINITRD_DIALOG" = "true" ]; then
+  dialog --title "GENERATING INITIAL RAMDISK" --infobox \
+  "Generating an initial ramdisk for use with the $KERNEL_VERSION kernel (using $GENERATOR). \
+The initial ramdisk contains kernel modules needed to mount the \
+root partition, and must be regenerated whenever the kernel is updated. To \
+regenerate the initrd, select this setup script from within pkgtool, or run \
+'geninitrd' which will produce an initial ramdisk \
+(/boot/initrd-${KERNEL_VERSION}.img) for the installed kernel." 0 0
+elif [ "$GENINITRD_COMMAND_OUTPUT" = "true" ]; then
+  echo "Generating /boot/initrd-${KERNEL_VERSION}.img for use with the $KERNEL_VERSION kernel (using $GENERATOR):" | fold -s -w $TERMLENGTH
+fi
+
+if [ "$GENERATOR" = "mkinitrd_command_generator.sh" ]; then
+  if [ "$GENINITRD_COMMAND_OUTPUT" = "true" ]; then
+    chroot . /usr/share/mkinitrd/mkinitrd_command_generator.sh -k $KERNEL_VERSION -a "$LVM_OPTION $RAID_OPTION -o /boot/initrd-${KERNEL_VERSION}.img" | chroot . bash
+  else
+    chroot . /usr/share/mkinitrd/mkinitrd_command_generator.sh -k $KERNEL_VERSION -a "$LVM_OPTION $RAID_OPTION -o /boot/initrd-${KERNEL_VERSION}.img" | chroot . bash 1> /dev/null 2> /dev/null
+  fi
+elif [ "$GENERATOR" = "mkinitrd" ]; then
+  if [ "$GENINITRD_COMMAND_OUTPUT" = "true" ]; then
+    chroot . /sbin/mkinitrd -F /etc/mkinitrd.conf -k $KERNEL_VERSION -o /boot/initrd-${KERNEL_VERSION}.img
+  else
+    chroot . /sbin/mkinitrd -F /etc/mkinitrd.conf -k $KERNEL_VERSION -o /boot/initrd-${KERNEL_VERSION}.img 1> /dev/null 2> /dev/null
+  fi
+elif [ "$GENERATOR" = "dracut" ]; then
+  if [ "$GENINITRD_COMMAND_OUTPUT" = "true" ]; then
+    chroot . /usr/bin/dracut $DRACUT_OPTS /boot/initrd-${KERNEL_VERSION}.img $KERNEL_VERSION
+  else
+    chroot . /usr/bin/dracut $DRACUT_OPTS /boot/initrd-${KERNEL_VERSION}.img $KERNEL_VERSION 1> /dev/null 2> /dev/null
+  fi
+else
+  echo "error: no handler for GENERATOR=$GENERATOR"
+  echo "Unable to generate /boot/initrd-${KERNEL_VERSION}.img."
+  exit 1
+fi
+
+if [ "$GENINITRD_NAMED_SYMLINK" = "true" ]; then
+  # Make initrd symlinks for all matching kernel symlinks:
+  ( cd boot
+    for symlink in $(find . -type l -name "vmlinuz-*") ; do
+      SYMLINK_VERSION=$(strings $symlink | grep '([^ ]*@[^ ]*) #' | cut -f1 -d' ')
+      if [ "$SYMLINK_VERSION" = "$KERNEL_VERSION" ]; then
+        KERNEL_NAME="$(echo $symlink | cut -f 2- -d -)"
+        rm -f initrd-${KERNEL_NAME}.img
+        ln -sf initrd-${KERNEL_VERSION}.img initrd-${KERNEL_NAME}.img
+        if [ "$GENINITRD_COMMAND_OUTPUT" = "true" ]; then
+          echo "Created named symlink: /boot/initrd-${KERNEL_NAME}.img -> initrd-${KERNEL_VERSION}.img"
+        fi
+      fi
+    done
+  )
+fi
+
+if [ "$GENINITRD_INITRD_GZ_SYMLINK" = "true" ]; then
+  ( cd boot
+    rm -f initrd.gz
+    ln -sf initrd-${KERNEL_VERSION}.img initrd.gz
+    if [ "$GENINITRD_COMMAND_OUTPUT" = "true" ]; then
+      echo "Created initrd.gz symlink: /boot/initrd.gz -> initrd-${KERNEL_VERSION}.img"
+    fi
+  )
+fi
+
+# If enabled in /etc/default/geninitrd, remove any orphaned initrds
+# after generating the initrd:
+if [ "$AUTO_REMOVE_ORPHANED_INITRDS" = "true" ]; then
+  if [ "$GENINITRD_COMMAND_OUTPUT" = "true" ]; then
+    chroot . /usr/sbin/remove-orphaned-initrds
+  else
+    chroot . /usr/sbin/remove-orphaned-initrds 1> /dev/null 2> /dev/null
+  fi
+fi
+
+# If enabled in /etc/default/geninitrd, remove any /boot/initrd-tree left
+# behind after generating the initrd:
+if [ -d boot/initrd-tree ]; then
+  if [ "$AUTO_REMOVE_INITRD_TREE" = "true" ]; then
+    if [ "$GENINITRD_COMMAND_OUTPUT" = "true" ]; then
+      echo "Removing /boot/initrd-tree directory."
+      rm -rf boot/initrd-tree
+    else
+      rm -rf boot/initrd-tree
+    fi
+  fi
+fi
+
+if [ "$AUTO_UPDATE_GRUB" = "true" ]; then
+  if [ "$GENINITRD_COMMAND_OUTPUT" = "true" ]; then
+    # Filter out bogus warnings from libdevmapper that could be triggered
+    # by upgradepkg's use of flock:
+    echo "Running /usr/sbin/update-grub (please wait)..."
+    chroot . /usr/sbin/update-grub |& grep -v "File descriptor"
+  else
+    chroot . /usr/sbin/update-grub 1> /dev/null 2> /dev/null
+  fi
+fi
