@@ -48,7 +48,12 @@ ConfigureOpts+=(
 pkg_pre_configure() {
     # Slackware
     # Put any PAM modules in the proper directory:
-    sed -i "s|securelib_execdir='\${libdir}/security'|securelib_execdir='/$LibName/security'|g" configure
+    local i
+    for i in configure configure.ac; do
+        [[ ! -f $i ]] && continue
+        sed -i "s|securelib_execdir='\${libdir}/security'|securelib_execdir='/$LibName/security'|g" "$i"
+        break
+    done
     # Changing the fdisk -l output (this was done prior to util-linux-ng) broke
     # our installation scripts, so we have changed the name of partition type
     # 83 back to "Linux swap":
@@ -56,8 +61,10 @@ pkg_pre_configure() {
     # Revert to the behavior of earlier versions of fdisk which did not list the
     # /dev/ram* devices in 'fdisk -l' output:
     pkg_patch_f3 util-linux.do.not.list.ram.devices.diff.gz 1 || return 1
-    # Fix build:
-    pkg_patch_f3 c08bd2aa50aa306c6ad51e50f582acf686283deb.patch 1 || return 1
+    if (($(pkg_cmp_versions "$Version" "2.42.4") < 0)); then
+        # Fix build:
+        pkg_patch_f3 c08bd2aa50aa306c6ad51e50f582acf686283deb.patch 1 || return 1
+    fi
 
     # undefined reference to tputs, ..
     pkg_add_cflags "-lcurses"
