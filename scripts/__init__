@@ -310,7 +310,9 @@ pkg_python_install() {
                 pkg_pipv_install -I "$i" || exit 1 # force reinstall
             done
             if [[ -f "setup.py" || -f "pyproject.toml" ]]; then
-                pkg_pipv_install . || exit 1
+                s=.
+                [[ ${#PythonOptionalDeps[*]} ]] && s+='['"$(pkg_arr2list PythonOptionalDeps)"']'
+                pkg_pipv_install "$s" || exit 1
             fi
             for i in "${PythonInstallLibs2[@]}"; do
                 pkg_pipv_install "$i" --no-build-isolation || exit 1
