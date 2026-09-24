@@ -1,0 +1,20 @@
+# By default, $FONT is auto. This tries various sizes of Terminus fonts to
+# find the largest one that meets the minimum columns requirement.
+# This can also be set to "none" (leave the console alone), or to a
+# specific font in /usr/share/kbd/consolefonts such as "ter-v28b".
+FONT=auto
+
+# If you are loading a specific font and want the size doubled, uncomment
+# the following line:
+#FONTDOUBLE=" -d "
+
+# The following settings are used when FONT=auto:
+
+# We want to find the largest font that provides our minimum columns.
+MINCOLS=120
+
+# Font family. "v" has all supported mappings, code pages, and language sets.
+F=v
+
+# Font weight. "n" (normal) or "b" (bold):
+W=b

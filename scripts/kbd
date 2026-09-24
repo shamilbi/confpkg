@@ -70,16 +70,10 @@ pkg_post_install() {
     # Install the setup script that will be run from the Slackware installer:
     pkg_install_mfd 755 "$SupportDir"/setup.setconsolefont "$DestDir"/var/log/setup
     pkg_install_mfd 755 "$SupportDir"/setconsolefont "$Prefix2"/bin
-    # Create the default run control script which will set the
-    # console font to the "default"...  though this might not be
-    # the same state as if setfont were not used at all.
-    # For that reason, default the script to non-executable.
-    pkg_install_mff 644 "$Etc2"/rc.d/rc.font <<EOF
-#!/bin/sh
-#
-# This selects your default screen font from among the ones in
-# /usr/share/kbd/consolefonts.
-#
-setfont -v
-EOF
+    # Install the rc.font script which sets the console font:
+    pkg_install_mfd 755 "$SupportDir"/rc.font "$Etc2"/rc.d
+    # Install /etc/default/rc.font which allows specifying a font,
+    # selecting no font change (none), or tries to find a Terminus
+    # font that meets the minimum columns requirement (auto).
+    pkg_install_mff 644 "$SupportDir"/rc.font.default "$Etc2"/default/rc.font
 }

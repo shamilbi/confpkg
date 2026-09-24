@@ -8,6 +8,7 @@
 # 25-Mar-2018, generate font list on the fly <David Woodfall>
 # 02-Oct-2023, don't run setfont if no font was previously loaded <volkerdi>
 # 13-Apr-2025, in the generated /etc/rc.d/rc.font, filter setfont's excess verbosity <mozes>
+# 22-Sep-2026, set the font in /etc/default/rc.font <volkerdi>
 
 if [ "$TMP" = "" ]; then
   TMP=/var/log/setup/tmp
@@ -60,7 +61,8 @@ fi
 if [ ! "$COLOR" = "off" -o -r $TMP/SeTcolor -o -r /tmp/SeTcolor ]; then # use color menus
   if [ ! "$1" = "" ]; then
     dialog --title "CONSOLE FONT CONFIGURATION" --defaultno --yesno "Would you like to try \
-out some custom screen fonts?" 5 60
+out some custom screen fonts? If you choose no, we'll automatically find the best-sized font \
+for your display device." 7 60
     if [ $? = 1 ]; then
       exit
     fi
@@ -102,14 +104,8 @@ EOF
       fi
     done
     if [ "$REPLY" = "1" ]; then
-      cat << EOF > $T_PX/etc/rc.d/rc.font
-#!/bin/sh
-#
-# This selects your default screen font from among the ones in
-# /usr/share/kbd/consolefonts.
-#
-setfont -v $FONT 2>&1 | sed 's/^setfont:.*: \(Loading.*\)$/setfont: \1/'
-EOF
+      # Set the font in /etc/default/rc.font:
+      sed -i "s/^FONT=.*/FONT=$FONT/g" $T_PX/etc/default/rc.font
       chmod 755 $T_PX/etc/rc.d/rc.font
       reset
       exit
@@ -164,14 +160,8 @@ EOF
       fi
     done
     if [ "$REPLY" = "1" ]; then
-      cat << EOF > $T_PX/etc/rc.d/rc.font
-#!/bin/sh
-#
-# This selects your default screen font from among the ones in
-# /usr/share/kbd/consolefonts.
-#
-setfont -v $FONT
-EOF
+      # Set the font in /etc/default/rc.font:
+      sed -i "s/^FONT=.*/FONT=$FONT/g" $T_PX/etc/default/rc.font
       chmod 755 $T_PX/etc/rc.d/rc.font
       reset
       exit
