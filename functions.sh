@@ -773,7 +773,7 @@ pkg_doinst_add_config() {
     pkg_doinst_add "config ${f1:$((${#DestDir} + 1))}"
 }
 
-wget2_dl() {
+pkg_wget2() {
     ((! $#)) && return 1
 
     local opts=(
@@ -787,4 +787,15 @@ wget2_dl() {
         --ca-directory=/etc/ssl/certs
     )
     wget2 "${opts[@]}" "$@"
+}
+
+pkg_arr2list() {
+    # (1 2 3) -> "1,2,3"
+    local -n var_=$1
+    local s i
+    for i in "${var_[@]}"; do
+        s+=",$i"
+    done
+    [[ $s ]] && s=${s:1} # del first ,
+    echo "$s"
 }
