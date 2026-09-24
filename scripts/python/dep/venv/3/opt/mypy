@@ -1,3 +1,4 @@
 #!/bin/bash
 
-PythonInstallBins=(mypy)
+PythonInstallBins=(mypy mypyc)
+PythonOptionalDeps=(mypyc)
