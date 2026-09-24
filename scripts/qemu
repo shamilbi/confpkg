@@ -51,17 +51,6 @@ if [[ $vnc ]]; then
     fi
 fi
 
-arr2list() {
-    # (1 2 3) -> "1,2,3"
-    local -n var_=$1
-    local s i
-    for i in "${var_[@]}"; do
-        s+=",$i"
-    done
-    [[ $s ]] && s=${s:1} # del first ,
-    echo "$s"
-}
-
 # Slackware
 # Default 32-bit targets:
 targets32=(
@@ -110,7 +99,7 @@ case $Arch in
         kvm_arch=""
         ;;
 esac
-ConfigureOpts+=(--target-list="$(arr2list target)")
+ConfigureOpts+=(--target-list="$(pkg_arr2list target)")
 
 audio_drv_list=(
     alsa
@@ -123,7 +112,7 @@ audio_drv_list=(
 [[ $PULSE ]] && audio_drv_list+=(pa) || ConfigureOpts+=(--disable-pa)
 [[ $PIPEWIRE ]] && audio_drv_list+=(pipewire)
 ConfigureOpts+=(
-    --audio-drv-list="$(arr2list audio_drv_list)"
+    --audio-drv-list="$(pkg_arr2list audio_drv_list)"
 )
 
 pkg_post_install() {
