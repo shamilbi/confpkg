@@ -1,0 +1,82 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://github.com/linux-pam/linux-pam/tags"
+    "$SlackwareMirrorUrl/a/pam/?C=M&O=D"
+)
+
+ConfigureOpts+=(
+    # Slackware
+    --prefix=/
+    --libdir=/"$LibName"
+    --includedir="$IncludeDir"
+    --localedir="$ShareDir"/locale
+    -Dsecuredir=/"$LibName"/security
+    -Dpam_lastlog=enabled
+    -Dvendordir=/etc
+
+    -Ddocdir="$DocDir"
+)
+pkg_check=
+
+pkg_pre_configure() {
+    local rhdir file f2 fn
+
+    # check pam-redhat-*/
+    rhdir=$(find . -mindepth 1 -maxdepth 1 -type d -name 'pam-redhat-*' -print -quit)
+    if [[ ! -d $rhdir ]]; then
+        file=$(find "$SupportDir" -type f -name 'pam-redhat-*.tar.xz' -print -quit)
+        if [[ ! -f $file ]]; then
+            echo "file not found: $SupportDir/pam-redhat-*.tar.xz"
+            return 1
+        fi
+        tar xf "$file" || return 1
+        rhdir=$(find . -mindepth 1 -maxdepth 1 -type d -name 'pam-redhat-*' -print -quit)
+    fi
+    if [[ ! $rhdir || ! -d $rhdir ]]; then
+        echo "dir not found: ./pam-redhat-*"
+        return 1
+    fi
+
+    # Slackware
+    # Better take the Red Hat added modules and patches, because that's very
+    # likely to be the most standard as far as PAM goes:
+    for file in CHANGELOG COPYING README ; do
+        f2=$file.pam-redhat
+        [[ ! -f $f2 ]] && mv "$rhdir/$file"* "$f2"
+    done
+    # Add additional PAM modules from Red Hat:
+    while IFS= read -r file; do
+        fn=$(basename "$file")
+        if [[ ! -d modules/$fn ]]; then
+            echo "Moving module directory $fn ..."
+            mv "$file" modules
+        else
+            echo "$fn already exists in modules/, not moving!"
+        fi
+    done < <(find "$rhdir" -mindepth 1 -maxdepth 1 -type d)
+    # Patches from the Fedora SRPM:
+    pkg_patch_f3 pam-1.5.3-unix-nomsg.patch 1 || return 1
+    pkg_patch_f3 pam-1.7.0-redhat-modules.patch 1 || return 1
+    # Improve the comments in /etc/environment:
+    pkg_patch_f3 pam.etc.environment.better.comments.diff 1 || return 1
+}
+
+pkg_post_install() {
+    local name dir f1
+
+    # Slackware
+    # Add extra symlinks added by pam.spec:
+    dir=$DestDir/$LibName/security
+    for name in acct auth passwd session ; do
+        ln -sfnr "$dir"/pam_unix.so "$dir/pam_unix_${name}.so"
+    done
+    # This is a pam helper that can only be called from pam
+    f1=$DestDir/sbin/unix_chkpwd
+    chown root:root "$f1"
+    chmod 6751 "$f1"
+    # This package can own the /etc/pam.d/ directory
+    mkdir -p "$Etc2"/pam.d
+    # Relocate pkgconfig files:
+    ls -d "$DestDir/$LibName"/pkgconfig | pkg_mv_d "$LibDir2"
+}
