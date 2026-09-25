@@ -8,13 +8,14 @@ FONT=auto
 # the following line:
 #FONTDOUBLE=" -d "
 
+# Apply new new font on all the consoles, not just the one you're using.
+APPLY_NEW_FONT_ON_ALL_CONSOLES=true
+
 # The following settings are used when FONT=auto:
 
+# A list of fonts to try, smallest to largest:
+TRYFONTS="ter-v14b ter-v16b ter-v20b ter-v22b ter-v24b ter-v28b ter-v32b"
+
 # We want to find the largest font that provides our minimum columns.
-MINCOLS=120
+MINCOLS=130
 
-# Font family. "v" has all supported mappings, code pages, and language sets.
-F=v
-
-# Font weight. "n" (normal) or "b" (bold):
-W=b

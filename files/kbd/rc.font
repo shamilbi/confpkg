@@ -4,7 +4,8 @@
 # /usr/share/kbd/consolefonts.
 #
 
-# Load defaults:
+# Load defaults. See /etc/default/rc.font to set a custom font
+# or for other options.
 if [ -r /etc/default/rc.font ]; then
   . /etc/default/rc.font
 fi
@@ -13,18 +14,34 @@ fi
 [ "$FONT" = "none" -o -z "$FONT" ] && exit 0
 
 if [ "$FONT" = "auto" ]; then
-  # Automatically find the best-sized Terminus font.
-  font=ter-${F}14${W}
+  # Exit if the kernel command line contains "nomodeset"
+  cat /proc/cmdline | grep -wq nomodeset && exit 0
+  # Trim leading and trailing whitespace from the font list:
+  TRYFONTS="${TRYFONTS#"${TRYFONTS%%[![:space:]]*}"}"
+  TRYFONTS="${TRYFONTS%"${TRYFONTS##*[![:space:]]}"}"
+  # Exit if there's no font list:
+  [ -z "$TRYFONTS" ] && exit 1
+  # Select the first (smallest) font. We'll find the largest font in the list
+  # that provides enough columns.
+  font=$(echo $TRYFONTS | cut -f 1 -d " ")
+  # Shift the first font away. We only try it once.
+  if echo $TRYFONTS | grep -q " " ; then
+    TRYFONTS="$(echo $TRYFONTS | cut -f 2- -d " ")"
+  else
+    TRYFONTS=""
+  fi
+  # Save a copy of the font list in case we do a second pass.
+  TRYCOPY=$TRYFONTS
   prevfont=$font
   setfont $font
-  prevcolumns=$(tput cols)
   # Leave if setfont can't load the first font.
-  if [ ! $? = 0 -o "$prevcolumns" -lt "$MINCOLS" ]; then
+  if [ ! $? = 0 -o "$(tput cols)" -lt "$MINCOLS" ]; then
     # Revert to system default:
-    setfont
+    setfont -R
     exit 1
   fi
-  for font in ter-${F}16${W} ter-${F}20${W} ter-${F}22${W} ter-${F}24${W} ter-${F}28${W} ter-${F}32${W} ; do
+  prevcolumns=$(tput cols)
+  for font in $TRYFONTS ; do
     setfont $font
     if [ "$(tput cols)" -lt "$MINCOLS" ]; then
       # Too big, the previous font is the closest one:
@@ -34,10 +51,12 @@ if [ "$FONT" = "auto" ]; then
     prevcolumns=$(tput cols)
     prevdouble=""
   done
+  # Restore the font list:
+  TRYFONTS=$TRYCOPY
   # If we made it all the way through that list, let's try another pass using
   # doubled fonts:
-  if [ "$prevfont" = "ter-${F}32${W}" ]; then
-    for font in ter-${F}20${W} ter-${F}22${W} ter-${F}24${W} ter-${F}28${W} ter-${F}32${W} ; do
+  if [ "$prevfont" = "$(echo $TRYFONTS | rev | cut -f 1 -d " " | rev)" ]; then
+    for font in $TRYFONTS ; do
       setfont -d $font
       if [ "$(tput cols)" -lt "$MINCOLS" ]; then
         # Too big, the previous font is the closest one:
@@ -50,10 +69,24 @@ if [ "$FONT" = "auto" ]; then
   fi
   # Load the font:
   echo "Loading console font ($prevfont, $prevcolumns columns):"
-  setfont -v $prevdouble $prevfont
+  if [ "$APPLY_NEW_FONT_ON_ALL_CONSOLES" = "true" ]; then
+    for tty in /dev/tty[1-63] ; do
+      setfont -C $tty $prevdouble $prevfont 2> /dev/null
+    done
+    setfont -v $prevdouble $prevfont
+  else
+    setfont -v $prevdouble $prevfont
+  fi
 else
   # Set the font to the requested font, $FONT:
   setfont $FONTDOUBLE $FONT
   echo "Loading custom console font ($FONT, $(tput cols) columns):"
-  setfont $FONTDOUBLE -v $FONT
+  if [ "$APPLY_NEW_FONT_ON_ALL_CONSOLES" = "true" ]; then
+    for tty in /dev/tty[1-63] ; do
+      setfont -C $tty $FONTDOUBLE $FONT 2> /dev/null
+    done
+    setfont -v $FONTDOUBLE $FONT
+  else
+    setfont -v $FONTDOUBLE $FONT
+  fi
 fi
