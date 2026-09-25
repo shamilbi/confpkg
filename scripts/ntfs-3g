@@ -1,0 +1,41 @@
+#!/bin/bash
+
+PkgHome="https://github.com/tuxera/ntfs-3g/tags"
+
+# mount -t ntfs3 <dev> <mountpoint
+
+# ntfs3 volume is dirty and force flag is not set
+# ntfsfix -d <dev>
+
+ConfigureOpts+=(
+    # Slackware
+    --bindir=/bin
+    --sbindir=/sbin
+    --with-fuse=internal # Select FUSE library: internal or external, =internal
+    --disable-ldconfig # do not update dynamic linker cache using ldconfig, =yes
+    --enable-static=no
+
+    --enable-crypto # enable crypto related code and utilities, =no
+    --enable-extras # enable extra ntfsprogs utilities, =no
+    --enable-posix-acls # enable POSIX ACL support, =no
+    --enable-xattr-mappings # enable system extended attributes mappings, =no
+)
+
+pkg_pre_install() {
+    # Slackware
+    # Installation bug kludge:
+    mkdir -p "$DestDir"/{bin,"$LibName"} "$LibDir2"
+}
+
+pkg_post_install() {
+    # Slackware
+    # I hate to do this (it worked without it before), but recently /bin/ntfs-3g
+    # ceased to work for non-root users unless it is setuid root.  If anyone has
+    # any better ideas, I'd like to hear them.
+    chmod 4711 "$DestDir"/bin/ntfs-3g
+    # Create a mount.ntfs -> mount.ntfs-3g symlink.
+    # This causes ntfs-3g to always be used when mounting NTFS filesystems.
+    # NOTE:  This also seems to make mounting with the old ntfs filesystem
+    # impossible.  But does anyone care?
+    ln -sfn mount.ntfs-3g "$DestDir"/sbin/mount.ntfs
+}
