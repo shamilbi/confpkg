@@ -311,7 +311,7 @@ pkg_python_install() {
             done
             if [[ -f "setup.py" || -f "pyproject.toml" ]]; then
                 s=.
-                [[ ${#PythonOptionalDeps[*]} ]] && s+='['"$(pkg_arr2list PythonOptionalDeps)"']'
+                (( ${#PythonOptionalDeps[*]} )) && s+='['"$(pkg_arr2list PythonOptionalDeps)"']'
                 pkg_pipv_install "$s" || exit 1
             fi
             for i in "${PythonInstallLibs2[@]}"; do
