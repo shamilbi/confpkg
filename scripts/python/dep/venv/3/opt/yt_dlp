@@ -1,6 +1,11 @@
 #!/bin/bash
 
 pkg_post_install() {
-    rm -rf "$DocDir2/$Name" &>/dev/null
+    # rm -rf "$DocDir2/$Name" &>/dev/null
+
+    # /usr/doc/yt_dlp
+    ls -d "$Prefix2"/doc/"$Name"/* | pkg_mv_d "$DocDir2"
+    find "$Prefix2"/doc -depth -type d -empty -delete
+
     :
 }
