@@ -1,6 +1,9 @@
 #!/bin/bash
 
-PkgHome="https://pwhois.org/lft/index.who"
+PkgHome=(
+    # "https://pwhois.org/lft/index.who"
+    "https://pwhois.org/get/"
+)
 
 pkg_read2var pkg_post_installpkg <<EOF
 pkg_post_installpkg() {
