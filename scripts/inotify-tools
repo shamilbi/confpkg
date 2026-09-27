@@ -1,0 +1,14 @@
+#!/bin/bash
+
+PkgHome="https://github.com/inotify-tools/inotify-tools/tags"
+
+MakeEnv=(
+    prefix="$Prefix"
+    libdir="$LibDir"
+    mandir="$ManDir"
+    docdir="$DocDir"
+    ENABLE_STATIC=0
+)
+InstallEnv+=("${MakeEnv[@]}")
+
+pkg_del_cflags "${GccFlags[@]}"
