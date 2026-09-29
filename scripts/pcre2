@@ -16,6 +16,17 @@ ConfigureOpts+=(
     --enable-pcre2test-libreadline # link pcre2test with libreadline
 )
 
+pkg_pre_configure() {
+    # v10.49
+    # [submodule "deps/sljit"]
+    #     path = deps/sljit
+    #     url = https://github.com/zherczeg/sljit.git
+    local d1=deps/sljit
+    if pkg_dir_empty "$d1"; then
+        git clone --depth 1 "https://github.com/zherczeg/sljit.git" "$d1" || return 1
+    fi
+}
+
 pkg_post_install() {
     # Slackware
     # Move libraries, as they might be needed before /usr is available:
