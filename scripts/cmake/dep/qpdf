@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PkgHome="https://github.com/qpdf/qpdf/tags"
+
 ConfigureOpts+=(
     -DBUILD_STATIC_LIBS=OFF
 )
