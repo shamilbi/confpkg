@@ -1,0 +1,66 @@
+https://src.fedoraproject.org/rpms/groff/raw/rawhide/f/0006-Revert-upstream-change-of-mapping-special-characters.patch
+
+From f4f76740ad4693cb967801e366f1d6410381dd71 Mon Sep 17 00:00:00 2001
+From: groff owner <groff-owner@fedoraproject.org>
+Date: Thu, 2 Nov 2023 13:09:37 +0000
+Subject: [PATCH] Revert upstream change of mapping special characters for
+ UTF-8
+
+Adopt Debian decision: https://salsa.debian.org/debian/groff/-/commit/d5394c68d70e6c5199b01d2522e094c8fd52e64e
+---
+ tmac/man.local  | 16 ++++++++++++++++
+ tmac/mdoc.local | 17 ++++++++++++++++-
+ 2 files changed, 32 insertions(+), 1 deletion(-)
+
+--- ./tmac/mdoc.local.orig	2026-02-22 22:09:55.000000000 -0600
++++ ./tmac/mdoc.local	2026-02-28 15:03:00.255800250 -0600
+@@ -2,6 +2,23 @@
+ .\"
+ .\" Put local modifications to groff_mdoc(7)'s behavior here.
+ .\"
++.\" Adopting Debian's decision to preserve old mapping for UTF-8
++.\" Debian: As of groff 1.23.0, the "-", "'", "`", "^", and "~" input
++.\" characters are mapped to non-Basic Latin code points in output from
++.\" the "utf8" device, for consistency with other output devices such as
++.\" PDF.  Unfortunately in practice this still causes far too much
++.\" disruption for innocent users of manual pages who just want to be able
++.\" to search for characters normally, so preserve the old behaviour.
++.\" Comment this out if you want to make sure that manual pages you're
++.\" writing are clear of these problems.
++.if '\*[.T]'utf8' \{\
++.  char - \-
++.  char ' \[aq]
++.  char ` \[ga]
++.  char ^ \[ha]
++.  char ~ \[ti]
++.\}
++.\"
+ .\" Some nroff devices or pager programs may not gracefully handle OSC 8
+ .\" hyperlink escape sequences that they don't understand.
+ .\" .if n .if !r U .nr U 0
+--- ./tmac/man.local.orig	2026-02-22 22:09:55.000000000 -0600
++++ ./tmac/man.local	2026-02-28 15:02:06.547803220 -0600
+@@ -2,6 +2,23 @@
+ .\"
+ .\" Put local modifications to groff_man(7)'s behavior here.
+ .\"
++.\" Adopting Debian's decision to preserve old mapping for UTF-8
++.\" Debian: As of groff 1.23.0, the "-", "'", "`", "^", and "~" input
++.\" characters are mapped to non-Basic Latin code points in output from
++.\" the "utf8" device, for consistency with other output devices such as
++.\" PDF.  Unfortunately in practice this still causes far too much
++.\" disruption for innocent users of manual pages who just want to be able
++.\" to search for characters normally, so preserve the old behaviour.
++.\" Comment this out if you want to make sure that manual pages you're
++.\" writing are clear of these problems.
++.if '\*[.T]'utf8' \{\
++.  char - \-
++.  char ' \[aq]
++.  char ` \[ga]
++.  char ^ \[ha]
++.  char ~ \[ti]
++.\}
++.\"
+ .\" Some nroff devices or pager programs may not gracefully handle OSC 8
+ .\" hyperlink escape sequences that they don't understand.
+ .\" .if n .if !r U .nr U 0

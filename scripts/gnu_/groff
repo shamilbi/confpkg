@@ -1,0 +1,61 @@
+#!/bin/bash
+
+unset -v ProtectDirs
+
+if [[ $X ]]; then
+    ConfigureOpts+=(
+        # Slackware
+        --with-x
+        --with-appresdir=/etc/X11/app-defaults
+        --with-appdefdir=/etc/X11/app-defaults
+    )
+else
+    ConfigureOpts+=(--without-x)
+fi
+
+Make=(make)
+MakeEnv=(
+    #PAGE=A4
+    docdir="$DocDir"
+)
+InstallEnv+=("${MakeEnv[@]}")
+
+pkg_pre_configure() {
+    # Slackware
+    # Map special characters to enable unescaped hyphens and other characters
+    # in man pages:
+    pkg_patch_f3 0006-Revert-upstream-change-of-mapping-special-characters.patch 1 || return 1
+    if (($(pkg_cmp_versions "$Version" "1.24.1") < 0)); then
+        # Fix broken manpages:
+        pkg_patch_f3 eee74c1a8f73ff7dd68aee59711bfbeb9174c20d.patch 1 || return 1
+    fi
+    #
+    pkg_autoreconf
+}
+
+pkg_post_install() {
+    # Slackware
+    # doc
+    pkg_install_mfd 644 \
+        BUG-REPORT COPYING* ChangeLog FDL INSTALL* LICENSE* MANIFEST MORE.STUFF \
+        NEWS* PROBLEMS PROJECTS README* REVISION TODO* VERSION \
+        "$DocDir2"
+    pkg_install_mfd 644 src/devices/xditview/{README,TODO} "$DocDir2"/xditview
+    # links: /usr/bin/* --> g*
+    local i
+    for i in eqn pic tbl neqn soelim lookbib nroff refer troff indxbib; do
+        ln -sfn "$i" "$Prefix2/bin/g$i"
+    done
+    ln -sfn soelim "$Prefix2"/bin/zsoelim
+    # If you want all this stuff, it's in the source tarball:
+    rm -rf "$DocDir2"/*.ps \
+        "$DocDir2"/examples \
+        "$DocDir2"/html \
+        "$DocDir2"/pdf \
+        "$DocDir2"/groff-man-pages* \
+        "$DocDir2"/groff.txt
+
+    rm -r "$DocDir2"/ChangeLog.*
+    gzip -9 "$DocDir2"/ChangeLog
+    rm -rf "$DocDir2"/*.pdf
+}
