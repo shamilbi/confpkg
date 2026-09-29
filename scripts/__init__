@@ -235,10 +235,18 @@ pkg_python_post_install() {
 PythonVenvDir=".venv"
 
 pkg_pipv_install() {
+    local pipv_opts=()
+    [[ $PythonNoBuildIsolation ]] && pipv_opts+=(--no-build-isolation)
+
     if [[ $(command -v pipv-install) ]]; then
-        pipv-install -v "$@"
+        pipv-install -v "${pipv_opts[@]}" "$@"
     else
-        python -m pip -v install --disable-pip-version-check --no-cache-dir "$@"
+        local opts=(
+            --disable-pip-version-check
+            --no-cache-dir
+            "${pipv_opts[@]}"
+        )
+        python -m pip -v install "${opts[@]}" "$@"
     fi
     return $?
 }
@@ -248,7 +256,7 @@ pkg_python_install() {
     local newPrefix=$1 # /opt/conan
     local newPrefix2=$DestDir$newPrefix
 
-    local python lib man doc f venv_opts pipv_opts
+    local python lib man doc f venv_opts
     local pwd=$(pwd)
     local libs0="$pwd/libs0.tmp"
     local libs1="$pwd/libs1.tmp"
@@ -261,8 +269,6 @@ pkg_python_install() {
 
     venv_opts=()
     [[ $PythonVenvSystem ]] && venv_opts+=(--system-site-packages)
-    pipv_opts=()
-    [[ $PythonNoBuildIsolation ]] && pipv_opts+=(--no-build-isolation)
 
     for python in "${BuildForPython[@]}"; do
         pkg_set_python "$python" || return 1
