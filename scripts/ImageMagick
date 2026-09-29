@@ -25,6 +25,7 @@ ConfigureOpts+=(
     --enable-opencl
     --enable-hdri # High Dynamic Range Imagery
         # accurately represent the wide range of intensity levels found in real scenes
+    --enable-year2038
     --with-fftw
     --with-gcc-arch="$Arch"
     --with-perl
