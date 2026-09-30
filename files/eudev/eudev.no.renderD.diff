@@ -1,0 +1,21 @@
+--- ./rules/50-udev-default.rules.orig	2026-09-27 12:24:15.000000000 -0500
++++ ./rules/50-udev-default.rules	2026-09-28 15:06:16.946234137 -0500
+@@ -42,14 +42,14 @@
+ 
+ SUBSYSTEM=="video4linux", GROUP="video"
+ SUBSYSTEM=="graphics", GROUP="video"
+-SUBSYSTEM=="drm", KERNEL!="renderD*", GROUP="video"
++SUBSYSTEM=="drm", GROUP="video"
+ SUBSYSTEM=="dvb", GROUP="video"
+ SUBSYSTEM=="media", GROUP="video"
+ SUBSYSTEM=="cec", GROUP="video"
+ 
+-SUBSYSTEM=="drm", KERNEL=="renderD*", GROUP="render", MODE="0666"
+-SUBSYSTEM=="kfd", GROUP="render", MODE="0666"
+-SUBSYSTEM=="accel", GROUP="render", MODE="0666"
++SUBSYSTEM=="drm", GROUP="video", MODE="0666"
++SUBSYSTEM=="kfd", GROUP="video", MODE="0666"
++SUBSYSTEM=="accel", GROUP="video", MODE="0666"
+ 
+ SUBSYSTEM=="misc", KERNEL=="sgx_enclave", GROUP="sgx", MODE="0660"
+ SUBSYSTEM=="misc", KERNEL=="sgx_vepc", GROUP="sgx", MODE="0660"

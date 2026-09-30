@@ -1,0 +1,125 @@
+#!/bin/bash
+
+# groupadd -g XX input?
+
+PkgHome="https://github.com/eudev-project/eudev/tags"
+
+ConfigureOpts+=(
+    # Slackware
+    --with-rootprefix=/
+    --with-rootlibdir=/"$LibName"
+    --with-rootrundir=/run
+    --with-rootlibexecdir=/lib/udev
+    --bindir=/sbin
+    --sbindir=/sbin
+    --libexecdir=/lib
+    --enable-introspection
+    --enable-hwdb
+    --enable-manpages
+    --enable-rule-generator
+    --enable-split-usr
+)
+
+MakeEnv=(
+    udevhwdbdir=/lib/udev/hwdb.d
+)
+InstallEnv+=("${MakeEnv[@]}")
+
+# Slackware
+# Automatically determine the architecture we're building on:
+if [[ ! $ARCH ]]; then
+    case $Arch in
+        i?86) export ARCH=i686 ;;
+        arm*) export ARCH=arm ;;
+        # Unless $ARCH is already set, use uname -m for all other archs:
+        *) export ARCH=$Arch ;;
+    esac
+fi
+
+pkg_pre_configure() {
+    # Slackware
+    # Patch 60-cdrom_id.rules to create a full set of symlinks:
+    pkg_patch_f3 60-cdrom_id.rules.diff 1 || return 1
+    # Ignore bind/unbind events. This was causing various (mostly rare) bugs, but
+    # was also breaking MTP support in KDE.
+    # See: https://bugs.kde.org/show_bug.cgi?id=387454
+    pkg_patch_f3 eudev.ignore_bind_unbind_events.diff 1 || return 1
+    # Don't require groups that we don't need:
+    pkg_patch_f3 eudev.no.renderD.diff 1 || return 1
+    pkg_patch_f3 eudev.no.sgx.diff 1 || return 1
+    # Change perms on kvm and vhost-net from 666 to 660, as recommended for QEMU:
+    pkg_patch_f3 eudev.kvm.vhost-net.qemu.recommended-perms.diff 1 || return 1
+}
+
+pkg_post_install() {
+    # Slackware
+    # Compat symlink:
+    ls -d "$DestDir"/sbin/udevadm | pkg_ln_d "$DestDir"/bin
+    # scsi_id is needed by multipath
+    ls -d $DestDir/lib/udev/scsi_id | pkg_ln_d $DestDir/sbin
+    # Move system installed hwdb files under /lib:
+    # mkdir -p $PKG/lib/udev/hwdb.d
+    # mv $PKG/etc/udev/hwdb.d/* $PKG/lib/udev/hwdb.d
+    # mkdir ...
+    local dirs_=(
+        /run
+        /{etc,lib}/modprobe.d
+        /etc/rc.d
+        /etc/udev/rules.d
+        /lib/firmware
+    )
+    local i
+    for i in "${dirs_[@]}"; do
+        mkdir -p "$DestDir$i" || return 1
+    done
+    # Yes, this will clobber existing config files.
+    pkg_install_mfd 644 "$SupportDir"/udev.conf "$Etc2"/udev
+    # Copy Slackware custom rules:
+    local files=(
+        40-slackware.rules
+        65-permissions.rules
+    )
+    for i in "${files[@]}"; do
+        pkg_install_mfd 644 "$SupportDir/$i" "$DestDir"/lib/udev/rules.d
+    done
+    # Now the init script and kmod stuff:
+    pkg_install_mff 755 "$SupportDir"/rc.udev.new "$Etc2"/rc.d/rc.udev
+    tar xf "$SupportDir"/modprobe.d.tar.xz -C "$DestDir"/lib || return 1
+    pkg_install_mff 644 "$SupportDir"/modprobe.d.README "$Etc2"/modprobe.d/README
+    # Support locally added additional devices found in this directory:
+    mkdir -p "$Etc2"/udev/devices
+    # /lib/udev/*: mode 755
+    find "$DestDir"/lib/udev -maxdepth 1 -type f -exec chmod 0755 {} \;
+}
+
+pkg_read2var pkg_post_installpkg <<EOF
+pkg_post_installpkg() {
+    # Slackware
+    # There's no reason for a user to edit rc.udev, so overwrite it:
+    if [[ -r etc/rc.d/rc.udev.new ]]; then
+        mv etc/rc.d/rc.udev.new etc/rc.d/rc.udev
+    fi
+    # This should catch *all* files in /etc/modprobe.d/ and move them over to
+    # have .conf extensions
+    local modfile
+    for modfile in \$(ls etc/modprobe.d/ | grep -v "\.\(conf\|bak\|orig\|new\)"); do
+        if [[ \$modfile = "README" ]]; then
+            true # do nothing
+        elif [[ -e etc/modprobe.d/\$modfile && ! -e etc/modprobe.d/\$modfile.conf ]]; then
+            mv etc/modprobe.d/"\$modfile" etc/modprobe.d/"\$modfile".conf
+        elif [[ -e etc/modprobe.d/\$modfile && -e etc/modprobe.d/\$modfile.conf ]]; then
+            mv etc/modprobe.d/"\$modfile" etc/modprobe.d/"\$modfile".bak
+        fi
+    done
+
+    # x.new -> x
+    local files=(
+        etc/modprobe.d/README
+        etc/udev/udev.conf
+    )
+    for modfile in "\${files[@]}"; do
+        [[ -f \$modfile.new ]] && mv "\$modfile".new "\$modfile"
+    done
+}
+pkg_post_installpkg
+EOF
