@@ -1,0 +1,55 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://sourceforge.net/projects/rpcbind/files/rpcbind/"
+    "$DebianPackagesUrl/stable/net/rpcbind"
+)
+
+# rpc:x:32:32:RPC portmap user:/:/bin/false
+# rpc:x:32:
+user=rpc
+group=rpc
+userId=32
+groupId=32
+userHome=/
+userShell=/bin/false
+userComment="RPC portmap user"
+
+ConfigureOpts+=(
+    # Slackware
+    --bindir=/sbin
+    --libdir=/"$LibName"
+    --enable-libwrap
+    --enable-warmstarts
+    --with-statedir=/var/run/rpcbind
+    --with-rpcuser=rpc
+    --with-nss-modules="files"
+    --without-systemdsystemunitdir
+)
+
+pkg_pre_configure() {
+    pkg_check_group "$group" "$groupId" || return 1
+    pkg_check_user "$user" "$group" "$userId" "$userHome" "$userShell" "$userComment" || return 1
+
+    # Slackware
+    # Local patches:
+    pkg_patch_f3 0001-man-rpcibind.8-Clarify-state-file-usage-and-history.patch 1 || return 1
+    pkg_patch_f3 rpcbind.lwrap.needs.lnsl.diff 1 || return 1
+    #
+    pkg_autoreconf
+}
+
+pkg_post_install() {
+    # Slackware
+    # Move rpcbind to /sbin:
+    ls -d "$Prefix2"/sbin/rpcbind | pkg_mv_d "$DestDir"/sbin
+    rmdir "$Prefix2"/sbin
+    # Make state directory (not really needed as rpcbind does this on startup)
+    local dir=$DestDir/var/run/rpcbind
+    mkdir -p "$dir"
+    chown rpc:root "$dir"
+    # Install init script:
+    pkg_install_mfd 644 "$SupportDir"/rc.rpc "$Etc2"/rc.d
+    # Install defaults file:
+    pkg_install_mff 644 "$SupportDir"/rpc.default "$Etc2"/default/rpc
+}
