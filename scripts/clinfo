@@ -1,0 +1,15 @@
+#!/bin/bash
+
+PkgHome="https://github.com/Oblomov/clinfo/tags"
+
+MakeEnv=(
+    PREFIX="$Prefix"
+)
+InstallEnv+=("${MakeEnv[@]}")
+CleanOpts=(clean)
+
+pkg_install() {
+    # Slackware
+    pkg_install_mfd 755 clinfo "$Prefix2"/bin
+    pkg_install_mfd 644 man1/clinfo.1 "$ManDir2"/man1
+}
