@@ -29,6 +29,8 @@ pkg_pre_configure() {
         # Fix broken manpages:
         pkg_patch_f3 eee74c1a8f73ff7dd68aee59711bfbeb9174c20d.patch 1 || return 1
     fi
+    # Revert a performance-killing commit:
+    pkg_patch_f3 0001-Revert-man-Fix-Savannah-65190.patch 1 || return 1
     #
     pkg_autoreconf
 }
