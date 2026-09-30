@@ -1,0 +1,68 @@
+#!/bin/bash
+
+PkgHome="https://github.com/libcgroup/libcgroup/tags"
+
+# https://mirror.slackbuilds.org/slackware/slackware64-current/CHANGES_AND_HINTS.TXT
+group=cgred
+groupId=41
+
+ConfigureOpts+=(
+    # Slackware
+    --enable-pam
+    --enable-pam-module-dir=/"$LibName"/security
+    --enable-systemd=no # enable systemd support [default=yes]
+
+    --sbindir="$Prefix"/sbin
+)
+
+pkg_pre_configure() {
+    pkg_check_group "$group" "$groupId" || return 1
+
+    # Slackware
+    # Label cgred.conf properly in the first line:
+    pkg_patch_f3 cgred.conf.no.sysconfig.patch 1 || return 1
+    # --sbindir
+    ## Fix improper path to cgrulesengd:
+    #pkg_patch_f3 cgred.in.path.patch 1 || return 1
+
+    pkg_autoreconf
+}
+
+pkg_post_install() {
+    local f1
+
+    # Slackware
+    # Even though we do not use systemd, breakage results if this header file
+    # does not exist. And the PRs to remove it from libcgroup.h cause this package
+    # to not even build.
+    # As a first attempt, let's just make it an empty file to see if that fixes
+    # downstream issues:
+    f1=$IncludeDir2/libcgroup/systemd.h
+    if [[ ! -e $f1 ]]; then
+        touch "$f1"
+    fi
+    # This directory is needed by cgrulesengd:
+    mkdir -p "$Etc2"/cgconfig.d
+    # cgexec doesn't need to be setuid root -- setgid cgred is sufficient:
+    f1=$Prefix2/bin/cgexec
+    chown root:cgred "$f1" || return 1
+    chmod 2755 "$f1"
+    # Install init scripts. These now test for things like LSB and sysconfig and
+    # don't try to use them if they don't exist. Therefore we don't need to patch
+    # these for the reasons we did before. However, we might need patches to
+    # properly support cgroups v2. But first things first...
+    pkg_install_mff 644 scripts/init.d/cgconfig "$Etc2"/rc.d/rc.cgconfig
+    pkg_install_mff 644 scripts/init.d/cgred "$Etc2"/rc.d/rc.cgred
+    # Install sample config files:
+    local dir=samples/config
+    local files=(
+        cgconfig.conf cgred.conf cgrules.conf cgsnapshot_allowlist.conf
+        cgsnapshot_denylist.conf
+    )
+    for f1 in "${files[@]}"; do
+        pkg_install_mfd 644 "$dir/$f1" "$Etc2"
+    done
+    pkg_install_mfd 644 "$dir"/*.conf* "$DocDir2"/config
+    # Add a default file to signal to rc.S which cgroups hierarchy to mount:
+    pkg_install_mff 644 "$SupportDir"/cgroups.default "$Etc2"/default/cgroups
+}

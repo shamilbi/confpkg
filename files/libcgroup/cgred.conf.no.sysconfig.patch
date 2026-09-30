@@ -1,0 +1,8 @@
+--- ./samples/config/cgred.conf.orig	2023-07-28 15:12:30.000000000 -0500
++++ ./samples/config/cgred.conf	2025-01-26 13:21:54.281728231 -0600
+@@ -1,4 +1,4 @@
+-# /etc/sysconfig/cgred.conf - CGroup Rules Engine Daemon configuration file
++# /etc/cgred.conf - CGroup Rules Engine Daemon configuration file
+ #
+ # The four options listed below (CONFIG_FILE, LOG_FILE, NODAEMON, LOG) are
+ # the only valid ones.  Defining anything else in this file will cause the
