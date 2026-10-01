@@ -5,4 +5,7 @@
 BuildSteps=("${BuildForPython[@]}")
 [[ $BuildStep ]] && pkg_set_python "$BuildStep"
 
-:
+ConfigureOpts+=(
+    # Slackware
+    --without-cython
+)
