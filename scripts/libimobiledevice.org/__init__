@@ -2,7 +2,11 @@
 
 PkgHome="https://github.com/libimobiledevice/${Name,,}/tags"
 
-[[ ! $SYSTEMD ]] && ConfigureOpts+=(--without-systemd)
+[[ ! $SYSTEMD ]] &&
+    ConfigureOpts+=(
+        # Slackware
+        --without-systemd
+    )
 
 pkg_pre_configure() {
     [[ ! -x configure ]] && pkg_autoreconf
