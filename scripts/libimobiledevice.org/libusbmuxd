@@ -1,9 +1,17 @@
 #!/bin/bash
 
+name=${Name,,}
+
 pkg_post_install() {
-    local f
-    f=$(find "$LibDir2/pkgconfig" -type f -name "$Name-*.pc" -print -quit)
-    if [[ $f && -f $f ]]; then
-        ln -sfnr "$f" "$LibDir2/pkgconfig/$Name.pc"
+    # Slackware
+    # Provide a symlink from the old pkgconfig name:
+    # libusbmuxd.pc
+    local f1=$LibDir2/pkgconfig/$name.pc
+    local f2
+    if [[ ! -e $f1 ]]; then
+        f2=$(find "$LibDir2"/pkgconfig -maxdepth 1 -type f -name "$name-*.pc" -print -quit)
+        if [[ $f2 ]]; then
+            ln -sfnr "$f2" "$f1"
+        fi
     fi
 }
