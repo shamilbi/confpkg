@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PkgHome="https://gitlab.freedesktop.org/mesa/mesa"
+PkgHome="https://gitlab.freedesktop.org/mesa/mesa/-/tags"
 
 # v24.2.0
 # src/intel/vulkan/grl/meson.build:60:2: ERROR:
