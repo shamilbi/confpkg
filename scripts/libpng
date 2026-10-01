@@ -10,15 +10,8 @@ PkgHome=(
 ConfigureOpts+=(--enable-static)
 
 pkg_pre_configure() {
-    # check apng patch
-    #define PNG_APNG_SUPPORTED
-    grep -Fq PNG_APNG_SUPPORTED png.h || {
-        cat <<EOF
-APNG patch not found
-URL: https://sourceforge.net/projects/libpng-apng/"
-EOF
-        return 1
-        }
+    # apng
+    pkg_patch_f3 libpng-1.6.58-apng.patch.gz 1 || return 1
 }
 
 pkg_post_install() {
