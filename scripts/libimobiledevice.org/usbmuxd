@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# Slackware
+# usbmux:x:52:83:User for usbmux daemon:/var/empty:/bin/false
+# plugdev:x:83:
+user=usbmux
+group=plugdev
+userId=52
+groupId=83
+userHome=/var/empty
+userShell=/bin/false
+userComment="User for usbmux daemon"
+
+pkg_pre_configure() {
+    pkg_check_group "$group" "$groupId" || return 1
+    pkg_check_user "$user" "$group" "$userId" "$userHome" "$userShell" "$userComment" || return 1
+
+    # configure.ac
+    # ./git-version-gen $RELEASE_VERSION
+    export RELEASE_VERSION=$Version
+}
+
+pkg_post_install() {
+    # Slackware
+    # Install our own udev rule to prevent getting systemd'd without warning.
+    # Plus, the generated rule calls the wrong binary name anyway.
+    local f1=$DestDir/lib/udev/rules.d/39-usbmuxd.rules
+    pkg_install_mff 644 "$f1" < <(gzip -dc "$SupportDir"/39-usbmuxd.rules.gz)
+}
