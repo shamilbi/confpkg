@@ -5,11 +5,11 @@ PkgHome="https://github.com/ximion/appstream/tags"
 ConfigureOpts+=(
     # Slackware
     -Dapidocs=false # true, Build API documentation
-    -Dcompose=true
+    -Dcompose=true # false, Build appstream-compose (library, tool if tools are enabled)
     -Dqt=true
-    -Dstemming=false
+    -Dstemming=false # true, Use stemming while searching. Requires Snowball (libstemmer)
     -Dsystemd=false # Build with systemd support
-    -Dvapi=true
+    -Dvapi=true # false, Create and install a Vala API file. Requires "gir" to be enabled as well
     -Dbash-completion=false
         # -Dbash-completion=false since we don't want to require it to be installed
         # at build time.
