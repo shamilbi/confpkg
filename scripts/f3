@@ -2,8 +2,28 @@
 
 PkgHome="https://github.com/AltraMayor/f3/tags"
 
+# Slackware
 MakeEnv=(
     PREFIX="$Prefix"
 )
+MakeOpts=(
+    all
+    extra
+)
 InstallEnv+=("${MakeEnv[@]}")
+InstallOpts=(
+    install
+    install-extra
+)
+
 CleanOpts=(clean)
+
+pkg_pre_configure() {
+    # $(PREFIX)/share/man/
+    local f1=Makefile
+    if pkg_create_orig "$f1"; then
+        local s1='$(PREFIX)/share/man/'
+        local s2="$ManDir"/
+        sed -i -e "s,$s1,$s2," "$f1"
+    fi
+}
