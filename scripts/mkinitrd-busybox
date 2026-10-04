@@ -167,4 +167,15 @@ pkg_install() {
     esac
     # /etc/default
     pkg_install_mff 644 "$SupportDir"/geninitrd.default "$Etc2"/default/geninitrd
+
+    # /etc/default/geninitrd: some opts -> false
+    local opts=(
+        AUTOGENERATE_INITRD
+        AUTO_REMOVE_ORPHANED_INITRDS
+        AUTO_UPDATE_GRUB
+    )
+    local i
+    for i in "${opts[@]}"; do
+        sed -i -re "s,^($i)=.*,\\1=false," "$Etc2"/default/geninitrd
+    done
 }

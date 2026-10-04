@@ -329,7 +329,9 @@ if [ "$RESCUE" = "" ]; then
 
   # Switch to real root partition:
   /sbin/udevadm settle --timeout=10
-  echo 0x0100 > /proc/sys/kernel/real-root-dev
+  if [ -w /proc/sys/kernel/real-root-dev ]; then
+    echo 0x0100 > /proc/sys/kernel/real-root-dev
+  fi
   mount -o ro${ROOTFLAGS:+,$ROOTFLAGS} -t $ROOTFS $ROOTDEV /mnt
   
   if [ ! -r /mnt/sbin/init ]; then
