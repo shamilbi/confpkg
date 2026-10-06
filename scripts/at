@@ -1,0 +1,63 @@
+#!/bin/bash
+
+PkgHome=(
+    "http://software.calhariz.com/at/?C=M;O=D"
+    "$SlackwareMirrorUrl/ap/at/?C=M&O=D"
+    "${DebianSearchURL}at"
+)
+
+# daemon:x:2:2:daemon:/sbin:/bin/false
+# daemon:x:2:root,bin,daemon
+user=daemon
+group=daemon
+userId=2
+groupId=2
+userHome=/sbin
+userShell=/bin/false
+userComment=
+
+spoolDir=/var/spool
+spoolDir2=$DestDir$spoolDir
+
+ConfigureOpts+=(
+    --with-jobdir="$spoolDir"/atjobs # Directory containing at jobs (default SPOOLDIR/atjobs)
+    --with-atspool="$spoolDir"/atspool # Directory containing at spool (default SPOOLDIR/atspool)
+)
+ProtectDirs+=(
+    "$spoolDir"/atjobs # .SEQ.new
+)
+
+# Slackware
+# Does not like parallel builds:
+Make=(make)
+
+unset pkg_check
+
+pkg_pre_configure() {
+    pkg_check_group "$group" "$groupId" || return 1
+    pkg_check_user "$user" "$group" "$userId" "$userHome" "$userShell" "$userComment" || return 1
+}
+
+pkg_post_install() {
+    # Slackware
+    # Add the init script:
+    # rc.atd
+    pkg_install_mfd 755 "$SupportDir"/rc.atd "$Etc2"/rc.d
+    # Add the default file:
+    # /etc/default/atd
+    pkg_install_mff 644 "$SupportDir"/atd.default "$Etc2"/default/atd
+}
+
+# Slackware
+pkg_read2var pkg_post_installpkg <<EOF
+pkg_post_installpkg() {
+    # Slackware
+    local f1="${spoolDir:1}"/atjobs/.SEQ
+    if [[ ! -r \$f1 ]]; then
+        touch "\$f1"
+    fi
+    chmod 660 "\$f1"
+    chown "$user":"$group" "\$f1"
+}
+pkg_post_installpkg
+EOF
