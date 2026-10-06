@@ -1,0 +1,48 @@
+#!/bin/bash
+
+PkgHome="https://www.freedesktop.org/software/colord/releases/"
+
+# https://slackbuilds.org/uid_gid.txt
+# colord:x:303:303:User for colord:/var/lib/colord:/bin/false
+# colord:x:303:
+user=colord
+group=colord
+userId=303
+groupId=303
+userHome=/var/lib/colord
+userShell=/bin/false
+userComment="User for colord"
+
+ProtectFiles=(
+    # Slackware
+    "$ShareDir"/dbus-1/system.d/org.freedesktop.ColorManager.conf
+)
+
+ConfigureOpts+=(
+    # Slackware
+    --libexecdir="$LibDir"/colord
+    -Dlibcolordcompat=true
+    -Dsane=true
+    -Dvapi=true
+    -Dsystemd=false
+    -Dargyllcms_sensor=false
+    -Dprint_profiles=false
+    -Dtests=false
+    -Dbash_completion=false
+    -Ddaemon_user=colord
+    -Dman=false
+)
+
+pkg_pre_configure() {
+    pkg_check_group "$group" "$groupId" || return 1
+    pkg_check_user "$user" "$group" "$userId" "$userHome" "$userShell" "$userComment" || return 1
+}
+
+pkg_post_install() {
+    # Slackware
+    # I'm not sure why bash-completion needs to be installed in order for meson to
+    # install this harmless runtime file. One of those annoying things.
+    pkg_install_mfd 644 data/colormgr "$ShareDir2"/bash-completion/completions
+    # It almost gets this right.
+    chown -R "$user:$group" "$DestDir"/var/lib/colord
+}
