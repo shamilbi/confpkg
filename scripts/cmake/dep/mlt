@@ -19,11 +19,16 @@ ConfigureOpts+=(
     # src/modules/glaxnimate/glaxnimate/ is already the exact version MLT expects.
     -DMOD_GLAXNIMATE_QT6=ON
     -DQT_VERSION_MAJOR=6
+
+    # v7.42.0
+    -DCLANG_FORMAT=OFF # Enable Clang Format, ON
 )
 
 pkg_pre_configure() {
     # Slackware
-    pkg_patch_f3 ffmpeg-9.patch 1 || return 1
+    if (($(pkg_cmp_versions "$Version" "7.42") < 0)); then
+        pkg_patch_f3 ffmpeg-9.patch 1 || return 1
+    fi
 
     # find_package(Python3 REQUIRED COMPONENTS Interpreter Development)
     # ->
@@ -39,6 +44,23 @@ pkg_pre_configure() {
     if pkg_create_orig "$f1"; then
         # find_component(POSTPROCESS libpostproc    postproc    libpostproc/postprocess.h)
         sed -i -re 's,^( *)(find_component\(POSTPROCESS .*),\1#\2,' "$f1"
+    fi
+
+    # v7.42.0
+    # [submodule "src/modules/glaxnimate/glaxnimate"]
+    # 	path = src/modules/glaxnimate/glaxnimate
+    # 	url = https://invent.kde.org/graphics/glaxnimate.git
+    # 	ignore = dirty
+    local d1=src/modules/glaxnimate/glaxnimate
+    if pkg_dir_empty "$d1"; then
+        git clone --depth 1 "https://invent.kde.org/graphics/glaxnimate.git" "$d1" || return 1
+        # [submodule "external/thorvg/thorvg"]
+        # 	path = external/thorvg/thorvg
+        # 	url = https://github.com/mbasaglia/thorvg.git
+        local d2=$d1/external/thorvg/thorvg
+        if pkg_dir_empty "$d2"; then
+            git clone --depth 1 "https://github.com/mbasaglia/thorvg.git" "$d2" || return 1
+        fi
     fi
 }
 
