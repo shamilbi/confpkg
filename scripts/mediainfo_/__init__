@@ -1,0 +1,6 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://github.com/MediaArea/MediaInfo/tags"
+    "https://github.com/MediaArea/MediaInfoLib/tags"
+)
