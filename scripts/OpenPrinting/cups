@@ -39,6 +39,8 @@ pkg_pre_configure() {
         #sed -i -r -e 's,(CUPS_SERVERBIN)=.*,\1="'"$LibDir"'/cups",' "$f"
         sed -i -e 's#$exec_prefix/lib/cups#$libdir/cups#g' "$f"
     fi
+    #
+    pkg_patch_f3 cups.fix.disable.dnssd.patch 1 || return 1
 }
 
 pkg_post_install() {

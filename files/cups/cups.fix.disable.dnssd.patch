@@ -1,0 +1,45 @@
+diff -u cups-2.4.20/cups/dest.c cups-2.4.20_patched/cups/dest.c > dest.c.patch
+--- cups-2.4.20/cups/dest.c	2026-10-05 09:26:07.000000000 -0600
++++ cups-2.4.20_patched/cups/dest.c	2026-10-07 06:25:43.723309774 -0600
+@@ -3574,8 +3574,11 @@
+     */
+ 
+     num_dests = _cupsGetDests(http, IPP_OP_CUPS_GET_PRINTERS, NULL, &dests, type, mask);
++
++#ifdef HAVE_DNSSD
+     data.num_local   = 0;
+     data.local_dests = NULL;
++#endif /* HAVE_DNSSD */
+ 
+     if (data.def_name[0])
+     {
+@@ -3595,15 +3598,16 @@
+          i --, dest ++)
+     {
+       cups_dest_t	*user_dest;	/* Destination from lpoptions */
++
+ #ifdef HAVE_DNSSD
+       const char	*device_uri;	/* Device URI */
+-#endif /* HAVE_DNSSD */
+ 
+      /*
+       * Pass the list of local printers to the callback function...
+       */
+ 
+       data.num_local = cupsCopyDest(dest, data.num_local, &data.local_dests);
++#endif /* HAVE_DNSSD */
+ 
+       if ((user_dest = cupsGetDest(dest->name, NULL, data.num_dests, data.dests)) != NULL)
+       {
+@@ -3978,9 +3982,10 @@
+   enum_finished:
+ 
+   cupsFreeDests(data.num_dests, data.dests);
+-  cupsFreeDests(data.num_local, data.local_dests);
+ 
+ #ifdef HAVE_DNSSD
++
++  cupsFreeDests(data.num_local, data.local_dests);
+   cupsArrayDelete(data.devices);
+ 
+ #  ifdef HAVE_MDNSRESPONDER
