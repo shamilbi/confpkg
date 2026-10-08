@@ -9,17 +9,13 @@ ConfigureOpts+=(
     -Dinstalled_tests=false
 )
 
-pkg_pre_configure() {
-    if (($(pkg_cmp_versions "$Version" "2.82.3") < 0)); then
-        # Slackware
-        pkg_patch_f3 d02c95c91a3d2636089fe9b64798fb6f69babb6b.patch 1 || return 1
-    fi
-}
-
 pkg_post_install() {
     # Slackware
     # Install profile scripts:
-    pkg_install_mfd 755 "$SupportDir"/libglib2.{csh,sh} "$Etc2"/profile.d
+    local i
+    for i in libglib2.csh libglib2.sh; do
+        pkg_install_mfd 755 "$SupportDir/$i" "$Etc2"/profile.d
+    done
 }
 
 pkg_read2var pkg_post_installpkg <<EOF
