@@ -1,0 +1,10 @@
+#!/bin/bash
+
+PkgHome="https://www.nongnu.org/fbi-improved/"
+
+[[ ! $AALIB ]] &&
+    ConfigureOpts+=(
+        --disable-aa # ASCII-art (-o aa) support (via aalib)
+        --disable-caca # Colour ASCII-Art (-o ca) support (via libcaca)
+    )
+:
