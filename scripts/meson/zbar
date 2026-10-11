@@ -1,0 +1,14 @@
+#!/bin/bash
+
+PkgHome="https://github.com/mchehab/zbar/tags"
+
+ConfigureOpts+=(
+    -Ddocdir="$DocDir" # ='', Installation directory for project documentation
+    -Ddbusconfdir="$ShareDir" # ='', Base config directory for dbus-1/system.d policy files
+    -Dlibrary_type=shared # ['static', 'shared', 'both'], =both, Build the core and GTK libraries as static, shared, or both
+    -Dgtk=gtk3 # ['no', 'auto', 'gtk2', 'gtk3'], =auto, GTK support
+    -Dpython=python3 # ['no', 'auto', 'python2', 'python3'], =auto, Python bindings
+    -Dqt=false # =true, Qt widget support
+    -Djava=disabled # =auto, Java interface
+    -Dbuild_tests=false # =true, Build test programs
+)
