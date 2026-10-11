@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PkgHome="https://github.com/shadowsocks/shadowsocks-rust"
+PkgHome="https://github.com/shadowsocks/shadowsocks-rust/tags"
 
 BinDir=$Prefix/sbin
 MakeOpts+=(-F "local-tun") # experimental feature
