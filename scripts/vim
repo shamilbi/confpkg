@@ -13,6 +13,7 @@ ConfigureOpts+=(
     #--enable-rubyinterp${RUBYDYNAMIC} # Include Ruby interpreter, default=no, [no/yes/dynamic]
     #--enable-tclinterp=dynamic # Include Tcl interpreter, default=no, [no/yes/dynamic]
     --disable-canberra # Do not use libcanberra
+    --disable-pixman # Use the pixman library (default: auto).
     --enable-multibyte # Include multibyte editing support
     --enable-cscope # Include cscope interface
     --with-features=huge # [tiny, normal, huge], default: huge
