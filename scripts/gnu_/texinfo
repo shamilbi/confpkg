@@ -1,0 +1,23 @@
+#!/bin/bash
+
+PkgHome+=("$SlackwareMirrorUrl/ap/texinfo/?C=M&O=D")
+
+pkg_post_install() {
+    # Slackware
+    # Add update-info-dir script and manpage originally from Debian:
+    pkg_install_mfd 755 "$SupportDir"/update-info-dir "$Prefix2"/sbin
+    mkdir -p "$ManDir2"/man8
+    pkg_install_mfd 644 "$SupportDir"/update-info-dir.8 "$ManDir2"/man8
+}
+
+pkg_read2var pkg_post_installpkg <<EOF
+pkg_post_installpkg() {
+    local d=${InfoDir:1}
+    local f=\$d/dir
+    if [[ ! -f \$f ]]; then
+        echo "Creating \$f ..."
+        update-info-dir "\$d"
+    fi
+}
+pkg_post_installpkg
+EOF
