@@ -12,13 +12,16 @@ ConfigureOpts+=(
     --enable-ares
     --without-ca-bundle
     --with-ca-path=/etc/ssl/certs
-    --with-nghttp2="$Prefix"
-    --with-nghttp3="$Prefix"
+    # --with-nghttp2="$Prefix"
+    # --with-nghttp3="$Prefix"
     # --with-openssl-quic
-    --with-ngtcp2="$Prefix" # Enable ngtcp2 usage
+    # --with-ngtcp2="$Prefix" # Enable ngtcp2 usage
     --with-openssl="$Prefix"
 
     --without-gnutls
+    --with-nghttp2=yes
+    --with-nghttp3=yes
+    --with-ngtcp2=yes
 )
 [[ ! $RTMP ]] && ConfigureOpts+=(--without-librtmp)
 
