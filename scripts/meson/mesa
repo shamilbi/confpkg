@@ -2,10 +2,6 @@
 
 PkgHome="https://gitlab.freedesktop.org/mesa/mesa/-/tags"
 
-# v24.2.0
-# src/intel/vulkan/grl/meson.build:60:2: ERROR:
-# Problem encountered: Python (3.x) ply module required to build GRL kernels.
-
 ConfigureOpts+=(
     # Slackware
     -Dplatforms=x11,wayland
@@ -44,26 +40,6 @@ ConfigureOpts+=(
         # will be built.
 )
 
-# meson.build:4:0: ERROR: Unknown option: "intel-clc".
-if (($(pkg_cmp_versions "$Version" "25.2.1") < 0)); then
-    ConfigureOpts+=(
-        # Slackware
-        -Dintel-clc=enabled
-    )
-fi
-
-# meson.build:4:0: ERROR: Unknown options: "gallium-opencl", "gallium-nine", "osmesa"
-# DEPRECATION: Option 'shared-glapi' is deprecated
-if (($(pkg_cmp_versions "$Version" "25.2") < 0)); then
-    ConfigureOpts+=(
-        # Slackware
-        -Dgallium-opencl=icd
-        -Dgallium-nine=true
-        -Dosmesa=true
-        -Dshared-glapi=enabled
-    )
-fi
-
 # Slackware
 # Only supported on x86_64:
 [[ $Arch = "x86_64" ]] && ConfigureOpts+=(-Dintel-rt=enabled)
@@ -83,23 +59,7 @@ pkg_pre_configure() {
     # Let's kill the warning about operating on a dangling symlink:
     f="src/gallium/state_trackers/d3d1x/w32api"
     [[ -f $f ]] && rm -f "$f"
-
-    # Slackware
-    # Don't use the system DirectX headers:
-    #rm -f /usr/lib${LIBDIRSUFFIX}/pkgconfig/DirectX-Headers.pc
-
-    # 24.2.1, 24.2.2
-    # error[E0080]: evaluation of constant value failed
-    # https://www.linuxquestions.org/questions/slackware-14/mesa-build-regression-with-rust-bindgen-0-70-on-32-bit-4175740770/
-    # https://gitlab.freedesktop.org/mesa/mesa/-/merge_requests/30710/diffs?commit_id=93e96da9458c9d0348f2390dc0bea67cf140b1a0
-    if (($(pkg_cmp_versions "$Version" "24.2.2") <= 0)); then
-        if (($(pkg_cmp_versions "$Version" "24.2.1") >= 0)); then
-            pkg_patch_f3 30710.diff 1 || return 1
-        fi
-    fi
-    if (($(pkg_cmp_versions "$Version" "25.2.3") < 0)); then
-        pkg_patch_f3 37234.patch 1 || return 1
-    fi
+    :
 }
 
 pkg_post_install() {
@@ -114,16 +74,4 @@ pkg_post_install() {
             ln -sfnr libGLX_mesa.so.0 libGLX_system.so.0
         fi
     ) || return 1
-
-    if (($(pkg_cmp_versions "$Version" "26") < 0)); then
-        # link equals
-        (
-            cd "$LibDir2/dri" || exit 1
-            ls -d virtio_gpu_dri.so virtio_gpu_drv_video.so | pkg_ln_equals
-        )
-        (
-            cd "$LibDir2/vdpau" || exit 1
-            find . -type f -name 'libvdpau_virtio_gpu.so.*' | pkg_ln_equals
-        )
-    fi
 }
