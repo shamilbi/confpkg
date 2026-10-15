@@ -1,0 +1,35 @@
+#!/bin/bash
+
+PkgHome="https://github.com/ngtcp2/ngtcp2/tags"
+
+ConfigureOpts+=(
+    -DNGTCP2_CONFIG_INSTALL_DIR= "$LibName/cmake/${Name,,}" # lib/cmake/${PROJECT_NAME}
+)
+
+pkg_pre_configure() {
+    # [submodule "tests/munit"]
+    # 	path = tests/munit
+    # 	url = https://github.com/ngtcp2/munit
+    local dir
+    dir=tests/munit
+    if pkg_dir_empty "$dir"; then
+        git clone --depth 1 "https://github.com/ngtcp2/munit" "$dir" || return 1
+    fi
+    # [submodule "third-party/urlparse"]
+    # 	path = third-party/urlparse
+    # 	url = https://github.com/ngtcp2/urlparse
+    dir=third-party/urlparse
+    if pkg_dir_empty "$dir"; then
+        git clone --depth 1 "https://github.com/ngtcp2/urlparse" "$dir" || return 1
+    fi
+
+    # set(NGTCP2_CONFIG_INSTALL_DIR "lib/cmake/${PROJECT_NAME}")
+    # ->
+    # set(NGTCP2_CONFIG_INSTALL_DIR "lib64/cmake/${PROJECT_NAME}")
+    local f1=lib/CMakeLists.txt
+    local s1='(set\(NGTCP2_CONFIG_INSTALL_DIR) .*'
+    local s2='\1 "'"$LibName/cmake/${Name,,}"'")'
+    if pkg_create_orig "$f1"; then
+        sed -i -re "s,$s1,$s2," "$f1"
+    fi
+}
