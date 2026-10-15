@@ -25,7 +25,6 @@ ConfigureOpts+=(
     -Dman=true
 )
 
-
 pkg_pre_configure() {
     pkg_check_group "$group" "$groupId" || return 1
     pkg_check_user "$user" "$group" "$userId" "$userHome" "$userShell" "$userComment" || return 1
@@ -36,6 +35,9 @@ pkg_pre_configure() {
 
 pkg_post_install() {
     # Slackware
+    # Harden perms on /usr/bin/pkexec and /usr/lib/polkit-1/polkit-agent-helper-1:
+    chmod 4711 "$Prefix2"/bin/pkexec
+    chmod 4711 "$Prefix2"/lib/polkit-1/polkit-agent-helper-1
     # Create homedir for polkit.  This is mentioned in /etc/passwd, but isn't
     # actually used for anything later.  Perms don't matter.
     mkdir -p "$DestDir/var/lib/polkit"
@@ -49,6 +51,13 @@ pkg_post_install() {
 pkg_read2var pkg_post_installpkg <<EOF
 pkg_post_installpkg() {
     # Slackware
+    # Make sure the polkitd user and group exist:
+    if ! grep -q "^polkitd:" etc/passwd ; then
+        echo "polkitd:x:87:87:PolicyKit daemon owner:/var/lib/polkit:/bin/false" >> etc/passwd
+    fi
+    if ! grep -q "^polkitd:" etc/group ; then
+        echo "polkitd:x:87:" >> etc/group
+    fi
     # Remove obsolete rules:
     rm -f etc/polkit-1/localauthority/50-local.d/*.pkla{,.new}
     rm -f etc/polkit-1/rules.d/*.pkla{,.new}
@@ -56,4 +65,5 @@ pkg_post_installpkg() {
     rmdir etc/polkit-1/localauthority/50-local.d 2>/dev/null
     rmdir etc/polkit-1/localauthority 2>/dev/null
 }
+pkg_post_installpkg
 EOF
