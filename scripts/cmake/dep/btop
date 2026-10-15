@@ -5,3 +5,24 @@ PkgHome="https://github.com/aristocratos/btop/tags"
 # CMake Error at /usr/share/cmake-4.0/Modules/CheckIPOSupported.cmake:84 (message):
 #   IPO is not supported (check failed to compile).
 UseClang=
+
+pkg_pre_configure() {
+    # Slackware
+    # Adjust the Makefile:
+    local f1=Makefile
+    if pkg_create_orig "$f1"; then
+        sed -i "s|-O2|$CFLAGS|" "$f1" || return 1
+        sed -i "s|share/man|man|" "$f1" || return 1
+    fi
+}
+
+pkg_post_install() {
+    # Slackware
+    # If we don't have /usr/man/man1/btop.1.gz, it's probably because we don't have
+    # the lowdown dependency needed to generate the man page. Since nothing else
+    # really seems to use lowdown, we'll just grab a pre-processed copy.
+    local d1=$ManDir2/man1
+    if [[ ! -r $d1/btop.1.gz ]]; then
+        pkg_install_mfd 644 "$SupportDir"/btop.1.gz "$d1"
+    fi
+}
