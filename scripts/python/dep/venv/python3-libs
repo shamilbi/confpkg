@@ -13,15 +13,12 @@ PythonInstallLibs=(
     wheel
     build
     setuptools-rust
-    #urllib3             # conan
     #requests            # conan, +urllib3
     python-dateutil     # conan
     pyparsing
-    #"cython<4"
-    #lxml
     #psutil              # glances
     pyyaml              # conan
-    pyxdg
+    # pyxdg
     pytz
     tzdata              # pandas
     mako
@@ -36,9 +33,7 @@ PythonInstallLibs=(
     #toml                # safety
     jinja2              # fwupd, conan
     #versioneer          # pandas
-    #ply                 # mesa: for intel vulkan ray-tracing
     "docutils<0.23"     # sphinx, rst2pdf
-    #packaging           # meson, ninja
     typing-extensions
 )
 
