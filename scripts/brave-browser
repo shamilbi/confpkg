@@ -1,0 +1,24 @@
+#!/bin/bash
+
+PkgHome="https://github.com/brave/brave-browser/releases"
+
+unset -v pkg_configure pkg_make
+
+name=${Name,,}
+
+pkg_install() {
+    local dir=$DestDir/opt/$name
+    chmod 755 .
+    pkg_cp_dd . "$dir" -l || return 1
+    chmod 4755 "$dir"/chrome-sandbox
+    ls -d "$dir/$name" | pkg_ln_d "$Prefix2"/bin
+
+    # /usr/share/pixmaps/brave-browser.png
+    local icon=product_logo_128.png
+    if [[ -f $icon ]]; then
+        pkg_install_mff 644 "$icon" "$ShareDir2"/pixmaps/brave-browser.png
+    fi
+
+    # brave-browser.desktop
+    pkg_install_mfd 644 "$SupportDir"/brave-browser.desktop "$ShareDir2"/applications
+}
