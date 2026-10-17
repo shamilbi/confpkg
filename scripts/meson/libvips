@@ -1,0 +1,19 @@
+#!/bin/bash
+
+PkgHome="https://github.com/libvips/libvips/tags"
+
+ConfigureOpts+=(
+    # Slackware
+    -Dcpp-docs=false
+    -Ddocs=false
+    -Dnifti=disabled
+    -Dpdfium=disabled
+    -Duhdr=disabled
+    -Dvapi=true
+)
+
+pkg_post_install() {
+    # Slackware
+    # Add bash-completion support manually:
+    pkg_install_mff 644 completions/vips-completion.bash "$ShareDir2"/bash-completion/completions/vips
+}
