@@ -10,28 +10,50 @@ pkg_install() {
     # b3sum
     (
         cd b3sum || exit 1
-        cargo build --release || exit 1
-        pkg_install_mfd 755 target/release/b3sum "$Prefix2"/bin
+
+        # Slackware
+        cargo install --offline --no-track --root "$Prefix2" --path="." || exit 1
+
+        # cargo build --release || exit 1
+        # pkg_install_mfd 755 target/release/b3sum "$Prefix2"/bin
     ) || return 1
 
     # libblake3
     (
         cd c || exit 1
+        pkg_del_cflags "${GccFlags[@]}"
         opts=(
-            -DCMAKE_BUILD_TYPE=Release
-            -DBUILD_SHARED_LIBS=ON
+            # Slackware
             -DCMAKE_C_FLAGS="$CFLAGS"
             -DCMAKE_CXX_FLAGS="$CFLAGS"
-
             -DCMAKE_INSTALL_PREFIX="$Prefix"
-            -DCMAKE_INSTALL_MANDIR="$ManDir"
-            -DCMAKE_INSTALL_DOCDIR="$DocDir"
             -DCMAKE_INSTALL_LIBDIR="$LibDir"
+            -DCMAKE_INSTALL_DOCDIR="$DocDir"
+            -DCMAKE_INSTALL_MANDIR="$ManDir"
+            -DCMAKE_BUILD_TYPE=Release
+            -DBUILD_SHARED_LIBS=ON
+            -DBLAKE3_USE_TBB=1
+                # oneTBB not found; disabling BLAKE3_USE_TBB
+                # Enable BLAKE3_FETCH_TBB to automatically fetch and build oneTBB
+
+            -DBLAKE3_FETCH_TBB=ON # automatically fetch and build oneTBB
         )
-        mkdir -p build
-        cmake -S . -B build "${opts[@]}" || return 1
+
+        mkdir -p "$BuildDir"
+        cmake -S . -B "$BuildDir" "${opts[@]}" || return 1
 
         export DESTDIR=$DestDir
-        cmake --build build --target install
+        cmake --build "$BuildDir" --target install
+    )
+}
+
+pkg_distclean() {
+    (
+        cd b3sum || exit 1
+        cargo clean
+    )
+    (
+        cd c || exit 1
+        [[ -d $BuildDir ]] && rm -rf "$BuildDir"
     )
 }
