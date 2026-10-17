@@ -13,6 +13,9 @@ ConfigureOpts+=(
 )
 
 pkg_pre_configure() {
+    # Slackware
+    pkg_patch_f3 c3efe69ecdcb6c1b9d73560d0cfdf88f109f2395.patch 1 || return 1
+
     #[submodule "spice-common"]
     #	path = subprojects/spice-common
     #	url = ../spice-common.git
