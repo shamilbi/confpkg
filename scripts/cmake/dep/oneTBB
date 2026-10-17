@@ -1,0 +1,5 @@
+#!/bin/bash
+
+ConfigureOpts+=(
+    -DTBB_TEST=OFF # Enable testing, ON
+)
