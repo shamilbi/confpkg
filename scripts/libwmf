@@ -2,6 +2,23 @@
 
 PkgHome="https://github.com/caolanm/libwmf/tags"
 
+pkg_pre_configure() {
+    # v0.2.17
+    # In file included from ipa.c:42:
+    # ../../src/ipa/ipa/bmp.h: In function 'ReadBMPImage':
+    # ../../src/ipa/ipa/bmp.h:1033:9: error: unknown type name 'uint64_t'
+    #  1033 |         uint64_t remaining;
+    #       |         ^~~~~~~~
+    # ../../src/ipa/ipa/bmp.h:1:1: note: 'uint64_t' is defined in header '<stdint.h>'; this is probably fixable by adding '#include <stdint.h>'
+    #   +++ |+#include <stdint.h>
+    # Slackware: missing_include_bmp.h.diff
+    local f1=src/ipa/ipa/bmp.h
+    if ! grep -q -e '^#include <stdint.h>' "$f1"; then
+        pkg_create_orig "$f1"
+        sed -i -e '1i#include <stdint.h>' "$f1"
+    fi
+}
+
 pkg_post_install() {
     # Slackware
     # Symlink to system fonts.
