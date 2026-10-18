@@ -2,4 +2,14 @@
 
 PkgHome="https://github.com/SagerNet/sing-box/tags"
 
-GoBuild=(go build -pkgdir "$GoDir/pkg")
+pkg_make() {
+    # from Makefile
+    local opts=(
+        -v
+        -trimpath
+        -ldflags "-X 'github.com/sagernet/sing-box/constant.Version=$Version' $(cat release/LDFLAGS) -s -w -buildid="
+        -tags "$(cat release/DEFAULT_BUILD_TAGS_OTHERS)"
+        ./cmd/sing-box
+    )
+	go build "${opts[@]}"
+}
