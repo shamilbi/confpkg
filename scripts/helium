@@ -1,0 +1,30 @@
+#!/bin/bash
+
+PkgHome="https://github.com/imputnet/helium-linux/tags"
+
+unset -v pkg_configure pkg_make
+
+name=${Name,,}
+
+pkg_install() {
+    local dest=$DestDir/opt/$name
+
+    pkg_cp_dd . "$dest" -l || return 1
+    ls -d "$dest/$name" | pkg_ln_d "$Prefix2"/bin
+
+    # /usr/share/pixmaps/$name.png
+    local icon=product_logo_256.png
+    if [[ -f $icon ]]; then
+        pkg_install_mff 644 "$icon" "$ShareDir2/pixmaps/$name.png"
+    fi
+
+    # $name.desktop
+    pkg_install_mfd 644 "$name".desktop "$ShareDir2"/applications
+
+    # *.so*
+    local so so2
+    while IFS= read -r so; do
+        so2=$LibDir/${so##*/}
+        [[ -e $so2 ]] && ln -sfn "$so2" "$so"
+    done < <(find "$dest" -maxdepth 1 -type f -name '*.so*')
+}
