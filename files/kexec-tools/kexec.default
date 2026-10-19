@@ -1,0 +1,15 @@
+# Paths for your kernel, initrd, and ucode for use with kexec.
+
+# Path to your AMD ucode. If you do not want to include AMD ucode
+# in your kexec initrd, set this to "no".
+KEXEC_AMD_UCODE=/boot/amd-ucode.img
+
+# Path to your Intel ucode. If you do not want to include Intel ucode
+# in your kexec initrd, set this to "no".
+KEXEC_INTEL_UCODE=/boot/intel-ucode.img
+
+# Path to your initrd. If you don't want to use an initrd, set this to "no".
+KEXEC_INITRD=/boot/initrd-generic.img
+
+# Path to your kernel:
+KEXEC_KERNEL=/boot/vmlinuz-generic

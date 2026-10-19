@@ -1,0 +1,24 @@
+#!/bin/bash
+
+PkgHome="https://github.com/horms/kexec-tools/tags"
+
+ProtectDirs+=(
+    # Slackware
+    /boot
+)
+
+ConfigureOpts+=(
+    # Slackware
+    --sbindir=/sbin
+)
+
+pkg_post_install() {
+    # Slackware
+    # Add a shortcut script to load the latest kernel/initrd with kexec:
+    pkg_install_mfd 755 "$SupportDir"/load-latest-kernel-initrd-with-kexec.sh "$DestDir"/boot
+    # Add a defaults file for load-latest-kernel-initrd-with-kexec.sh:
+    pkg_install_mff 644 "$SupportDir"/kexec.default "$Etc2"/default/kexec
+    # Add a geninitrd post-install script:
+    # This is not activated by default:
+    pkg_install_mfd 644 "$SupportDir"/kexec.sh "$Etc2"/geninitrd.d/post-install/kexec.sh
+}
