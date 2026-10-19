@@ -1,0 +1,46 @@
+#!/bin/bash
+
+PkgHome="https://github.com/troglobit/sysklogd/tags"
+
+unset -v pkg_check
+
+ProtectDirs+=(
+    # Slackware
+    /var/log
+)
+var_log_files=(cron debug maillog messages secure syslog)
+
+ConfigureOpts+=(
+    # Slackware
+    --without-logger
+)
+
+pkg_post_install() {
+    # Slackware
+    mkdir -p "$Etc2"/syslog.d
+    pkg_install_mff 644 "$SupportDir"/syslog.conf.new "$Etc2"/syslog.conf
+    pkg_install_mff 644 "$SupportDir"/syslog.logrotate "$Etc2"/logrotate.d/syslog
+    pkg_install_mff 755 "$SupportDir"/rc.syslog.new "$Etc2"/rc.d/rc.syslog
+    pkg_install_mff 644 "$SupportDir"/syslogd.new "$Etc2"/default/syslogd
+    local dir=$DestDir/var/log
+    mkdir -p "$dir"
+    local i f1
+    for i in "${var_log_files[@]}"; do
+        f1=$dir/$i
+        touch "$f1"
+        chmod 640 "$f1"
+    done
+}
+
+pkg_read2var pkg_post_installpkg <<EOF
+pkg_post_installpkg() {
+    # Slackware
+    # Remove any leftover empty files:
+    local i f1
+    for i in ${var_log_files[@]}; do
+        f1=var/log/\$i.new
+        [[ -f \$f1 ]] && rm -f "\$f1"
+    done
+}
+pkg_post_installpkg
+EOF
