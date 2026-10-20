@@ -1,0 +1,108 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://www.ghostscript.com/releases/gsdnld.html"
+    "https://github.com/ArtifexSoftware/ghostpdl-downloads/tags"
+)
+
+BuildSteps=(ijs main)
+
+external_libs=(
+    # Slackware
+    freetype
+    jpeg
+    lcms2
+    # lcms2art/doc/*
+    leptonica
+    libpng
+    # libtiff
+    openjpeg
+    # png
+    tessaract
+    tiff
+    zlib
+
+    expat
+    jbig2dec
+    brotli
+)
+# Remove possibly stale libraries so that we link against the system ones:
+# Slackware:    freetype jpeg lcms2 lcms2art/doc/* leptonica libpng libtiff openjpeg png tessaract tiff zlib
+# LFS:          freetype jpeg lcms2 libpng libtiff png tiff zlib lcms2art/doc/*
+
+case $BuildStep in
+    ijs)
+        SrcDir=$OrigSrcDir/ijs
+        pkg_pre_configure() {
+            # Slackware
+            pkg_autoreconf
+            :
+        }
+        ;;
+    main)
+        ConfigureOpts+=(
+            # Slackware
+            # --docdir="$ShareDir/ghostscript/$Version/tmpdoc"
+            --with-fontpath="$FontsDir"/TTF
+            --with-ijs
+            --disable-compile-inits
+            --enable-dynamic
+            --with-system-libtiff
+            --enable-cups
+            --disable-hidden-visibility
+                # configure: error: Sorry, (deprecated) dynamic driver support not compatible with hidden symbols
+                # - use --disable-hidden-visibility
+            # --htmldir="$ShareDir/ghostscript/$Version/doc"
+            --htmldir="$DocDir"
+            --without-versioned-path
+        )
+        MakeOpts=(all so)
+        InstallOpts+=(soinstall)
+        pkg_pre_configure() {
+            # Slackware
+            ## GCC 14 "fix":
+            #pkg_add_cflags -Wno-error=incompatible-pointer-types -Wno-error=int-conversion
+            # Remove unmaintained garbage:
+            local i
+            for i in "${external_libs[@]}"; do
+                [[ -d $i ]] && mv "$i" "$i.tmp"
+            done
+            pkg_autoreconf
+        }
+        pkg_post_install() {
+            # Slackware
+            # Add back ijs-config, which is needed by at least gutenprint to find IJS
+            # and produce a ghostscript driver:
+            pkg_install_mfd 755 "$SupportDir"/ijs-config "$Prefix2"/bin
+            sed -i -e "s/lib64/$LibName/g" "$Prefix2"/bin/ijs-config
+            # Replace the default cidfmap with one containing additional
+            # support for CJK printing:
+            # usr/share/ghostscript/*.*/Resource/Init/cidfmap
+            local i
+            i=$(find "$ShareDir2/ghostscript" -type f -name cidfmap -print -quit)
+            if [[ -r $i ]]; then
+                mv "$i" "$i.default.ghostscript-$Version"
+                gzip -dc "$SupportDir"/cidfmap.gz >"$i".new
+                pkg_doinst_add_config "$i"
+            fi
+
+            local dir=$Prefix2/include/ghostscript
+            for i in ierrors iapi; do
+                pkg_install_mfd 644 "psi/$i.h" "$dir"
+            done
+            pkg_install_mfd 644 base/*.h "$dir"
+        }
+        pkg_install_doc() {
+            # Slackware
+            # Add a documentation directory:
+            pkg_install_mfd 644 DroidSansFallback.NOTICE LICENSE* README* doc/COPYING doc/News.html "$DocDir2"
+            ## Install example files:
+            local dir=$ShareDir2/ghostscript/examples
+            [[ -d $dir ]] && rm -rf "$dir"
+            pkg_cp_fd examples "$ShareDir2"/ghostscript
+
+            find "$DocDir2" -type f -name '*.pdf' -delete
+        }
+        ;;
+esac
+
