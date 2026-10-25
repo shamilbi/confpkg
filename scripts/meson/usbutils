@@ -1,6 +1,9 @@
 #!/bin/bash
 
-PkgHome="https://git.kernel.org/pub/scm/linux/kernel/git/gregkh/usbutils.git/"
+PkgHome=(
+    "https://git.kernel.org/pub/scm/linux/kernel/git/gregkh/usbutils.git/"
+    "$SlackwareMirrorUrl/a/usbutils/?C=M&O=D"
+)
 
 pkg_post_install() {
     # Slackware
