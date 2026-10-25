@@ -1,6 +1,9 @@
 #!/bin/bash
 
-PkgHome="https://github.com/intel/media-driver/tags"
+PkgHome=(
+    "https://github.com/intel/media-driver/tags"
+    "$SlackwareMirrorUrl/x/intel-media-driver/?C=M&O=D"
+)
 
 # REQ: intel-gmmlib
 
