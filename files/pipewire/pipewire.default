@@ -1,0 +1,3 @@
+# If you do not want the pipewire daemons starting for the root
+# account, change this to false:
+PIPEWIRE_ROOT_ALLOWED=true

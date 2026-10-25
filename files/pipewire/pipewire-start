@@ -1,7 +1,8 @@
 #!/bin/sh
-# Uncomment the following line if you're worried about the pipewire
-# daemons running for the root account:
-#[ $(id -u) = 0 ] && exit 0
+# Load defaults:
+. /etc/default/pipewire
+# If we are root, and root isn't allowed to run pipewire, exit:
+[ $(id -u) = 0 -a ! "$PIPEWIRE_ROOT_ALLOWED" = "true" ] && exit 0
 # Sanity check:
 if [ ! -x /usr/bin/daemon -o ! -x /usr/bin/wireplumber -o ! -x /usr/bin/pipewire-pulse -o ! -x /usr/bin/pipewire ]; then
   exit 0
@@ -14,6 +15,8 @@ grep -q '^autospawn *= *yes' /etc/pulse/client.conf && \
 if loginctl | grep -q " $USER \+seat" ; then
   # Leave if pipewire is already running
   daemon --pidfiles=~/.run --name=pipewire --running && exit 0
+  # If pipewire socket already exists, pipewire is already running:
+  [ -S "$XDG_RUNTIME_DIR"/pipewire-0 ] && exit 0
   # Start pipewire:
   daemon -rB --pidfiles=~/.run --name=pipewire /usr/bin/pipewire
   # wait for the pipewire socket

@@ -58,10 +58,14 @@ pkg_post_install() {
     pkg_install_mfd 755 "$SupportDir"/pipewire-disable.sh "$dir"
     pkg_install_mfd 755 "$SupportDir"/pipewire-enable.sh "$dir"
     dir=$Etc2/profile.d
-    # Don't start pipewire on the console by default.
-    # If you want this, make the profile scripts executable.
-    pkg_install_mfd 644 "$SupportDir"/pipewire.sh "$dir"
-    pkg_install_mfd 644 "$SupportDir"/pipewire.csh "$dir"
+    # Let's go ahead and start pipewire on the console by default, unless anyone
+    # can come up with a good example of why this is harmful. If you don't want it
+    # to run on the console, make the scripts non-executable. And if you'd rather
+    # no have pipewire run for root, you can set that in /etc/default/pipewire.
+    pkg_install_mfd 755 "$SupportDir"/pipewire.sh "$dir"
+    pkg_install_mfd 755 "$SupportDir"/pipewire.csh "$dir"
+    # Add default options file:
+    pkg_install_mff 644 "$SupportDir"/pipewire.default "$Etc2"/default/pipewire
     # pipewire-start
     pkg_install_mfd 755 "$SupportDir"/pipewire-start "$Prefix2"/bin
     # # Add pipewire-jack libraries to the ld.so path:
