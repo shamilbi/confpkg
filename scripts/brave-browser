@@ -1,6 +1,9 @@
 #!/bin/bash
 
-PkgHome="https://github.com/brave/brave-browser/releases"
+PkgHome=(
+    "https://github.com/brave/brave-browser/releases"
+    "https://sourceforge.net/projects/brave-browser.mirror/files/"
+)
 
 unset -v pkg_configure pkg_make
 
