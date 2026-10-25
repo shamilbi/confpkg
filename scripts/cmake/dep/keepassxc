@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PkgHome="https://github.com/keepassxreboot/keepassxc"
+PkgHome="https://github.com/keepassxreboot/keepassxc/tags"
 
 # REQ: botan 3.8, minizip, qt5
 
