@@ -28,6 +28,7 @@ TERM eterm-color
 TERM gnome
 TERM gnome-256color
 TERM jfbterm
+TERM kmscon
 TERM konsole
 TERM kterm
 TERM linux
