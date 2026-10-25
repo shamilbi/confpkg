@@ -35,18 +35,33 @@ if [ -z "$KEXEC_KERNEL" ]; then
   exit 1
 fi
 
-# If we have an initrd and KEXEC_AMD_UCODE and/or KEXEC_INTEL_UCODE, then
-# prepare a kexec initrd that bundles the ucode and base initrd:
-if [ -r "$KEXEC_INITRD" -a -r "$KEXEC_AMD_UCODE" -o -r "$KEXEC_INTEL_UCODE" ] ; then
-  echo "Combining initrd and ucode into /boot/initrd-kexec.img."
-  cat $KEXEC_AMD_UCODE $KEXEC_INTEL_UCODE $KEXEC_INITRD > /boot/initrd-kexec.img 
+# Prepare a kexec initrd that bundles the ucode and base initrd:
+if [ -r "$KEXEC_INITRD" ] ; then
+  if [ -r "$KEXEC_AMD_UCODE" -o -r "$KEXEC_INTEL_UCODE" ] ; then
+    echo "Combining initrd and ucode into /boot/initrd-kexec.img."
+    cat $KEXEC_AMD_UCODE $KEXEC_INTEL_UCODE $KEXEC_INITRD > /boot/initrd-kexec.img
+    KEXEC_INITRD=/boot/initrd-kexec.img
+  fi
+# If there is no base initrd but we have KEXEC_AMD_UCODE and/or KEXEC_INTEL_UCODE
+# then use ucodes as initrd
+elif [ -r "$KEXEC_AMD_UCODE" -a -r "$KEXEC_INTEL_UCODE" ]; then
+  echo "No base initrd. Combining ucodes into /boot/initrd-kexec.img."
+  cat $KEXEC_AMD_UCODE $KEXEC_INTEL_UCODE > /boot/initrd-kexec.img
   KEXEC_INITRD=/boot/initrd-kexec.img
+elif [ -r "$KEXEC_AMD_UCODE" ]; then
+  echo "No base initrd. Include the AMD ucode."
+  KEXEC_INITRD=$KEXEC_AMD_UCODE
+elif [ -r "$KEXEC_INTEL_UCODE" ]; then
+  echo "No base initrd. Include the Intel ucode."
+  KEXEC_INITRD=$KEXEC_INTEL_UCODE
 fi
 
+CMDLINE=$(cat /proc/cmdline)
+CMDLINE="${CMDLINE// reset_devices/} reset_devices"
 if [ -r "$KEXEC_INITRD" ]; then
   echo "Loading kernel and initrd with kexec:"
-  echo "kexec -l $KEXEC_KERNEL --append=\"\$(cat /proc/cmdline)\" --initrd=$KEXEC_INITRD"
-  kexec -l $KEXEC_KERNEL --append="$(cat /proc/cmdline)" --initrd=$KEXEC_INITRD
+  echo "kexec -l $KEXEC_KERNEL --append=\"$CMDLINE\" --initrd=$KEXEC_INITRD"
+  kexec -l $KEXEC_KERNEL --append="$CMDLINE" --initrd=$KEXEC_INITRD
   ERRCODE=$?
   if [ ! "$ERRCODE" = "0" ]; then
     echo "ERROR: kexec returned error code $ERRCODE."
@@ -57,8 +72,8 @@ if [ -r "$KEXEC_INITRD" ]; then
   fi
 else # we don't have an initrd
   echo "Loading kernel with kexec:"
-  echo "kexec -l $KEXEC_KERNEL --append=\"\$(cat /proc/cmdline)\""
-  kexec -l $KEXEC_KERNEL --append="$(cat /proc/cmdline)"
+  echo "kexec -l $KEXEC_KERNEL --append=\"$CMDLINE\""
+  kexec -l $KEXEC_KERNEL --append="$CMDLINE"
   ERRCODE=$?
   if [ ! "$ERRCODE" = "0" ]; then
     echo "ERROR: kexec returned error code $ERRCODE."
