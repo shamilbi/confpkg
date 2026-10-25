@@ -1,5 +1,7 @@
 #!/bin/bash
 
+pkg_check=1
+
 pkg_pre_configure() {
     pkg_autoreconf
 }
