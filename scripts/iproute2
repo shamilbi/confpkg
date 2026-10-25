@@ -1,6 +1,9 @@
 #!/bin/bash
 
-PkgHome="https://git.kernel.org/pub/scm/network/iproute2/iproute2.git/"
+PkgHome=(
+    # "https://git.kernel.org/pub/scm/network/iproute2/iproute2.git/"
+    "https://github.com/iproute2/iproute2/tags"
+)
 
 unset ConfigureOpts pkg_check
 
