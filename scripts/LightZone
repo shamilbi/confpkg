@@ -3,6 +3,7 @@
 PkgHome="https://github.com/ktgw0316/LightZone/tags"
 
 # REQ: .git/
+# git clone --depth=1 --revision=<sha> git@github.com:ktgw0316/LightZone.git LightZone-<version>
 
 unset -v pkg_configure
 
