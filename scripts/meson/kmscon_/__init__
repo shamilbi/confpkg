@@ -3,5 +3,6 @@
 PkgHome="https://github.com/kmscon/${Name,,}/tags"
 
 ConfigureOpts+=(
+    # Slackware
     -Dtests=false # true, Build unit tests
 )

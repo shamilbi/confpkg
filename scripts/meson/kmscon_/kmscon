@@ -1,8 +1,14 @@
 #!/bin/bash
 
-# seat management
+# ConfigureOpts+=(
+#     -Dlibseat=enabled # =disabled, Use libseat to integrate with systemd-logind, elogind, or seatd
+# )
 
-ConfigureOpts+=(
-    -Dtests=false # true, Build unit tests
-    -Dlibseat=enabled # =disabled, Use libseat to integrate with systemd-logind, elogind, or seatd
-)
+pkg_post_install() {
+    # Slackware
+    # Install the .conf file:
+    pkg_install_mfd 644 "$SupportDir"/kmscon.conf "$Etc2"/kmscon
+    # Drop the example conf file since ours includes everything in it:
+    rm -f "$Etc2"/kmscon/kmscon.conf.example
+    :
+}
