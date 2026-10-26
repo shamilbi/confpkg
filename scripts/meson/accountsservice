@@ -1,6 +1,9 @@
 #!/bin/bash
 
-PkgHome="https://gitlab.freedesktop.org/accountsservice/accountsservice/-/tags"
+PkgHome=(
+    "https://gitlab.freedesktop.org/accountsservice/accountsservice/-/tags"
+    "$SlackwareMirrorUrl/l/accountsservice/?C=M&O=D"
+)
 
 ConfigureOpts+=(
     # Slackware
