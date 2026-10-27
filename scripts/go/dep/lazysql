@@ -1,0 +1,7 @@
+#!/bin/bash
+
+pkg_make() {
+    go mod tidy || return 1
+    go generate ./... || return 1
+    go build
+}
