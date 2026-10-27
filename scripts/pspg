@@ -1,0 +1,8 @@
+#!/bin/bash
+
+InstallOpts+=(man-install)
+InstallEnv+=(
+    "mandir=$ManDir2"
+    # man-install:
+    #   tools/install.sh data pspg.1 "$(mandir)/man1"
+)
