@@ -12,6 +12,8 @@ ConfigureOpts+=(
     --with-texdir="$ShareDir"/texmf-dist/tex/latex/gnuplot
     --datadir="$ShareDir"/gnuplot
     --with-readline=builtin
+
+    --disable-wxwidgets # wxWidgets terminal (default enabled)
 )
 [[ $AALIB ]] && ConfigureOpts+=(--with-caca) || ConfigureOpts+=(--with-caca=no)
 

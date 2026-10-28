@@ -1,0 +1,5 @@
+#!/bin/bash
+
+pkg_del_cflags "${GccFlags[@]}"
+export CC=clang
+export CXX=clang++
