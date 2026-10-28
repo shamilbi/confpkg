@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PkgHome="https://github.com/virtualsquare/vde-2/tags"
+
 ProtectDirs=(
     /etc/rc.d
 )
