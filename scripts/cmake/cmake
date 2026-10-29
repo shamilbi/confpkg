@@ -5,7 +5,7 @@ PkgHome="https://github.com/Kitware/CMake/tags"
 # REQ: pyparsing
 
 # The C++ compiler does not support C++11 (e.g.  std::unique_ptr)
-pkg_del_cflags '-std=gnu17'
+pkg_del_gccflags
 
 ConfigureOpts=(
     # Slackware
