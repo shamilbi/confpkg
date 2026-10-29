@@ -20,7 +20,7 @@ InstallEnv+=("${MakeEnv[@]}")
 pkg_check=
 CleanOpts=(clean)
 
-pkg_del_cflags '-std=gnu17'
+pkg_del_gccflags
 
 check_empty_src() {
     if pkg_dir_empty "$SrcDir"; then
