@@ -46,8 +46,13 @@ fi
 
 # Slackware
 # GCC15 workaround:
-GccFlags=(-std=gnu17)
-CFlags+=("${GccFlags[@]}")
+# GccFlags=(-std=gnu17)
+# Fixes for GCC16:
+# -std=gnu17 -std=c++17
+GccCFlags=(-std=gnu17)
+GccCxxFlags=(-std=c++17)
+CFlags+=("${GccCFlags[@]}")
+CxxFlags+=("${GccCxxFlags[@]}")
 
 export CFLAGS="${CFlags[@]}"
 export CXXFLAGS="$CFLAGS"
@@ -438,10 +443,11 @@ pkg_set_cflags() {
     export CXXFLAGS="$CFLAGS"
 }
 
-pkg_del_cflags() {
-    pkg_arr_del CFlags "$@"
+pkg_del_gccflags() {
+    pkg_arr_del CFlags "${GccCFlags[@]}"
+    pkg_arr_del CxxFlags "${GccCxxFlags[@]}"
     export CFLAGS="${CFlags[@]}"
-    export CXXFLAGS="$CFLAGS"
+    export CXXFLAGS="${CxxFlags[@]}"
 }
 
 pkg_find_opt_dir() {
