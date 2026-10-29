@@ -11,4 +11,4 @@ MakeEnv=(
 )
 InstallEnv+=("${MakeEnv[@]}")
 
-pkg_del_cflags "${GccFlags[@]}"
+pkg_del_gccflags
