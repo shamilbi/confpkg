@@ -1,0 +1,70 @@
+#!/bin/bash
+
+PkgHome="https://github.com/cracklib/cracklib"
+
+SrcDir=$OrigSrcDir/src
+
+ConfigureOpts+=(
+    # Slackware
+    --sbindir=/sbin
+    --without-python
+)
+
+# we require this file!
+words=cracklib-words
+
+find_words() {
+    if [[ ! -f $words ]]; then
+        # cracklib-words.xz
+        local zip d=$SupportDir
+        zip=$(find "$d" -mindepth 1 -maxdepth 1 -type f -name 'cracklib-words*' -print -quit)
+        if [[ ! $zip ]]; then
+            echo "file not found: $d/cracklib-words-*.(xz|bz2|...)"
+            return 1
+        fi
+        echo "found file: $zip"
+        case $zip in
+            *.bz2)
+                bzip2 -dc "$zip" >"$words" || return 1
+                ;;
+            *.xz)
+                xz -dc "$zip" >"$words" || return 1
+                ;;
+            *.gz)
+                gzip -dc "$zip" >"$words" || return 1
+                ;;
+            *.lz)
+                lzip -dc "$zip" >"$words" || return 1
+                ;;
+            *)
+                echo "unknown file: $zip"
+                return 1
+                ;;
+        esac
+    fi
+}
+
+pkg_post_install() {
+    # Slackware
+    # Fix perms on these first:
+    chmod 755 ./util/create-cracklib-dict
+    chmod 755 ./util/cracklib-format
+
+    find_words || return 1
+    local opts=(
+        env
+        "PATH=$DestDir/sbin:$PATH"
+        "LD_LIBRARY_PATH=$LibDir2:$LD_LIBRARY_PATH"
+        create-cracklib-dict
+        -o "$ShareDir2/cracklib/pw_dict"
+        "$words"
+    )
+    "${opts[@]}" || return 1
+    # /var/cache/cracklib
+    local d=$DestDir/var/cache/cracklib
+    mkdir -p "$d"
+    local i
+    for i in pwd pwi; do
+        ln -sfn "$ShareDir"/cracklib/pw_dict."$i" "$d"/cracklib_dict."$i"
+    done
+}
