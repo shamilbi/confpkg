@@ -6,7 +6,7 @@ pkg_pre_configure() {
     # submodules
     (
         cd "$OrigSrcDir" || exit 1
-        for i in zlib ucl doctest valgrind lzma-sdk; do
+        for i in doctest bzip2 lzma-sdk ucl valgrind zlib zstd; do
             dir=vendor/$i
             if pkg_dir_empty "$dir"; then
                 url=$(pkg_gitmodules_get .gitmodules url "$dir")
