@@ -1,5 +1,9 @@
 #!/bin/bash
 
-pkg_del_cflags "${GccFlags[@]}"
+pkg_del_gccflags
 export CC=clang
 export CXX=clang++
+
+# Slackware
+# Fixes for GCC16:
+# -std=gnu17 -std=c++17
