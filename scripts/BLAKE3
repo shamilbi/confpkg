@@ -21,7 +21,7 @@ pkg_install() {
     # libblake3
     (
         cd c || exit 1
-        pkg_del_cflags "${GccFlags[@]}"
+        pkg_del_gccflags
         opts=(
             # Slackware
             -DCMAKE_C_FLAGS="$CFLAGS"
