@@ -4,7 +4,7 @@ UseBuildDir=1
 UseClang=1
 
 # error: invalid argument '-std=gnu17' not allowed with 'C++'
-pkg_del_cflags '-std=gnu17'
+# pkg_del_gccflags
 
 ConfigureOpts=(
     -DCMAKE_BUILD_TYPE=Release
