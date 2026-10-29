@@ -10,7 +10,7 @@ ConfigureOpts+=(
     --enable-gui=no
 )
 
-pkg_del_cflags "${GccFlags[@]}"
+pkg_del_gccflags
 
 pkg_pre_configure() {
     # -tests
