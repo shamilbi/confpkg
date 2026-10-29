@@ -4,7 +4,7 @@ PkgHome="https://github.com/unicode-org/icu"
 
 SrcDir="$OrigSrcDir/icu4c/source"
 
-pkg_del_cflags "${GccFlags[@]}"
+pkg_del_gccflags
 
 ConfigureOpts+=(
     # Slackware
