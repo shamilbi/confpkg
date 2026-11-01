@@ -1,4 +1,4 @@
-# By default, $FONT is auto. This tries various sizes of Terminus fonts to
+# By default, $FONT is auto. This tries various sizes of fonts to
 # find the largest one that meets the minimum columns requirement.
 # This can also be set to "none" (leave the console alone), or to a
 # specific font in /usr/share/kbd/consolefonts such as "ter-v28b".
@@ -8,14 +8,23 @@ FONT=auto
 # the following line:
 #FONTDOUBLE=" -d "
 
-# Apply new new font on all the consoles, not just the one you're using.
+# Apply the new font on all the consoles, not just the one you're using.
 APPLY_NEW_FONT_ON_ALL_CONSOLES=true
 
 # The following settings are used when FONT=auto:
 
-# A list of fonts to try, smallest to largest:
-TRYFONTS="ter-v14b ter-v16b ter-v20b ter-v22b ter-v24b ter-v28b ter-v32b"
+# A list of fonts to try, smallest to largest.
+# Uncomment one of the options below.
+
+# Terminus bold:
+#TRYFONTS="ter-v14b ter-v16b ter-v20b ter-v22b ter-v24b ter-v28b ter-v32b"
+# Terminus normal:
+#TRYFONTS="ter-v14n ter-v16n ter-v20n ter-v22n ter-v24n ter-v28n ter-v32n"
+# UW ttyp0 Regular:
+#TRYFONTS="WET-Ttyp0Regular11x6 WET-Ttyp0Regular12x6 WET-Ttyp0Regular13x7 WET-Ttyp0Regular14x7 WET-Ttyp0Regular15x8 WET-Ttyp0Regular16x8 WET-Ttyp0Regular17x9 WET-Ttyp0Regular18x9 WET-Ttyp0Regular22x11 WET-Ttyp0Regular30x14"
+# Spleen:
+TRYFONTS="spleen-5x8 spleen-6x12 spleen-8x16 spleen-12x24 spleen-16x32 spleen-32x64"
 
 # We want to find the largest font that provides our minimum columns.
-MINCOLS=130
+MINCOLS=120
 
