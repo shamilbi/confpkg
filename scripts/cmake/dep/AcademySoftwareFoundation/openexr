@@ -1,5 +1,7 @@
 #!/bin/bash
 
+unset -v UseClang
+
 name2=OpenEXR-${VersionArr[0]}.${VersionArr[1]}
 
 ConfigureOpts+=(
