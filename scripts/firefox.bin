@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PkgHome="https://ftp.mozilla.org/pub/firefox/releases/"
+
 pkg_set_prefix /opt/firefox
 
 unset pkg_make pkg_check
