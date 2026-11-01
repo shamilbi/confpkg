@@ -1,13 +1,30 @@
 #!/bin/bash
 
+BuildSteps=("${BuildForPython[@]}")
+[[ $BuildStep ]] && pkg_set_python "$BuildStep"
+
 ConfigureOpts+=(
     # Slackware
     -Ddocs=man
 )
 
+pkg_pre_configure() {
+    # meson.build
+    # python3 = import('python').find_installation(
+    #     'python3',
+    #     required: feature_python.enabled()
+    # )
+    local f1=meson.build
+    [[ -f $f1.orig ]] && cp -a "$f1.orig" "$f1"
+    pkg_create_orig "$f1"
+    sed -i -e "s/'python3',$/'python$PythonV12',/" "$f1"
+}
+
 pkg_post_install() {
     # Slackware
     # Remove dracut and systemd libdir files:
     rm -rf "$Prefix2"/lib/{dracut,systemd,udev}
-    rmdir "$Prefix2"/lib
+
+    # /usr/lib/NetworkManager/dispatcher.d/80-nvmf-connect-nbft.sh
+    rmdir "$Prefix2"/lib || true
 }
