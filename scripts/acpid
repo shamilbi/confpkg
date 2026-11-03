@@ -1,0 +1,18 @@
+#!/bin/bash
+
+PkgHome="https://sourceforge.net/projects/acpid2/files/"
+
+unset -v ProtectDirs
+
+ProtectFiles=(
+    # Slackware
+    /etc/acpi/acpi_handler.sh
+)
+
+pkg_post_install() {
+    # Slackware
+    pkg_install_mfd 755 "$SupportDir"/acpi_handler.sh "$Etc2"/acpi
+    pkg_install_mfd 644 "$SupportDir"/default "$Etc2"/acpi/events
+    #
+    pkg_install_mfd 755 "$SupportDir"/rc.acpid "$Etc2"/rc.d
+}
