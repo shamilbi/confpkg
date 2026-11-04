@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# Development Status: 7 - Inactive
+# dbus-python might not be the best D-Bus binding for you to use.
+# dbus-python does not follow the principle of “In the face of ambiguity, refuse the temptation to guess”,
+# and can’t be changed to not do so without seriously breaking compatibility.
+# In addition, it uses libdbus (which has known problems with multi-threaded use)
+# and attempts to be main-loop-agnostic (which means you have to select a suitable main loop for your application).
+# Alternative ways to get your Python code onto D-Bus include, in no particular order:
+#   GDBus, part of the GIO module of GLib, via GObject-Introspection and PyGI (uses the GLib main loop and object model)
+#   dasbus, a higher-level wrapper around GDBus
+#   QtDBus, part of Qt, via PyQt (uses the Qt main loop and object model)
+#   dbussy, a CTypes wrapper around libdbus using asyncio for event handling
+#   dbus-next, a pure-Python implementation of the D-Bus protocol using asyncio for event handling
+#   dbus-fast, a fork of dbus-next emphasizing performance
+#   jeepney, a pure-Python implementation of the D-Bus protocol with support for several event loop models
+
+[[ ! $BuildSteps ]] && BuildSteps=("${BuildForPython[@]}")
+[[ $BuildStep ]] && pkg_set_python "$BuildStep"
+
+ConfigureOpts+=(
+    -Dpython="$Python" # Override the Python interpreter to use
+)
