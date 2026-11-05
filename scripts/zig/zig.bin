@@ -11,7 +11,7 @@ pkg_install() {
     local prefix=$LibDir/$Name
     local prefix2=$DestDir$prefix
 
-    pkg_cp_fd lib zig "$prefix2"
+    pkg_cp_fd -l lib zig "$prefix2"
     ls -d "$prefix2/zig" | pkg_ln_d "$Prefix2/bin"
 }
 
