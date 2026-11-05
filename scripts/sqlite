@@ -10,6 +10,17 @@ tcl=$(sed -e 's,^tclsh,tcl,' <<<"${tclsh##*/}") # tcl8.6
 tcllibdir=$LibDir/$tcl/sqlite3
 tcllibdir2=$DestDir$tcllibdir
 
+# https://sqlite.org/foreignkeys.html
+# In order to use foreign key constraints in SQLite, the library must be compiled with
+# neither SQLITE_OMIT_FOREIGN_KEY nor SQLITE_OMIT_TRIGGER defined
+# Assuming the library is compiled with foreign key constraints enabled,
+# it must still be enabled by the application at runtime, using the PRAGMA foreign_keys command.
+# For example: PRAGMA foreign_keys = ON;
+unset -v SQLITE_OMIT_FOREIGN_KEY SQLITE_OMIT_TRIGGER
+# It is not possible to enable or disable foreign key constraints in the middle of a multi-statement transaction
+# (when SQLite is not in autocommit mode).
+# Attempting to do so does not return an error; it simply has no effect.
+
 ConfigureOpts+=(
     # Slackware
     --enable-threadsafe
