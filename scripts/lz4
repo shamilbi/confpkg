@@ -1,0 +1,29 @@
+#!/bin/bash
+
+PkgHome="https://github.com/lz4/lz4/tags"
+
+MakeEnv=(
+    # Slackware
+    PREFIX="$Prefix"
+    # LIBDIR="$LibDir"
+        # make[1]: Entering directory '/usr/src/lz4-1.10.0/programs'
+        # /bin/sh: line 1: /usr/lib64/lz4.h: No such file or directory
+    MANDIR="$ManDir"
+    # BUILD_STATIC=no
+)
+InstallEnv+=(
+    # Slackware
+    PREFIX="$Prefix"
+    LIBDIR="$LibDir"
+    MANDIR="$ManDir"
+    # BUILD_STATIC=no
+)
+CleanOpts=(clean)
+
+pkg_post_install() {
+    # del *.a
+    find "$LibDir2" -type f -name '*.a' -delete
+
+    pkg_install_mfd 644 doc/*.html doc/*.md "$DocDir2"
+    :
+}
