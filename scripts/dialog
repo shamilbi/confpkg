@@ -1,8 +1,12 @@
 #!/bin/bash
 
-PkgHome="https://invisible-island.net/dialog/"
+PkgHome=(
+    "https://invisible-island.net/dialog/"
+    "$SlackwareMirrorUrl/a/dialog/?C=M&O=D"
+)
 
 pkg_configure_del --docdir --localedir
+unset -v pkg_check
 
 ConfigureOpts+=(
     # Slackware
@@ -10,16 +14,15 @@ ConfigureOpts+=(
     --with-ncursesw
     --enable-widec
 )
-pkg_check=
 
 pkg_pre_configure() {
     # Slackware
-    # These patches take care of the formatting issues that were preventing
+    # This patch takes care of a formatting issue that was preventing
     # us from moving to a more recent version of dialog:
     if (($(pkg_cmp_versions "$Version" "1.3-20260107") < 0)); then
         pkg_patch_f3 dialog.all.use_height.diff.gz 1 || return 1
         pkg_patch_f3 dialog.smaller.min.height.diff.gz 1 || return 1
-    else
+    elif (($(pkg_cmp_versions "$Version" "1.3-20260721") < 0)); then
         pkg_patch_f3 dialog.all.use_height-2.diff.gz 1 || return 1
         pkg_patch_f3 dialog.smaller.min.height-2.diff.gz 1 || return 1
     fi
