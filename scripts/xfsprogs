@@ -37,8 +37,14 @@ unset ProtectDirs
 
 pkg_pre_configure() {
     # Slackware
-    # https://zhangboyi.gitlab.io/post/2020-09-14-resolve-dso-missing-from-command-line-error/
-    export LDFLAGS="-Wl,--copy-dt-needed-entries"
+    if (($(pkg_cmp_versions "$Version" "7.2.1") < 0)); then
+        # https://zhangboyi.gitlab.io/post/2020-09-14-resolve-dso-missing-from-command-line-error/
+        export LDFLAGS="-Wl,--copy-dt-needed-entries"
+    else
+        # Provide blank $OPTIMIZER so that the $CFLAGS are used instead of
+        # default options.
+        export OPTIMIZER=" "
+    fi
 }
 
 pkg_post_install() {
