@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PkgHome="https://github.com/pkolaczk/fclones"
+PkgHome="https://github.com/pkolaczk/fclones/tags"
 
 pkg_install_doc() {
     pkg_install_mfd 644 fclones/*.md "$DocDir2"
