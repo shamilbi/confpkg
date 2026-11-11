@@ -1,0 +1,21 @@
+#!/bin/bash
+
+PkgHome="https://github.com/westes/flex/tags"
+
+pkg_configure_del2 static
+
+Make=(make)
+
+pkg_pre_configure() {
+    # Slackware
+    # Fix an issue introduced with recent glibc versions. Thanks to LFS:
+    sed -i "/math.h/a #include <malloc.h>" src/flexdef.h
+
+    pkg_autoreconf
+}
+
+pkg_post_install() {
+    # Slackware
+    # A symlink to harken back to the Goodle days:
+    ln -sfn flex "$Prefix2"/bin/lex
+}
