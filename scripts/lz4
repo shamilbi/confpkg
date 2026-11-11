@@ -20,10 +20,16 @@ InstallEnv+=(
 )
 CleanOpts=(clean)
 
+pkg_pre_configure() {
+    # Slackware
+    # Force this to regenerate to get the correct $LIBDIRSUFFIX:
+    rm -f ./lib/liblz4.pc
+}
+
 pkg_post_install() {
     # del *.a
     find "$LibDir2" -type f -name '*.a' -delete
 
-    pkg_install_mfd 644 doc/*.html doc/*.md "$DocDir2"
+    pkg_install_mfd 644 doc/*.md "$DocDir2"
     :
 }
