@@ -1,0 +1,17 @@
+#!/bin/bash
+
+PkgHome="https://github.com/rhboot/efivar/tags"
+
+# Slackware
+pkg_add_cflags -Wformat=0
+
+MakeEnv=(
+    # Slackware
+    # libdir="$LibDir"
+    # mandir="$ManDir"
+
+    PREFIX="$Prefix"
+    LIBDIR="$LibDir"
+    MANDIR="$ManDir"
+)
+InstallEnv+=("${MakeEnv[@]}")
