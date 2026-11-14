@@ -1,0 +1,9 @@
+#!/bin/bash
+
+pkg_configure_del2 static
+
+pkg_post_install() {
+    # Slackware
+    # Move shared library into /lib{,${LIBDIRSUFFIX}}:
+    ls -d "$LibDir2"/*.so*| pkg_mv_ln "$DestDir/$LibName"
+}
