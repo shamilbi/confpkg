@@ -4,6 +4,7 @@ PkgHome="https://github.com/SagerNet/sing-box/tags"
 
 pkg_make() {
     # from Makefile
+    export GOTOOLCHAIN=local
     local opts=(
         -v
         -trimpath
