@@ -1,0 +1,87 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://gitlab.freedesktop.org/fontconfig/fontconfig/-/tags"
+    "$SlackwareMirrorUrl/x/fontconfig/?C=M&O=D"
+)
+
+ConfigureOpts+=(
+    # Slackware
+    -Dcache-build=disabled # enabled, Run fc-cache on install
+    -Ddefault-hinting=medium # [none, slight, medium, full], =slight, Preferred hinting configuration
+    -Ddefault-sub-pixel-rendering=none # [none, bgr, rgb, vbgr, vrgb], =none, Preferred sub-pixel rendering configuration
+    -Ddoc-html=disabled
+    -Ddoc-pdf=disabled
+    -Ddoc-txt=disabled
+    -Dbitmap-conf=noinstall # ['noinstall', 'yes', 'no', 'no-except-emoji'], =no-except-emoji
+        # What bitmap font related config file enabled by default: See 70-*bitmaps*.conf
+    -Ddefault-fonts-dirs="$FontsDir/OTF,$FontsDir/TTF,$FontsDir/Type1,$FontsDir/Speedo,$FontsDir/cyrillic,$FontsDir/misc"
+
+    -Dtests=disabled # =enabled, Enable unit tests
+)
+
+unset -v ProtectDirs
+ProtectFiles=(/etc/fonts/fonts.conf)
+
+pkg_pre_configure() {
+    # Slackware
+    # Patches from Fedora and Debian:
+    pkg_patch_f3 02_indic_names.patch 1 || return 1
+    pkg_patch_f3 04_mgopen_fonts.patch 1 || return 1
+    pkg_patch_f3 fontconfig-sleep-less.patch 1 || return 1
+    pkg_patch_f3 fontconfig-drop-lang-from-pkgkit-format.patch 1 || return 1
+    # Prefer Liberation for sans, serif, and monospace, as we have for many years:
+    pkg_patch_f3 fontconfig.liberation.diff 1 || return 1
+    # Do not include the "xdg" element in fonts.conf, as it uses all of the fonts
+    # under /usr/share/fonts, including the 75dpi and 100dpi bitmap fonts, unlike
+    # earlier versions of fontconfig. However, then we need to add the directory
+    # ~/.local/share/fonts which was previously scanned.
+    pkg_patch_f3 fonts.conf.in.no.usr.share.fonts.add.local.share.fonts.patch 1 || return 1
+    # Do not emit a warning if FcInit() is not called. Not calling it can cause
+    # a small memory leak, but the warning causes various programs to fail.
+    pkg_patch_f3 no.fcinit.warning.patch 1 || return 1
+}
+
+pkg_post_install() {
+    # Slackware
+    # /var/log/setup/setup.05.fontconfig
+    pkg_install_mfd 755 "$SupportDir"/setup.05.fontconfig "$DestDir"/var/log/setup
+    # We did not previously link a hinting, subpixel, or lcdfilter conf file.
+    # Let's not do that here, either. Let the user choose to link that themselves
+    # without every fontconfig update stomping on it:
+    rm -f "$Etc2"/fonts/conf.d/10-hinting-*
+    rm -f "$Etc2"/fonts/conf.d/10-sub-pixel-*
+    rm -f "$Etc2"/fonts/conf.d/11-lcdfilter-*
+}
+
+pkg_read2var pkg_post_installpkg <<EOF
+pkg_post_installpkg() {
+    # Slackware
+    # Update the X font indexes:
+    local f=/usr/bin/fc-cache
+    if [[ -x \$f ]]; then
+        "\$f" -f >/dev/null
+    fi
+    # else we'll catch it later with setup.fontconfig :-)
+    #
+    # With fontconfig-2.15.0 we use the default of /usr/share/fontconfig/conf.avail
+    # so if we find any of "our" files in the old location, it's possible that they
+    # rode the old symlink there prior to this package being installed. Let's make
+    # sure that they get home OK.
+    if [[ -d etc/fonts/conf.avail ]]; then
+        grep usr/share/fontconfig/conf.avail/ var/lib/pkgtools/packages/* |
+            cut -f 2 -d : | sort | uniq | grep -v '/\$' |
+            while read conf; do
+                etcconf="etc/fonts/\$(echo \$conf | cut -f 4- -d /)"
+                if [[ ! -r \$conf && -r \$etcconf ]]; then
+                    mv "\$etcconf" "\$conf"
+                else
+                    rm -f "\$etcconf"
+                fi
+            done
+    fi
+    # If we can, get rid of this. Could be held by third-party packages though.
+    rmdir etc/fonts/conf.avail 2>/dev/null
+}
+pkg_post_installpkg
+EOF

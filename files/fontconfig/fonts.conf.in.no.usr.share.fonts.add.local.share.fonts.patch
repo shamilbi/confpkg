@@ -1,0 +1,20 @@
+--- ./fonts.conf.in.orig	2025-07-01 23:46:34.000000000 -0500
++++ ./fonts.conf.in	2025-09-11 13:32:41.652054082 -0500
+@@ -26,7 +26,17 @@
+ 
+ @FC_DEFAULT_FONTS@
+ 	@FC_FONTPATH@
++<!--    Do not include the element below which will include all of the fonts
++        under /usr/share/fonts, including the 75dpi and 100dpi bitmap fonts
++        that we not indexed by previous versions of fontconfig:
+ 	<dir prefix="xdg">fonts</dir>
++-->
++<!--    However, commenting out the above also causes local fonts in
++        $HOME/.local/share/fonts to be skipped, and we don't want that,
++        so we will add them below:
++-->
++	<dir>~/.local/share/fonts</dir>
++
+ 	<!-- the following element will be removed in the future -->
+ 	<dir>~/.fonts</dir>
+ 

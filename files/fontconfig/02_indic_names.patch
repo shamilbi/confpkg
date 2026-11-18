@@ -1,0 +1,28 @@
+--- ./conf.d/65-nonlatin.conf.orig	2026-05-21 08:29:58.000000000 -0500
++++ ./conf.d/65-nonlatin.conf	2026-05-21 14:49:25.018065005 -0500
+@@ -20,8 +20,6 @@
+ 			<family>Urdu Nastaliq Unicode</family> <!-- arabic (ur) -->
+ 			<family>Raghindi</family> <!-- devanagari -->
+ 			<family>Mukti Narrow</family> <!-- bengali -->
+-			<family>malayalam</family> <!-- malayalam -->
+-			<family>Sampige</family> <!-- kannada -->
+ 			<family>padmaa</family> <!-- gujarati -->
+ 			<family>Hapax Berbère</family> <!-- tifinagh -->
+ 			<family>MS Mincho</family> <!-- han (ja) -->
+@@ -95,8 +93,6 @@
+ 			<family>Urdu Nastaliq Unicode</family> <!-- arabic (ur) -->
+ 			<family>Raghindi</family> <!-- devanagari -->
+ 			<family>Mukti Narrow</family> <!-- bengali -->
+-			<family>malayalam</family> <!-- malayalam -->
+-			<family>Sampige</family> <!-- kannada -->
+ 			<family>padmaa</family> <!-- gujarati -->
+ 			<family>Hapax Berbère</family> <!-- tifinagh -->
+ 			<family>MS Gothic</family> <!-- han (ja) -->
+@@ -126,7 +122,6 @@
+ 			<family>AR PL Mingti2L Big5</family>
+ 			<family>ＭＳ ゴシック</family>
+ 			<family>ZYSong18030</family> <!-- han (zh-cn,zh-tw) -->
+-			<family>TSCu_Paranar</family> <!-- tamil -->
+ 			<family>Noto Sans CJK KR</family> <!-- hangul (ko) -->
+ 			<family>NanumGothic</family> <!-- hangul (ko) -->
+ 			<family>Apple SD Gothic Neo</family> <!-- hangul (ko) - macOS -->

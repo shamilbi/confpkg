@@ -1,0 +1,11 @@
+--- ./src/fcobjs.c.orig	2025-07-01 23:46:34.000000000 -0500
++++ ./src/fcobjs.c	2025-08-29 12:59:21.946948229 -0500
+@@ -88,7 +88,7 @@
+     ots = fc_atomic_ptr_get (&other_types);
+     if (obj_ref.count < 1) {
+ 	if (!warn) {
+-	    fprintf (stderr, "Fontconfig warning: using without calling FcInit()\n");
++	    /* fprintf (stderr, "Fontconfig warning: using without calling FcInit()\n"); */
+ 	    warn = FcTrue;
+ 	}
+ 	FcObjectInit();

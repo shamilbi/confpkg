@@ -1,0 +1,11 @@
+--- ./src/fcformat.c.orig	2025-03-14 12:48:46.057771664 -0500
++++ ./src/fcformat.c	2025-03-14 12:49:23.284769605 -0500
+@@ -77,7 +77,7 @@
+ #define FCCAT_FORMAT   "\"%{file|basename|cescape}\" %{index} \"%{-file{%{=unparse|cescape}}}\""
+ #define FCMATCH_FORMAT "%{file:-<unknown filename>|basename}: \"%{family[0]:-<unknown family>}\" \"%{style[0]:-<unknown style>}\""
+ #define FCLIST_FORMAT  "%{?file{%{file}: }}%{-file{%{=unparse}}}"
+-#define PKGKIT_FORMAT  "%{[]family{font(%{family|downcase|delete( )})\n}}%{[]lang{font(:lang=%{lang|downcase|translate(_,-)})\n}}"
++#define PKGKIT_FORMAT  "%{[]family{font(%{family|downcase|delete( )})\n}}"
+ 
+ static void
+ message (const char *fmt, ...)
