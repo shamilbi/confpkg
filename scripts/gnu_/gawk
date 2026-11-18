@@ -2,6 +2,8 @@
 
 unset -v ProtectDirs
 
+pkg_check=1
+
 pkg_post_install() {
     # Slackware
     # gawk-$VERSION -> gawk
