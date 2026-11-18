@@ -1,0 +1,7 @@
+#!/bin/bash
+
+PkgHome="https://github.com/CycloneDX/sbom-utility/tags"
+
+pkg_make() {
+    make build
+}
