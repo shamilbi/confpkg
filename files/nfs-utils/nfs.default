@@ -1,0 +1,24 @@
+# See also /etc/default/rpc
+
+# A command to wait before trying to mount NFS/CIFS/SMB partitions
+# in rc.inet2. By default we don't wait, but if your partitions are
+# not getting mounted at boot adding some delay might fix it.
+NETWORK_MOUNT_WAIT_COMMAND="sleep 0"
+
+# Optional arguments passed to rpc.nfsd. See rpc.nfsd(8)
+# Turn off v3 protocol support:
+#RPC_NFSD_OPTS="-N 3"
+# Turn off v4 protocol support:
+#RPC_NFSD_OPTS="-N 4"
+# Number of nfs server processes to be started.
+# The default is 8.
+#RPC_NFSD_COUNT=8
+
+# Additional options for rpc.gssd:
+#RPC_GSSD_OPTS=""
+
+# Additional options for rpc.svcgssd:
+#RPC_SVCGSSD_OPTS=""
+
+# Additional options for rpc.idmapd:
+#RPC_IDMAPD_OPTS=""

@@ -1,0 +1,86 @@
+#!/bin/bash
+
+PkgHome="https://sourceforge.net/projects/nfs/files/nfs-utils/"
+
+ConfigureOpts+=(
+    # Slackware
+    --with-statedir=/var/lib/nfs
+    --with-pluginpath="$LibDir"/libnfsidmap
+    --enable-blkmapd
+    --enable-libmount-mount
+    --enable-mountconfig
+    --enable-nfsdcltrack=yes
+    --enable-nfsv4=yes
+    --enable-gss=yes
+    --enable-svcgss=yes
+    --enable-tirpc=yes
+)
+MakeEnv=(
+    udev_rulesdir=/lib/udev/rules.d
+)
+InstallEnv+=("${MakeEnv[@]}")
+
+pkg_pre_configure() {
+    # Slackware
+    pkg_patch_f3 nfs-utils.lwrap.needs.lnsl.diff.gz 1 || return 1
+}
+
+pkg_post_install() {
+    # Slackware
+    mkdir -p "$Etc2"/exports.d
+    # Add defaults file:
+    pkg_install_mff 644 "$SupportDir"/nfs.default "$Etc2"/default/nfs
+    # Add startup script:
+    # Off by default, unless there's a previous version that's turned on:
+    pkg_install_mfd 644 "$SupportDir"/rc.nfsd "$Etc2"/rc.d
+    # Add /etc/exports:
+    pkg_install_mfd 644 "$SupportDir"/exports "$Etc2"
+    # Add /etc/idmapd.conf:
+    pkg_install_mfd 644 support/nfsidmap/idmapd.conf "$Etc2"
+    # Add /etc/idmapd.conf.d directory:
+    mkdir "$Etc2"/idmapd.conf.d
+    # Add nfsmount.conf and man page:
+    pkg_install_mfd 644 utils/mount/nfsmount.conf "$Etc2"
+    pkg_install_mff 644 utils/mount/nfsmount.conf.man "$ManDir2"/man5/nfsmount.conf.5
+    # Set default protocol version 3:
+    sed -i "s/# Defaultvers=4/Defaultvers=3/g" "$Etc2"/nfsmount.conf
+    # These might be in use:
+    (
+        cd "$DestDir"/var/lib/nfs || exit 1
+        for config_file in etab rmtab state ; do
+            mv "${config_file}" "${config_file}".new
+            pkg_doinst_add "config var/lib/nfs/$config_file"
+        done
+    ) || return 1
+    # This should move to support /usr on NFS:
+    ls -d "$Prefix2"/sbin/rpc.statd | pkg_mv_ln "$DestDir/sbin"
+    # Make recovery directory. The location expected may be found in
+    # /proc/fs/nfsd/nfsv4recoverydir, so if that file exists we will get the
+    # location from there. If not, we'll use the usual directory path.
+    local f=/proc/fs/nfsd/nfsv4recoverydir
+    if [[ -r $f ]]; then
+        mkdir -p "${DestDir}$(cat "$f")"
+    else
+        mkdir -p "$DestDir"/var/lib/nfs/v4recovery
+    fi
+    # Chown /var/lib/nfs so that rpc.statd runs as rpc:rpc:
+    chown -R rpc:rpc "$DestDir"/var/lib/nfs
+    # Add database directory for nfsdcltrack:
+    local d=$DestDir/var/lib/nfs/nfsdcltrack
+    mkdir -pm 775 "$d"
+    chown root:rpc "$d"
+    # Create log directory:
+    mkdir -p "$DestDir/var/log/nfsd"
+}
+
+pkg_read2var pkg_post_installpkg <<EOF
+pkg_post_installpkg() {
+    # Slackware
+    rm -f var/lib/nfs/*.new
+    # No, no, no.
+    #chown -R rpc:rpc var/lib/nfs
+    # If you already had your own /etc/exports, this one is probably useless...
+    rm -f etc/exports.new
+}
+pkg_post_installpkg
+EOF
