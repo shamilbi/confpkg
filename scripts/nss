@@ -50,11 +50,14 @@ pkg_install() {
             cd bin || exit 1
             opt=(
                 # Slackware
-                certutil cmsutil crlutil modutil pk12util shlibsign signtool signver ssltap
+                certutil cmsutil crlutil modutil pk12util shlibsign signver ssltap
 
                 #pp  # pretty print
                 #oidcalc
             )
+            if (($(pkg_cmp_versions "$Version" "1.134") < 0)); then
+                opt+=(signtool)
+            fi
             pkg_cp_fd -L "${opt[@]}" "$Prefix2/bin"
         ) || exit 1
 
