@@ -37,7 +37,7 @@ ConfigureOpts=(
     --enable-libwebp # enable WebP encoding via libwebp [no]
     --enable-libmp3lame # enable MP3 encoding via libmp3lame [no]
     --enable-opencl # enable OpenCL processing [no]
-    --enable-opengl # enable OpenGL rendering [no]
+    # --enable-opengl # enable OpenGL rendering [no]
     --enable-libopenjpeg # enable JPEG 2000 encoding via OpenJPEG [no]
     #--enable-libsmbclient # enable Samba protocol via libsmbclient [no]
     --enable-frei0r # enable frei0r video filtering [no]
@@ -59,6 +59,11 @@ ConfigureOpts=(
     --enable-libopencore-amrwb # enable AMR-WB decoding via libopencore-amrwb [no]
     --enable-openssl # for termv
 )
+if (($(pkg_cmp_versions "$Version" "2.9.1") < 0)); then
+    ConfigureOpts=(
+        --enable-opengl # enable OpenGL rendering [no]
+    )
+fi
 [[ $PULSE ]] && ConfigureOpts+=(--enable-libpulse) # enable Pulseaudio input via libpulse [no]
 [[ $JACK ]] && ConfigureOpts+=(--enable-libjack) # enable JACK audio sound server [no]
 [[ $SPEEX ]] && ConfigureOpts+=(--enable-libspeex) # enable Speex de/encoding via libspeex [no]
