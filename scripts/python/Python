@@ -1,6 +1,9 @@
 #!/bin/bash
 
-PkgHome="https://www.python.org/downloads/"
+PkgHome=(
+    "https://www.python.org/downloads/"
+    "$SlackwareMirrorUrl/d/python3/?C=M&O=D"
+)
 
 # DEP: < tkinter < tcl < libX11
 # /etc/fstab:   none /dev/shm tmpfs mode=1777 0 0
@@ -16,7 +19,7 @@ ConfigureOpts+=(
     --enable-optimizations
     --with-dbmliborder=gdbm:ndbm
     --with-system-expat
-    --with-system-ffi
+    # --with-system-ffi
     --enable-loadable-sqlite-extensions
     --without-ensurepip
     --with-tzpath="$ShareDir/zoneinfo"
