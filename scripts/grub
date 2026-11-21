@@ -1,0 +1,197 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://git.savannah.gnu.org/gitweb/?p=grub.git"
+    "$SlackwareMirrorUrl/a/grub/?C=M&O=D"
+)
+
+pkg_check=
+
+ProtectDirs=(/etc/grub.d)
+ProtectFiles=(/etc/default/grub)
+
+ConfigureOpts+=(
+    # Slackware
+    --disable-werror
+    --with-dejavufont="$FontsDir"/TTF/DejaVuSans.ttf
+    --enable-stack-protector=no # If you use stack-protector, then grub will not work with legacy BIOS
+)
+
+# Slackware
+case "$Arch" in
+    x86_64)
+        export CFLAGS="-mtune=generic"
+        step1=(--with-platform=efi --target=i386 --program-prefix=)
+        step2=(--with-platform=efi --target=x86_64 --program-prefix=)
+        BuildSteps=(1 2 3) # 3 - Always end with regular build
+        ;;
+    *)
+        unset -v CFLAGS
+        ;;
+esac
+
+case "$BuildStep" in
+    1) ConfigureOpts+=("${step1[@]}") ;;
+    2) ConfigureOpts+=("${step2[@]}") ;;
+esac
+
+pkg_pre_configure() {
+    # Slackware
+    # Set default gfxterm font:
+    pkg_patch_f3 grub.gfxterm.font-2.diff 1 || return 1
+    # Fix alignment error with gcc8:
+    pkg_patch_f3 0198-align-struct-efi_variable-better.patch 1 || return 1
+    # Skip processing any files in /etc/grub.d/ that end in .new or .orig:
+    pkg_patch_f3 0001-skip-new-and-orig-files-in-etc-grub.d.patch 1 || return 1
+    # From Arch, add a couple more GRUB_COLOR options:
+    pkg_patch_f3 0001-00_header-add-GRUB_COLOR_-variables.patch 1 || return 1
+    # Also from Arch, support drop-in config bits in /etc/default/grub.d/:
+    pkg_patch_f3 0003-support-dropins-for-default-configuration.patch 1 || return 1
+    # Fix 2.12 release with upstream commit (won't compile otherwise):
+    pkg_patch_f3 b835601c7639ed1890f2d3db91900a8506011a8e.patch 1 || return 1
+    # For Slackware, opt-out of having our operating system renamed:
+    pkg_patch_f3 10_linux.osname.patch 1 || return 1
+    # Allow defining an initrd fallback name with the
+    # GRUB_INITRD_FALLBACK_NAME variable in /etc/default/grub.
+    # Commented out by default.
+    pkg_patch_f3 0004-initrd_fallback_name-3.patch 1 || return 1
+    # Support displaying only kernels that are files, only kernels that are
+    # symlinks, or both. This is set with the GRUB_DISPLAY_KERNEL_FILETYPES
+    # variable in /etc/default/grub:
+    pkg_patch_f3 0005-GRUB_DISPLAY_KERNEL_FILETYPES-3.patch 1 || return 1
+    # Add a warning to the README in /etc/grub.d/ so that users know that the
+    # standard files in here will be overwritten with every upgrade:
+    pkg_patch_f3 0006-warn-grub.d-overwrites-docs.patch 1 || return 1
+    # This double space at the top of the menu just looks bad.
+    pkg_patch_f3 0333-dont-double-space-header.patch 1 || return 1
+    # Regenerate build system to fix dependency on outdated automake:
+    pkg_autoreconf || return 1
+}
+
+grub_mkfont() {
+    local ttf=$1
+    local name2=$2 name3
+
+    local font_size=20
+    local dest=$DestDir/boot/grub/fonts
+    mkdir -p "$dest"
+
+    if [[ -r $ttf ]]; then
+        name3=$dest/${name2}.pf2
+        echo "grub-mkfont $name3 ..."
+        "$Prefix2"/bin/grub-mkfont -o "$name3" -av -s "$font_size" "$ttf"
+
+        name3=$dest/${name2}bold.pf2
+        echo "grub-mkfont $name3 ..."
+        "$Prefix2"/bin/grub-mkfont -o "$name3" -abv -s "$font_size" "$ttf"
+    fi
+}
+
+pkg_post_install() {
+    local files font
+
+    if [[ $BuildStep = "3" ]]; then
+        # Slackware
+        # Add support for osdetect.cfg:
+        pkg_install_mfd 644 "$SupportDir"/osdetect.cfg "$DestDir"/boot/grub
+        pkg_install_mfd 755 "$SupportDir"/42_osdetect "$Etc2"/grub.d
+        # Add an update-grub script ala Ubuntu:
+        pkg_install_mfd 755 "$SupportDir"/update-grub "$Prefix2"/sbin
+        # Since every other grub command is of the form "grub-{command}", add a symlink
+        # so that "grub-update" also works:
+        ln -sfn update-grub "$Prefix2"/sbin/grub-update
+        # Put bash-completion file in system directory:
+        pkg_install_mfd 644 util/bash-completion.d/grub \
+            "$ShareDir2/bash-completion/completions"
+        rm -rf "$Etc2/bash_completion.d"
+        # Install default options file:
+        pkg_install_mff 644 "$SupportDir"/etc.default.grub "$Etc2"/default/grub
+        # Add a hint:
+        echo "Files in this directory must end in .cfg to be processed." |
+            pkg_install_mff 644 "$Etc2"/default/grub.d/README
+        # # Create a directory for grub.cfg:
+        # mkdir -p "$DestDir"/boot/grub
+        # Add fonts, if found on the system:
+        grub_mkfont "$FontsDir"/TTF/DejaVuSansMono.ttf dejavusansmono
+        grub_mkfont "$FontsDir"/TTF/Hack-Regular.ttf hack
+        # Spleen fonts:
+        files=(
+            spleen-12x24.pcf.gz
+            spleen-16x32.pcf.gz
+            spleen-32x64.pcf.gz
+            spleen-5x8.pcf.gz
+            spleen-6x12.pcf.gz
+            spleen-8x16.pcf.gz
+        )
+        for font in "${files[@]}" ; do
+            grub_mkfont "$FontsDir/misc/$font" "${font%.*.*}"
+        done
+        # Make the 16x32 Spleen font the default version:
+        local dir=$DestDir/boot/grub/fonts
+        font=$dir/spleen-16x32.pf2
+        if [ -r $font ]; then
+            ln -sfnr "$font" "$dir"/spleen.pf2
+        fi
+        # UW ttyp0 fonts:
+        files=(
+            UW-Ttyp0-11-Regular.otb
+            UW-Ttyp0-12-Regular.otb
+            UW-Ttyp0-13-Regular.otb
+            UW-Ttyp0-14-Regular.otb
+            UW-Ttyp0-15-Regular.otb
+            UW-Ttyp0-16-Regular.otb
+            UW-Ttyp0-17-Regular.otb
+            UW-Ttyp0-18-Regular.otb
+            UW-Ttyp0-22-Regular.otb
+            UW-Ttyp0-30-Regular.otb
+            UW-Ttyp0-40-Regular.otb
+        )
+        for font in "${files[@]}" ; do
+            grub_mkfont "$FontsDir/misc/$font" "${font%.*}"
+        done
+        # We put the fonts in /boot/grub but make symlinks in /usr/share/grub:
+        mkdir -p "$ShareDir2"/grub
+        for font in "$DestDir"/boot/grub/fonts/*.pf2; do
+            ln -sfnr "$font" "$ShareDir2"/grub/
+        done
+
+        # *.cfg --> $DocDir/
+        pkg_install_mfd 644 docs/*.cfg "$DocDir2"
+    fi
+}
+
+pkg_read2var pkg_post_installpkg <<EOF
+pkg_post_installpkg() {
+    # Slackware
+    # Process config files in etc/grub.d/:
+    local file
+    for file in etc/grub.d/*.new ; do
+        # preserve_perms \$file
+        # Move it into place. These are not intended to be edited locally - make new custom scripts!
+        # We'll skip moving 40_custom.new, though.
+        [[ \$file = "etc/grub.d/40_custom.new" ]] && continue
+        if [[ -r \$file ]]; then
+            mv "\$file" "\${file%.*}"
+        fi
+    done
+    # If there's a Slackware GRUB install script and it's executable, run it.
+    # None of this will happen when this package is installed from the installer
+    # since the script doesn't exist yet, but we'll deal with that special case
+    # after all the packages are installed and GRUB is configured.
+    # local dropin
+    # if [[ -r etc/default/grub ]]; then
+    #     . etc/default/grub
+    #     # Also allow overrides from the grub.d directory:
+    #     for dropin in etc/default/grub.d/*.cfg ; do
+    #         if [[ -f \${dropin} ]]; then
+    #             . "\${dropin}"
+    #         fi
+    #     done
+    #     If the install script exists and is executable, run it:
+    #     if [[ -x \$GRUB_INSTALL_SCRIPT ]]; then
+    #         "\$GRUB_INSTALL_SCRIPT"
+    #     fi
+    # fi
+}
+pkg_post_installpkg
+EOF

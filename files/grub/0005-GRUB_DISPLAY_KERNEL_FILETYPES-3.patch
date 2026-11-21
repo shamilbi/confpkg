@@ -1,0 +1,32 @@
+--- ./util/grub.d/10_linux.in.orig	2026-09-27 15:04:04.609722157 -0500
++++ ./util/grub.d/10_linux.in	2026-09-27 15:04:04.617781598 -0500
+@@ -222,6 +222,17 @@
+ 
+ is_top_level=true
+ for linux in ${reverse_sorted_list}; do
++
++  # Skip symbolic links to kernels if requested:
++  if [ -L "$linux" -a "$GRUB_DISPLAY_KERNEL_FILETYPES" = "files" ]; then
++      continue
++  fi
++
++  # Skip kernels that are files rather than symbolic links if requested:
++  if [ ! -L "$linux" -a "$GRUB_DISPLAY_KERNEL_FILETYPES" = "symlinks" ]; then
++      continue
++  fi
++
+   gettext_printf "Found linux image: %s\n" "$linux" >&2
+   basename=`basename $linux`
+   dirname=`dirname $linux`
+--- ./util/grub-mkconfig.in.orig	2026-09-27 15:04:04.609874337 -0500
++++ ./util/grub-mkconfig.in	2026-09-27 15:05:03.146232388 -0500
+@@ -286,7 +286,8 @@
+   GRUB_ADVANCED_ACCESS_LEVEL \
+   GRUB_RECOVERY_ACCESS_LEVEL \
+   GRUB_BOOTNEXT_OMIT_INACTIVE \
+-  GRUB_INITRD_FALLBACK_NAME
++  GRUB_INITRD_FALLBACK_NAME \
++  GRUB_DISPLAY_KERNEL_FILETYPES
+ 
+ if test "x${grub_cfg}" != "x"; then
+   rm -f "${grub_cfg}.new"

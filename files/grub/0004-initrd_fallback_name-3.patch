@@ -1,0 +1,24 @@
+--- ./util/grub.d/10_linux.in.orig	2026-09-21 12:33:49.000000000 -0500
++++ ./util/grub.d/10_linux.in	2026-09-27 15:00:20.530368085 -0500
+@@ -245,7 +245,8 @@
+ 	   "initramfs-genkernel-${version}" \
+ 	   "initramfs-genkernel-${alt_version}" \
+ 	   "initramfs-genkernel-${GENKERNEL_ARCH}-${version}" \
+-	   "initramfs-genkernel-${GENKERNEL_ARCH}-${alt_version}"; do
++	   "initramfs-genkernel-${GENKERNEL_ARCH}-${alt_version}" \
++	   "$GRUB_INITRD_FALLBACK_NAME" ; do
+     if test -e "${dirname}/${i}" ; then
+       initrd_real="${i}"
+       break
+--- ./util/grub-mkconfig.in.orig	2026-09-21 12:33:49.000000000 -0500
++++ ./util/grub-mkconfig.in	2026-09-27 15:01:16.511245517 -0500
+@@ -278,7 +278,8 @@
+   GRUB_SIMPLE_ACCESS_LEVEL \
+   GRUB_ADVANCED_ACCESS_LEVEL \
+   GRUB_RECOVERY_ACCESS_LEVEL \
+-  GRUB_BOOTNEXT_OMIT_INACTIVE
++  GRUB_BOOTNEXT_OMIT_INACTIVE \
++  GRUB_INITRD_FALLBACK_NAME
+ 
+ if test "x${grub_cfg}" != "x"; then
+   rm -f "${grub_cfg}.new"

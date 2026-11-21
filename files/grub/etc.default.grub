@@ -1,0 +1,84 @@
+# If you change this file, run grub-update afterwards to update
+# /boot/grub/grub.cfg.
+
+GRUB_DEFAULT=0
+#GRUB_HIDDEN_TIMEOUT=0
+GRUB_HIDDEN_TIMEOUT_QUIET=false
+GRUB_TIMEOUT=10
+GRUB_CMDLINE_LINUX_DEFAULT=""
+GRUB_CMDLINE_LINUX=""
+
+# Set GRUB_DISTRIBUTOR label.
+if [ -r /etc/slackware-version ]; then
+  GRUB_DISTRIBUTOR=$( sed 's/Slackware /Slackware-/' /etc/slackware-version )
+elif [ -r etc/slackware-version ]; then
+  GRUB_DISTRIBUTOR=$( sed 's/Slackware /Slackware-/' etc/slackware-version )
+else # unknown version
+  GRUB_DISTRIBUTOR=Slackware
+fi
+
+# Comment this for any of the following GFXMODE and font seetings to take
+# effect. Otherwise you'll get a simple text console mode.
+# This doesn't always look the greatest, but it is reliable.
+GRUB_TERMINAL=console
+
+# The resolution used on graphical terminal.
+# Using 0x0 sets the display's native resolution, which usually looks great.
+# Unfortunately, some of the fastest video cards are *very* slow running in
+# an unaccelerated mode from UEFI. This also extends to the input, which
+# could cause skipping trying to select menu items.
+GRUB_GFXMODE=0x0
+# Here we try to set a decent resolution while making sure that it's no larger
+# than full HD. If the 0x0 setting above produces a very slow menu, you might
+# want to try this setting instead.
+# This will try two high-resolution modes first before falling back to common
+# VESA resolutions, with "auto" (which will try to pick a working resolution)
+# as a fallback.
+# Note that there is no guarantee that your hardware will support any of these
+# modes. You might get a black screen. But in that case you should still be
+# able to hit enter to boot the first menu choice blind, and then try a
+# different GRUB_GFXMODE setting.
+# You can also use the command `videoinfo' on the GRUB console to see exactly
+# what video modes your hardware supports and set it to one of those.
+#GRUB_GFXMODE=1920x1080,1280x720,1024x768,800x600,640x480,auto
+
+# Font used on the graphical terminal:
+GRUB_FONT=/boot/grub/fonts/spleen.pf2
+
+# Have the Linux kernel keep the GRUB_GFXMODE resolution.
+# This is safer for penguins.
+GRUB_GFXPAYLOAD_LINUX=keep
+
+# Uncomment if you don't want GRUB to pass "root=UUID=xxx" parameter to Linux:
+#GRUB_DISABLE_LINUX_UUID=true
+
+# Uncomment to disable generation of recovery mode menu entries:
+GRUB_DISABLE_RECOVERY=true
+
+# Uncomment to disable GRUB's "BootNext" menu entries. You might need these if
+# you are going to reboot into Windows using Bitlocker, though.
+GRUB_DISABLE_BOOTNEXT=true
+
+# Search for other operating systems with os-prober.
+# If you don't want this, you can do any of these things to disable it:
+# - change to "true"
+# - comment it out, since disabled is the default
+# - remove the executable bit from /etc/grub.d/30_os-prober
+GRUB_DISABLE_OS_PROBER=false
+
+# Disable the submenus:
+GRUB_DISABLE_SUBMENU=true
+
+# What kernel filetypes to display in the menu. This may be set to "files"
+# (only display kernels that are files), "symlinks" (only display kernels
+# that are symbolic links), or "both".
+GRUB_DISPLAY_KERNEL_FILETYPES=both
+
+# This option allows defining an initrd name that will match any kernel as a
+# fallback if no other matching initrd is found. You may use any name you like.
+#GRUB_INITRD_FALLBACK_NAME=initrd.gz
+
+# This script (if it exists and is executable) will be run whenever the GRUB
+# package is installed/reinstalled. Usually it runs grub-install with the
+# correct options for this machine, followed by update-grub.
+GRUB_INSTALL_SCRIPT=boot/grub/grub-install-slackware.sh

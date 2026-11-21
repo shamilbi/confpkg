@@ -1,0 +1,11 @@
+--- ./grub-core/normal/main.c.orig	2022-11-14 10:37:19.000000000 -0600
++++ ./grub-core/normal/main.c	2025-08-18 17:40:12.296688813 -0500
+@@ -209,7 +209,7 @@
+ 
+   grub_term_cls (term);
+ 
+-  msg_formatted = grub_xasprintf (_("GNU GRUB  version %s"), PACKAGE_VERSION);
++  msg_formatted = grub_xasprintf (_("GNU GRUB version %s"), PACKAGE_VERSION);
+   if (!msg_formatted)
+     return;
+ 
