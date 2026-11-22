@@ -1,0 +1,7 @@
+#!/bin/bash
+
+PkgHome="https://github.com/yaml/libyaml/tags"
+
+pkg_pre_configure() {
+    ./bootstrap
+}
