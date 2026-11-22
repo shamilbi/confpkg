@@ -1,0 +1,30 @@
+From: Thorsten Alteholz <debian@alteholz.de>
+Date: Mon, 1 Aug 2022 13:49:11 +0200
+Subject: avoid [-Werror=address]
+Forwarded: not-needed
+
+---
+ bjnp-commands.c | 8 ++++++--
+ 1 file changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/bjnp-commands.c b/bjnp-commands.c
+index e8706a3..559b3b5 100644
+--- a/bjnp-commands.c
++++ b/bjnp-commands.c
+@@ -185,10 +185,14 @@ get_printer_id(http_addr_t *addr, char *model, char *IEEE1284_id)
+ 
+     /* set IEEE1284_id */
+ 
+-    if (printer_id != NULL) {
++    /*
++     * printer_id is char printer_id[]; so it is always != NULL
++     * nowadays (2022) this is a compiler error [-Werror=address], so we skip this
++     */
++    //if (printer_id != NULL) {
+         strncpy(printer_id, id.udp_identity_response.id, id_len);
+         printer_id[id_len] = '\0';
+-    }
++    //}
+ 
+     bjnp_debug(LOG_INFO, "Identity = %s\n", printer_id);
+ 

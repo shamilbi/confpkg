@@ -1,6 +1,9 @@
 #!/bin/bash
 
-PkgHome="https://sourceforge.net/projects/cups-bjnp/files/cups-bjnp/"
+PkgHome=(
+    "https://sourceforge.net/projects/cups-bjnp/files/cups-bjnp/"
+    "${DebianSearchURL}cups-backend-bjnp"
+)
 
 # Configure: http://localhost:631/printers/Canon_MP640_series
 # Description:	Canon MP640 series
@@ -14,6 +17,8 @@ ConfigureOpts+=(
 )
 
 pkg_pre_configure() {
+    pkg_debian_patch2 || return 1
+
     # bjnp-discover.c:36:9: error: unused variable ‘ipv6_v6only’ [-Werror=unused-variable]
     pkg_add_cflags -Wno-error=unused-variable
     # bjnp-levels.c:307:14: error: storing the address of local variable ‘warnings’ in ‘next’ [-Werror=dangling-pointer=]
