@@ -241,6 +241,20 @@ pkg_debian_patch() {
     fi
 }
 
+pkg_debian_patch2() {
+    local d=$SupportDir
+    local series=$d/series
+    local i
+    if [[ -f $series ]]; then
+        while IFS= read -r i; do
+            [[ ! $i || $i = \#* ]] && continue
+            echo "--------------------"
+            pkg_echo "patch from $i ..."
+            patch -p1 <"$d/$i" || return 1
+        done <"$series"
+    fi
+}
+
 pkg_mkdir() {
     local d=$1
     if [[ ! $d ]]; then
