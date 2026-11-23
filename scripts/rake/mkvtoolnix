@@ -3,7 +3,8 @@
 PkgHome=(
     "https://mkvtoolnix.download/source.html"
     # "https://gitlab.com/mbunkus/mkvtoolnix"
-    "https://mkvtoolnix.download/sources/"
+    "https://mkvtoolnix.download/sources/?sort=time&order=desc"
+    "https://codeberg.org/mbunkus/mkvtoolnix/tags"
 )
 
 ConfigureOpts+=(
