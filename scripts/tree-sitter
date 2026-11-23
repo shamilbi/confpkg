@@ -3,22 +3,25 @@
 PkgHome="https://github.com/tree-sitter/tree-sitter/tags"
 
 MakeEnv=(
-    "PREFIX=$Prefix"
-    "LIBDIR=$LibDir"
+    # Slackware
+    PREFIX="$Prefix"
+    LIBDIR="$LibDir"
 )
 InstallEnv+=("${MakeEnv[@]}")
 
 pkg_make() {
+    # Slackware
     "${Make[@]}" "${MakeEnv[@]}" "${MakeOpts[@]}" || return 1
-    if [[ -d cli ]]; then
-        cargo build --release --all-features -C cli || return 1
-    else
-        cargo build --release --all-features
-    fi
+    # Build and install cli:
+    (
+        cd crates/cli || exit 1
+        cargo build --release --locked --all-features
+    ) || return 1
 }
 
 pkg_post_install() {
+    # Slackware
+    pkg_install_mfd 755 target/release/tree-sitter "$Prefix2"/bin
+    # No static library:
     find "$LibDir2" -type f -name '*.a' -delete
-
-    pkg_install_mfd 755 target/release/"$Name" "$Prefix2"/bin
 }
