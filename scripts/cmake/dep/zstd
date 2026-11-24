@@ -40,6 +40,8 @@ pkg_post_install() {
     ls -d "$LibDir2"/*.so.* | pkg_mv_ln "$DestDir/$LibName"
     # Symlink the static library or CMake gets mad:
     ls -d "$LibDir2"/libzstd.a | pkg_ln_d "$DestDir/$LibName"
-    # Set the path of libzstd in cmake Targets (given by Steven Voges in SBo)
-    sed -i 's|${_IMPORT_PREFIX}||g' "$LibDir2"/cmake/zstd/zstdTargets-release.cmake
+    if (($(pkg_cmp_versions "$Version" "1.6.0") < 0)); then
+        # Set the path of libzstd in cmake Targets (given by Steven Voges in SBo)
+        sed -i 's|${_IMPORT_PREFIX}||g' "$LibDir2"/cmake/zstd/zstdTargets-release.cmake
+    fi
 }
