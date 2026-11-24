@@ -1,0 +1,81 @@
+#!/bin/bash
+
+pkg_check=1
+
+pkg_pre_configure() {
+    # Slackware
+    # Fix .so errors in manpages (needed for strict implementations such as mandoc):
+    # bash_manpages.patch.gz
+    local i
+    for i in builtins.1 rbash.1; do
+        sed -i -e 's,^\.so bash\.1,.so man1/bash.1,' doc/"$i"
+    done
+    # Reconf if configure.ac has changed:
+    # if grep -wq configure.ac $CWD/bash-${VERSION}-patches/* ; then
+    #   autoreconf -vif
+    # fi
+    if [[ configure.ac -nt configure ]]; then
+        pkg_autoreconf
+    fi
+    # Adjust the default BASH_LOADABLES_PATH and fix documentation for ${LIBDIRSUFFIX}:
+    if [[ $LibName != "lib" ]]; then
+        for i in config-top.h doc/bashref.html doc/bash.info; do
+            sed -i "/lib\/bash/s+lib/bash+$LibName/bash+g" "$i"
+        done
+    fi
+
+    # for tests
+    mkdir -pm 700 "$SrcDir"/_tmp
+    export TMPDIR=$SrcDir/_tmp
+}
+
+pkg_post_install() {
+    local bin=$DestDir/bin
+
+    # Slackware
+    #mv $PKG/usr/bin/bash $PKG/bin/bash5.new
+
+    # link: /usr/bin/bash --> /bin/bash
+    echo "$Prefix2/bin/bash" | pkg_mv_ln "$bin"
+    # bash --> bash-5.1
+    mv "$bin"/bash "$bin/bash-$Version"
+
+    # Slackware
+    # We don't include the "bashbug" script.
+    rm -rf "$Prefix2"/bin "$ManDir2"/man1/bashbug.1
+    # bash.1 is already installed by "make install"
+    # builtins.1,rbash.1
+    pkg_install_mfd 644 doc/{builtins.1,rbash.1} "$ManDir2"/man1
+}
+
+pkg_read2var pkg_post_installpkg <<EOF
+pkg_post_installpkg() {
+    # link bash-$Version -> bash
+    (
+        cd bin || exit 1
+        if [[ -x bash-"$Version" ]]; then
+            # old bash -> bash.old
+            [[ -e bash && ! -L bash ]] && cp -a bash bash.old
+            ln -sfn bash-"$Version" bash
+        fi
+    )
+
+    # Slackware
+    # /etc/shells
+    (
+        cd etc || exit 1
+        if [[ ! -r shells ]]; then
+            touch shells
+            chmod 644 shells
+        fi
+        if grep -wq /bin/bash shells ; then
+            :
+        else
+            echo /bin/bash >> shells
+        fi
+    )
+    # usr/bin/bash
+    ln -sfn /bin/bash usr/bin/bash
+}
+pkg_post_installpkg
+EOF
