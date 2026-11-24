@@ -1,0 +1,44 @@
+#!/bin/bash
+
+PkgHome=(
+    "${DebianSearchURL}zip"
+    "$SlackwareMirrorUrl/a/infozip/?C=M&O=D"
+)
+
+Make+=(
+    # Slackware
+    -f unix/Makefile
+)
+pkg_check=
+MakeOpts=(
+    # Slackware
+    generic_gcc
+
+    zipsman
+)
+MakeEnv=(
+    prefix="$Prefix"
+)
+InstallEnv=(
+    prefix="$Prefix2"
+)
+CleanOpts=(clean)
+
+pkg_pre_configure() {
+    # Slackware
+    local patches=(
+        # Apply various patches:
+        zip-3.0-exec-shield.patch
+        zip-3.0-currdir.patch
+        zip-3.0-time.patch
+        man.patch
+        zip-3.0-format-security.patch
+        zipnote.patch
+        # GCC 14 fix:
+        zip.gnu89.diff
+    )
+    local i
+    for i in "${patches[@]}"; do
+        pkg_patch_f2 "$SupportDir/$i" 1 || return 1
+    done
+}
