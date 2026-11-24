@@ -1,0 +1,75 @@
+#!/bin/bash
+
+PkgHome=(
+    "${DebianSearchURL}unzip"
+    "$SlackwareMirrorUrl/a/infozip/?C=M&O=D"
+)
+
+Make+=(
+    # Slackware
+    -f unix/Makefile
+)
+MakeEnv=(
+    # Slackware
+    LOCAL_UNZIP="-DIZ_HAVE_UXUIDGID -DNOMEMCPY -DNO_LCHMOD"
+
+    prefix="$Prefix"
+)
+MakeOpts=(
+    # Slackware
+    generic_gcc
+)
+InstallEnv=(
+    prefix="$Prefix2"
+)
+CleanOpts=(clean)
+
+pkg_pre_configure() {
+    # Slackware
+    local patches=(
+        # Apply various patches:
+        unzip-6.0-bzip2-configure.patch
+        unzip-6.0-exec-shield.patch
+        unzip-6.0-close.patch
+        unzip-6.0-attribs-overflow.patch
+        # RH specific:
+        #unzip-6.0-configure.patch
+        unzip-6.0-manpage-fix.patch
+        unzip-6.0-fix-recmatch.patch
+        unzip-6.0-symlink.patch
+        unzip-6.0-caseinsensitive.patch
+        unzip-6.0-format-secure.patch
+        unzip-6.0-valgrind.patch
+        unzip-6.0-x-option.patch
+        unzip-6.0-overflow.patch
+        unzip-6.0-cve-2014-8139.patch
+        unzip-6.0-cve-2014-8140.patch
+        unzip-6.0-cve-2014-8141.patch
+        unzip-6.0-overflow-long-fsize.patch
+        unzip-6.0-heap-overflow-infloop.patch
+        unzip-6.0-alt-iconv-utf8.patch
+        unzip-6.0-alt-iconv-utf8-print.patch
+        0001-Fix-CVE-2016-9844-rhbz-1404283.patch
+        unzip-6.0-timestamp.patch
+        unzip-6.0-cve-2018-1000035-heap-based-overflow.patch
+        unzip-6.0-cve-2018-18384.patch
+        unzip-6.0-COVSCAN-fix-unterminated-string.patch
+        # GCC 14 fix:
+        unzip.gnu89.diff
+        # More security patches from upstream:
+        28-cve-2022-0529-and-cve-2022-0530.patch
+        unzip-6.0_CVE-2021-4217.patch
+    )
+    local i
+    for i in "${patches[@]}"; do
+        pkg_patch_f2 "$SupportDir/$i" 1 || return 1
+    done
+}
+
+pkg_post_install() {
+    # Slackware
+    (
+        cd "$Prefix2/bin" || exit 1
+        echo "unzip"| pkg_ln_equals
+    )
+}
