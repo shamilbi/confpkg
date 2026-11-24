@@ -1,0 +1,28 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://github.com/dracut-ng/dracut-ng/tags"
+    "$SlackwareMirrorUrl/a/dracut/?C=M&O=D"
+)
+
+ConfigureOpts+=(
+    # Slackware
+    # Don't use --libdir=/usr/lib${LIBDIRSUFFIX} because "/usr/lib/dracut"
+    # is hardcoded all over the place and it just makes a mess of things for no
+    # benefit.
+    --libdir=/usr/lib
+)
+
+pkg_post_install() {
+    # Slackware
+    # Include elogind-uaccess-command to allow processing uaccess rules correctly:
+    cat $SupportDir/elogind.conf | sed "s#/lib/#/lib${LIBDIRSUFFIX}/#g" |
+        pkg_install_mff 644 "$Etc2"/dracut.conf.d/elogind.conf
+    # Don't search for systemd services in the startup messages --
+    # it's scaring the children. ;-)
+    pkg_install_mfd 644 "$SupportDir"/omit_systemd_modules.conf "$Etc2"/dracut.conf.d
+    # Set i18n_vars to prevent a warning:
+    pkg_install_mfd 644 "$SupportDir"/i18n_vars.conf "$Etc2"/dracut.conf.d
+    # Set hostonly_cmdline=yes, otherwise encrypted root will fail.
+    echo "hostonly_cmdline=yes" > "$Etc2"/dracut.conf.d/hostonly_cmdline_yes.conf
+}
