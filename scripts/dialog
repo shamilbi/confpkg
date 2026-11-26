@@ -1,7 +1,7 @@
 #!/bin/bash
 
 PkgHome=(
-    "https://invisible-island.net/dialog/"
+    "https://invisible-island.net/archives/dialog/?C=M;O=D"
     "$SlackwareMirrorUrl/a/dialog/?C=M&O=D"
 )
 
@@ -17,16 +17,11 @@ ConfigureOpts+=(
 
 pkg_pre_configure() {
     # Slackware
-    # This patch takes care of a formatting issue that was preventing
+    # This patch take care of a formatting issue that was preventing
     # us from moving to a more recent version of dialog:
-    if (($(pkg_cmp_versions "$Version" "1.3-20260107") < 0)); then
-        pkg_patch_f3 dialog.all.use_height.diff.gz 1 || return 1
-        pkg_patch_f3 dialog.smaller.min.height.diff.gz 1 || return 1
-    elif (($(pkg_cmp_versions "$Version" "1.3-20260721") < 0)); then
-        pkg_patch_f3 dialog.all.use_height-2.diff.gz 1 || return 1
-        pkg_patch_f3 dialog.smaller.min.height-2.diff.gz 1 || return 1
-    fi
-    pkg_patch_f3 dialog.no.aspect.ratio.autoajust.patch.gz 1 || return 1
+    pkg_patch_f3 dialog.no.aspect.ratio.autoadjust.patch 1 || return 1
+    # Fix upstreamable bug:
+    pkg_patch_f3 dialog.autosize.listheight.diff 1 || return 1
 }
 
 pkg_post_install() {
@@ -38,5 +33,5 @@ pkg_post_install() {
     find "$LibDir2" -type f -name 'libdialog.a' -delete
     find "$LibDir2" -depth -type d -empty -delete
     # /bin/dialog
-    echo "$Prefix2/bin/$Name" | pkg_mv_ln "$DestDir/bin"
+    echo "$Prefix2"/bin/dialog | pkg_mv_ln "$DestDir"/bin
 }
