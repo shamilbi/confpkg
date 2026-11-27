@@ -1,0 +1,47 @@
+#!/bin/bash
+
+PkgHome="https://www.kernel.org/pub/linux/daemons/autofs/v5/"
+
+unset -v pkg_check
+
+ConfigureOpts+=(
+    # Slackware
+    --with-libtirpc
+    --with-openldap
+    --without-sasl
+)
+
+pkg_pre_configure() {
+    # Slackware
+    if [[ $Version = "5.2.0" ]]; then
+        pkg_patch_f3 2-autofs-5.2.0-fix-map-type-check-when-reading-master-map.patch 1 || return 1
+    fi
+}
+
+pkg_post_install() {
+    # Slackware
+    # Add /run directory:
+    mkdir -p "$DestDir"/run
+    # Referenced in the auto.master config file, but not created:
+    mkdir -p "$Etc2"/auto.master.d
+    # Install rc.autofs.new:
+    pkg_install_mfd 644 samples/rc.autofs "$Etc2"/rc.d
+    # Fix confdir:
+    sed -i "s|/etc/sysconfig|/etc/default|g" "$Etc2"/rc.d/rc.autofs
+    # Install sample config files:
+    local files=(
+        auto.master auto.misc auto.net auto.smb autofs_ldap_auth.conf
+    )
+    local file
+    for file in "${files[@]}"; do
+        pkg_install_mfd 644 samples/"$file" "$Etc2"
+    done
+    # /etc/autofs.conf
+    pkg_install_mff 644 samples/autofs.conf.default "$Etc2"/autofs.conf
+    mkdir -p "$Etc2"/default
+    # /etc/default/autofs
+    pkg_install_mff 644 samples/autofs.init.conf "$Etc2"/default/autofs
+    # Fix perms on some config files:
+    chmod 755 "$Etc2"/auto.smb "$Etc2"/auto.net
+    chmod 600 "$Etc2"/autofs_ldap_auth.conf
+}

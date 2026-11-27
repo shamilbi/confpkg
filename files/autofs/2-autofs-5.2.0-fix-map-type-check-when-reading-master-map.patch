@@ -1,0 +1,62 @@
+autofs-5.2.0 - fix map type check when reading master map
+
+From: Ian Kent <raven@themaw.net>
+
+Commit 567b4ea2 ("dont auto readmap for hosts map") added two
+strcmp(ap->entry->maps->type, "hosts") calls in daemon/master.c without
+a NULL check. If ap->maps->type is NULL when the master map entry has
+no explicit type, e.g. "/auto /etc/auto.auto", automount segfaults.
+
+After the daemon dies, processes that accessed the mount point stay
+blocked in autofs_wait and the system frequently needs to be rebooted.
+
+Thanks to Derek Parks for the initial patch.
+
+Fixes: 567b4ea2 ("dont auto readmap for hosts map")
+Reported-by: Derek Parks <dnparks@gmail.com>
+Signed-off-by: Ian Kent <raven@themaw.net>
+---
+ CHANGELOG       |    2 ++
+ daemon/master.c |    9 +++++++--
+ 2 files changed, 9 insertions(+), 2 deletions(-)
+
+diff --git a/CHANGELOG b/CHANGELOG
+index a7c7abd4f..fdf4570ad 100644
+--- a/CHANGELOG
++++ b/CHANGELOG
+@@ -1,3 +1,5 @@
++- fix map type check when reading master map.
++
+ 10/11/2026 autofs-5.2.0
+ - Update configure script.
+ - fix ldap_parse_page_control() check.
+diff --git a/daemon/master.c b/daemon/master.c
+index f1df80731..94b0d8db8 100644
+--- a/daemon/master.c
++++ b/daemon/master.c
+@@ -613,10 +613,14 @@ void send_map_update_request(struct autofs_point *ap)
+ 	struct map_source *map;
+ 	int status, need_update = 0;
+ 
++	/* Don't bother if there are no maps. */
++	if (!ap->entry->maps)
++		return;
++
+ 	/* Don't send an update request if the primary map is the
+ 	 * "hosts" map.
+ 	 */
+-	if (!strcmp(ap->entry->maps->type, "hosts"))
++	if (ap->entry->maps->type && !strcmp(ap->entry->maps->type, "hosts"))
+ 		return;
+ 
+ 	status = pthread_mutex_lock(&instance_mutex);
+@@ -1513,7 +1517,8 @@ void check_update_map_sources(struct master_mapent *entry, int readall)
+ 		/* Don't send an update request if the primary map is
+ 		 * the "hosts" map.
+ 		 */
+-		if (strcmp(ap->entry->maps->type, "hosts"))
++		if (entry->maps &&
++		   (!entry->maps->type || strcmp(entry->maps->type, "hosts")))
+ 			st_add_task(ap, ST_READMAP);
+ 	}
+ 
