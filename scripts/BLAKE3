@@ -12,7 +12,10 @@ pkg_install() {
         cd b3sum || exit 1
 
         # Slackware
-        cargo install --offline --no-track --root "$Prefix2" --path="." || exit 1
+        # cargo install --offline --no-track --root "$Prefix2" --path="." || exit 1
+        # error: failed to select a version for the requirement `clap = "^4.0.8"` (locked to 4.6.10)
+
+        cargo install --no-track --root "$Prefix2" --path="." || exit 1
 
         # cargo build --release || exit 1
         # pkg_install_mfd 755 target/release/b3sum "$Prefix2"/bin
