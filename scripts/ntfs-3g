@@ -18,7 +18,10 @@ ConfigureOpts+=(
     --enable-crypto # enable crypto related code and utilities, =no
     --enable-extras # enable extra ntfsprogs utilities, =no
     --enable-posix-acls # enable POSIX ACL support, =no
-    --enable-xattr-mappings # enable system extended attributes mappings, =no
+
+    # v2026.11.23
+    # xattrs.c:430:64: error: passing argument 1 of 'ntfs_read_xattr_mapping' from incompatible pointer type [-Wincompatible-pointer-types]
+    # --enable-xattr-mappings # enable system extended attributes mappings, =no
 )
 
 pkg_pre_install() {
