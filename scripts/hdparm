@@ -1,0 +1,33 @@
+#!/bin/bash
+
+PkgHome=(
+    "https://sourceforge.net/projects/hdparm/files/hdparm/"
+    "https://wiki.archlinux.org/title/Hdparm"
+    "$SlackwareMirrorUrl/a/hdparm/?C=M&O=D"
+    "${DebianSearchURL}hdparm"
+)
+
+unset -v pkg_configure pkg_check
+
+MakeEnv=(
+    # Slackware
+    sbindir=/sbin
+
+    mandir="$ManDir"
+)
+InstallEnv+=("${MakeEnv[@]}")
+CleanOpts=(clean)
+
+pkg_post_install() {
+    # Slackware
+    # link: /sbin/hdparm -> /usr/sbin/
+    ls -d "$DestDir"/sbin/hdparm | pkg_ln_d "$Prefix2"/sbin
+}
+
+pkg_install_doc() {
+    # Slackware
+    pkg_install_mfd 644 LICENSE.TXT README.acoustic hdparm.lsm "$DocDir2"
+    pkg_cp_fd contrib "$DocDir2"
+    # I'm also not sure why I'm putting a binary in the docs, but...
+    rm -f $DocDir2/contrib/fix_standby.c
+}
