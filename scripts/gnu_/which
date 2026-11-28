@@ -1,6 +1,9 @@
 #!/bin/bash
 
 PkgHome[1]="${DebianSearchURL}gnu-which"
+PkgHome+=(
+    "$SlackwareMirrorUrl/a/which/?C=M&O=D"
+)
 
 ConfigureOpts+=(
     --bindir=/bin
@@ -8,5 +11,6 @@ ConfigureOpts+=(
 
 pkg_post_install() {
     # Slackware
+    # link: /bin/which -> /usr/bin/which
     ls -d "$DestDir"/bin/which | pkg_ln_d "$Prefix2/bin"
 }
